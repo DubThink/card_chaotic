@@ -1,5 +1,5 @@
 package Globals;
 
 public class DebugConstants {
-    public static boolean renderUIDebug = true;
+    public static boolean renderUIDebug = false;
 }

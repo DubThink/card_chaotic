@@ -291,11 +291,14 @@ public class Util {
         return (float)Math.ceil(val/roundTo)*roundTo;
 
     }
-    public static int pColor(Color c){
+
+    public static int pColor(Color c) {
+        return pColor(c, c.getAlpha());
+    }
+    public static int pColor(Color c, float alpha){
         float v1=c.getRed();
         float v2=c.getGreen();
         float v3=c.getBlue();
-        float alpha=c.getAlpha();
         //Code from PApplet source code. Copyright Processing Foundation
         if(alpha > 255.0F) {
             alpha = 255.0F;

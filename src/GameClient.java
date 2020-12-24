@@ -1,10 +1,19 @@
+import Globals.DebugConstants;
+import UI.Action;
+import UI.Style;
 import UI.UIBase;
+import UI.UIButton;
+import core.AdvancedApplet;
 import processing.core.PApplet;
 
-public class GameClient extends PApplet{
+import java.awt.*;
+
+import static java.awt.event.KeyEvent.*;
+
+public class GameClient extends AdvancedApplet {
 
     public void settings(){
-        size(1600,900);
+        size(1600,900, "TestGraphics");
 
 //        fullScreen(P3D,-2);
     }
@@ -14,7 +23,16 @@ public class GameClient extends PApplet{
 
     @Override
     public void setup() {
-        root = new UIBase(1,1,width/2, height/2);
+        Style.loadFonts(this);
+        root = new UIBase(10,10,width/2, height/2);
+        Action test = new Action() {
+            @Override
+            public void action() {
+                root.setPos(100,100);
+            }
+        };
+        root.addChild(new UIButton(10,10,200,40, "abcde", test));
+        Style.font32.font.initInjection();
     }
 
     public void draw(){
@@ -47,10 +65,14 @@ public class GameClient extends PApplet{
         noStroke();
         root.updateFocus(mouseX, mouseY);
         root.render(this);
+        Style.font32.font.debuggy();
     }
 
     @Override
     public void keyPressed() {
+        println(key, keyCode);
+        if(keyCode == VK_F3)
+            DebugConstants.renderUIDebug = !DebugConstants.renderUIDebug;
     }
 
     @Override
