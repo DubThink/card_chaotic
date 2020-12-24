@@ -11,6 +11,7 @@ public class UIBase {
     int cx, cy;
     int x, y; // relative (to parent)
     int w, h;
+    int fontFamily=Style.F_STANDARD;
     boolean focus;
     ArrayList<UIBase> children;
     UIBase parent;
@@ -96,9 +97,10 @@ public class UIBase {
         p.rect(cx, cy,w,h);
     }
 
-    public void addChild(UIBase child){
+    public <T extends UIBase> T addChild(T child){
         children.add(child);
-        child.setParent(this);
+        ((UIBase)child).setParent(this);
+        return child;
     }
 
     public boolean handleMouseInput(boolean down, int button, int x, int y) {
@@ -137,9 +139,15 @@ public class UIBase {
         return h;
     }
 
-    public void setPos(int x, int y){
+    public UIBase setPos(int x, int y){
         this.x=x;
         this.y=y;
         _updateCalculatedPosition();
+        return this;
+    }
+
+    public UIBase setFontFamily(int fontFamily) {
+        this.fontFamily = fontFamily;
+        return this;
     }
 }

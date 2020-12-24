@@ -9,25 +9,27 @@ import java.io.InputStream;
 
 public class HyperFont extends PFont {
     public PFont injectedFont;
-    Glyph testGlyph;
+//    Glyph testGlyph;
+    public float baseline,leading;
+    public boolean injecting=false;
     public HyperFont(Font font, boolean smooth, char[] charset, boolean stream, int density) {
         super(font, smooth, charset, stream, density);
     }
 
-    public void initInjection(){
-        int pindex = index('π');
-        testGlyph = glyphs[pindex];
-        //testGlyph.width=30;
-    }
+//    public void initInjection(){
+//        int pindex = index('π');
+//        testGlyph = glyphs[pindex];
+//    }
 
-    protected boolean isHyperChar(char c){
-        return false&&injectedFont!=null && c%2==0;
-    }
+//    protected boolean isHyperChar(char c){
+//        return injectedFont!=null && false;//%2==0;
+//    }
 
     @Override
     public Glyph getGlyph(char c) {
-        if(isHyperChar(c))
-            return testGlyph;
+        //System.out.println("getting '"+c+"', injecting = "+injecting);
+        if(injecting && injectedFont!=null)
+            return injectedFont.getGlyph(c);
         return super.getGlyph(c);
     }
 
@@ -53,19 +55,15 @@ public class HyperFont extends PFont {
 
     @Override
     public PShape getShape(char c) {
-        if(isHyperChar(c))
-            c = 'π';
+        if(injecting&& injectedFont!=null)
+            return injectedFont.getShape(c);
         return super.getShape(c);
     }
 
     @Override
     public PShape getShape(char c, float detail) {
-        if(isHyperChar(c))
-            c = 'π';
+        if(injecting&& injectedFont!=null)
+            return injectedFont.getShape(c, detail);
         return super.getShape(c, detail);
-    }
-
-    public void debuggy(){
-        System.out.println(super.getGlyph('π').width);
     }
 }

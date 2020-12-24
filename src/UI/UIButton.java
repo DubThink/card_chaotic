@@ -2,18 +2,32 @@ package UI;
 
 import core.AdvancedApplet;
 import processing.core.PApplet;
+import processing.core.PConstants;
 
 public class UIButton extends UIBase {
+    String text;
     public Action onAction;
     public Action offAction;
     boolean toggle;
     boolean state;
-    String text;
 
     public UIButton(int x, int y, int w, int h, String text, Action action) {
         super(x, y, w, h);
         this.onAction = action;
         this.text = text;
+    }
+
+    public UIButton(int x, int y, int w, int h, String text, Action onAction, Action offAction, boolean toggle) {
+        this(x,y,w,h,text,onAction,offAction,toggle, false);
+    }
+
+    public UIButton(int x, int y, int w, int h, String text, Action onAction, Action offAction, boolean toggle, boolean state) {
+        super(x, y, w, h);
+        this.text = text;
+        this.onAction = onAction;
+        this.offAction = offAction;
+        this.toggle = toggle;
+        this.state = state;
     }
 
     @Override
@@ -26,12 +40,18 @@ public class UIButton extends UIBase {
 
     @Override
     protected void _draw(AdvancedApplet p) {
-        p.fill(state?Style.fillColorHover:Style.fillColor);
+        if(state)
+            p.fill(Style.fillColorActive);
+        else
+            p.fill(Style.fillColor);
         p.stroke(focus?Style.borderColorHover:Style.borderColor);
         p.rect(cx, cy,w,h,Style.borderRadius);
-        p.fill(focus?Style.borderColorHover:Style.borderColor);
-        Style.font32.apply(p);
-        p.text(text, cx, cy);
+        p.fill(focus?Style.textColorHover:Style.textColor);
+
+        Style.chooseFont(fontFamily, h).apply(p);
+        p.textAlign(PConstants.CENTER, PConstants.CENTER);
+//        p.text(text, cx, cy);
+        p.text(text, cx+w/2f, cy+h/2f);
     }
 
     @Override
@@ -39,7 +59,10 @@ public class UIButton extends UIBase {
         if(!isPointOver(x,y))
             return false;
         if(toggle){
-            state = !state;
+            if(down) {
+                state = !state;
+                System.out.println("eee state: "+state);
+            }
         } else {
             state=down;
         }
