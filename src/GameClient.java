@@ -65,7 +65,6 @@ public class GameClient extends AdvancedApplet {
         noStroke();
         root.updateFocus(mouseX, mouseY);
         root.render(this);
-        Style.font32.font.debuggy();
     }
 
     @Override
