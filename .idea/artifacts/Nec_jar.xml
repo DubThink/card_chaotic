@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact name="Nec:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Nec_jar</output-path>
+    <root id="root">
+      <element id="archive" name="Nec.jar">
+        <element id="module-output" name="Nec" />
+      </element>
+      <element id="library" level="project" name="pcore" />
+    </root>
+  </artifact>
+</component>
