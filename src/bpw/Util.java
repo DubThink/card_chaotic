@@ -381,4 +381,34 @@ public class Util {
 //    public static Card pickFirst(Card ... cards){
 //        for(Card card:cards)if(card!=null)return;
 //    }
+
+    public static boolean isTextChar(char c){
+        return c>=' '&&c<='~' || c=='\t';
+    }
+
+
+    public static String insertChar(String s, char c, int idx){
+        if(idx <= 0)
+            return c + s;
+        else if (idx >= s.length())
+            return s + c;
+        return s.substring(0,idx) + c + s.substring(idx);
+    }
+
+    public static String insertString(String s, String c, int idx){
+        if(idx <= 0)
+            return c + s;
+        else if (idx >= s.length())
+            return s + c;
+        return s.substring(0,idx) + c + s.substring(idx);
+    }
+
+    public static String removeChar(String s, int idx){
+        if(idx <= 0)
+            return s.substring(1);
+        else if (idx >= s.length()-1)
+            return s.substring(0,s.length()-1);
+        return s.substring(0,idx) + s.substring(idx+1);
+    }
+
 }

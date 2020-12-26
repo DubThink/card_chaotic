@@ -93,6 +93,15 @@ public class AdvancedGraphics extends PGraphics2D {
         return wide;
     }
 
+    public float simpleTextWidthImpl(String string, int start, int stop) {
+        float wide = 0;
+        for (int i = start; i < stop; i++) {
+            // could add kerning here, but it just ain't implemented
+            wide += textFont.width(string.charAt(i)) * textSize;
+        }
+        return wide;
+    }
+
 
     @Override
     protected PFont createFont(String name, float size, boolean smooth, char[] charset) {

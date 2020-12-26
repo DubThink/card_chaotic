@@ -1,11 +1,9 @@
-package UI;
+package Globals;
 
 import bpw.Util;
 import core.AdvancedApplet;
 import core.HyperFont;
-import processing.core.PApplet;
 import processing.core.PFont;
-import processing.core.PShape;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -30,7 +28,7 @@ public class Style {
     public static int borderColor = Util.pColor(new Color(135, 135, 135));
     public static int borderColorHover = Util.pColor(new Color(0, 0, 0));
 
-    public static int textColor = Util.pColor(new Color(21, 32, 47));
+    public static int textColor = Util.pColor(new Color(54, 55, 61));
     public static int textColorHover = Util.pColor(new Color(0, 0, 0));
 
     public static int fillColor = Util.pColor(new Color(127,127,127,150));
@@ -59,15 +57,15 @@ public class Style {
     static String[] FONT_FAMILY_NAMES = {
             "Candara",//"Palatino Linotype",
             "Palatino Linotype Italic",
-            "Corbel Bold",//"Palatino Linotype Bold",
+            "Corbel",//"Palatino Linotype Bold",
             "Segoe Print",
             "Century Gothic Bold"
     };
 
     static float[] FONT_FAMILY_BASELINES = {
-            0,
-            0,
-            0,
+            .1f,
+            .1f,
+            .1f,
             .3f,
             .18f
     };

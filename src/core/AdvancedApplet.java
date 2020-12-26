@@ -55,4 +55,8 @@ public class AdvancedApplet extends PApplet {
         output.append(s,start,s.length());
         return output.toString();
     }
+
+    public AdvancedGraphics getAdvGraphics(){
+        return (AdvancedGraphics)g;
+    }
 }

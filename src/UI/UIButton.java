@@ -1,7 +1,7 @@
 package UI;
 
+import Globals.Style;
 import core.AdvancedApplet;
-import processing.core.PApplet;
 import processing.core.PConstants;
 
 public class UIButton extends UIBase {
@@ -45,13 +45,13 @@ public class UIButton extends UIBase {
         else
             p.fill(Style.fillColor);
         p.stroke(focus?Style.borderColorHover:Style.borderColor);
-        p.rect(cx, cy,w,h,Style.borderRadius);
+        p.rect(cx, cy, cw, ch,Style.borderRadius);
         p.fill(focus?Style.textColorHover:Style.textColor);
 
-        Style.chooseFont(fontFamily, h).apply(p);
+        Style.chooseFont(fontFamily, ch).apply(p);
         p.textAlign(PConstants.CENTER, PConstants.CENTER);
 //        p.text(text, cx, cy);
-        p.text(text, cx+w/2f, cy+h/2f);
+        p.text(text, cx+ cw /2f, cy+ ch /2f);
     }
 
     @Override
