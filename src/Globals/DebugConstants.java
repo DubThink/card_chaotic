@@ -2,6 +2,7 @@ package Globals;
 
 public class DebugConstants {
     public static boolean renderUIDebug = false;
+//    public static boolean printUIDebug = false;
     public static boolean breakpoint = false;
 
     public static void breakpointToggle(){

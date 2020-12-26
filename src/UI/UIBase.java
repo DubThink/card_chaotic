@@ -16,6 +16,7 @@ public class UIBase {
     boolean focus;
     boolean textFocus = false;
     UIBase textFocusTarget = null;
+    UILayer layer;
 
     public static AdvancedApplet app;
 
@@ -28,6 +29,10 @@ public class UIBase {
     UIBase parent;
 
     public UIBase(int x, int y, int w, int h) {
+        this(x, y, w, h, UILayer.INTERFACE);
+    }
+
+    public UIBase(int x, int y, int w, int h, UILayer layer) {
         this.x = x;
         this.y = y;
         this.cx = x;
@@ -38,6 +43,7 @@ public class UIBase {
         this.ch = h;
         focus = false;
         children = new ArrayList<>();
+        this.layer = layer;
         //setParent(null);
     }
 
@@ -93,6 +99,8 @@ public class UIBase {
 
     protected void _updateCalculatedLayout() {
         if (parent == null) {
+            if (x < 0 || y < 0)
+                throw new RuntimeException("Cannot have a negative (relative) position without a parent.");
             cx = x;
             cy = y;
             if (w <= 0 || h <= 0)
@@ -100,11 +108,11 @@ public class UIBase {
             cw = w;
             ch = h;
         } else {
-            cx = parent.cx + x;
-            cy = parent.cy + y;
-            // negative width/height is relative to parent
-            cw = (w <= 0 ? parent.cw - x : 0) + w;
-            ch = (h <= 0 ? parent.ch - y : 0) + h;
+            // negative vals are relative to parent
+            cx = (x < 0 ? parent.cx + parent.cw : parent.cx) + x;
+            cy = (y < 0 ? parent.cy + parent.ch : parent.cy) + y;
+            cw = (w <= 0 ? (x < 0 ? -x : parent.cw - x) : 0) + w;
+            ch = (h <= 0 ? (y < 0 ? -y : parent.ch - y) : 0) + h;
         }
         for (UIBase element : children) {
             element._updateCalculatedLayout();
@@ -117,9 +125,6 @@ public class UIBase {
 
     public void render(AdvancedApplet p) {
         if (!enabled) return;
-        for (int i = 0; i < children.size(); i++) {
-            children.get(i).render(p);
-        }
         p.pushStyle();
         _draw(p);
         p.popStyle();
@@ -129,6 +134,10 @@ public class UIBase {
             _debugDraw(p);
             p.popStyle();
         }
+        for (int i = 0; i < children.size(); i++) {
+            children.get(i).render(p);
+        }
+
     }
 
     protected void _draw(AdvancedApplet p) {
@@ -156,8 +165,19 @@ public class UIBase {
     protected void _logicStep(int dt) {
     }
 
+    public <T extends UIBase> T addChild(T child, UILayer layer) {
+        child.layer=layer;
+        return addChild(child);
+    }
+
     public <T extends UIBase> T addChild(T child) {
-        children.add(child);
+        int i;
+        for (i = children.size() - 1; i >= 0; i--) {
+            if (children.get(i).layer.compareTo(child.layer) <= 0)
+                break;
+        }
+        children.add(i+1, child);
+
         ((UIBase) child).setParent(this);
         return child;
     }
@@ -174,7 +194,7 @@ public class UIBase {
     }
 
     protected boolean _handleMouseInput(boolean down, int button, int x, int y) {
-        return false;
+        return isPointOver(x,y);
     }
 
     public boolean handleKeyPress(boolean down, char key, int keyCode) {
@@ -228,9 +248,20 @@ public class UIBase {
         return this;
     }
 
+    public UIBase setSize(int w, int h) {
+        this.w = w;
+        this.h = h;
+        _updateCalculatedLayout();
+        return this;
+    }
+
     public UIBase setFontFamily(int fontFamily) {
         this.fontFamily = fontFamily;
         return this;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public UIBase setEnabled(boolean e) {

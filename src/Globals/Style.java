@@ -31,11 +31,16 @@ public class Style {
     public static int textColor = Util.pColor(new Color(54, 55, 61));
     public static int textColorHover = Util.pColor(new Color(0, 0, 0));
 
-    public static int fillColor = Util.pColor(new Color(127,127,127,150));
+    public static int fillColor = Util.pColor(new Color(189, 189, 189));
     //public static int fillColorHover = Util.pColor(new Color(127,127,127,200));
-    public static int fillColorActive = Util.pColor(new Color(50, 50, 50,150));
+    public static int fillColorActive = Util.pColor(new Color(123, 123, 123));
     //public static int fillColorActiveHover = Util.pColor(new Color(65, 65, 65,200));
-    public static int borderRadius = 6;
+    public static int fillColorInputField = Util.pColor(new Color(226, 226, 226));
+    public static int fillColorPanel = Util.pColor(new Color(226, 226, 226));
+
+    public static int borderRadius = 0; // for some reason having a border radius causes rects to be offset by -0.5,-0.5
+
+    public static int textMargin = 5;
 
     // font wowe
 
@@ -45,19 +50,19 @@ public class Style {
     public static final int FONT_LARGE = 3;
     public static final int FONT_XLARGE = 4;
     public static final int FONT_HUGE = 5;
-    static final int[] FONT_SIZES = {14, 18, 22, 32, 36, 48};
+    static final int[] FONT_SIZES = {16, 18, 22, 32, 36, 48};
 
     public static final int F_STANDARD = 0;
     public static final int F_FLAVOR = 1;
-    public static final int F_HEAVY = 2;
+    public static final int F_CODE = 2;
     public static final int F_SCRIPT = 3;
     public static final int F_IMPACT = 4;
     private static final int FAMILY_COUNT=5;
 
     static String[] FONT_FAMILY_NAMES = {
-            "Candara",//"Palatino Linotype",
+            "Palatino Linotype",//"Palatino Linotype",
             "Palatino Linotype Italic",
-            "Corbel",//"Palatino Linotype Bold",
+            "Lucida Console",//"Palatino Linotype Bold",
             "Segoe Print",
             "Century Gothic Bold"
     };
@@ -71,9 +76,9 @@ public class Style {
     };
 
     static float[] FONT_FAMILY_LEADINGS = {
-            1,
-            1,
-            1,
+            .95f,
+            .95f,
+            .9f,
             .5f,
             .75f
     };
@@ -115,6 +120,6 @@ public class Style {
             }
         }
 //        System.out.println("Chosen size: "+FONT_SIZES[actualSize]);
-        return getFont(family,actualSize);
+        return getFont(family,Util.min(actualSize,FONT_SIZES.length-1));
     }
 }

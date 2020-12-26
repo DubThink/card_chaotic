@@ -52,6 +52,17 @@ public class Util {
     public static float clamp(float num,float min, float max){
         return num<min?min:(num>max?max:num);
     }
+
+    public static float abs(float a) {
+        return a >= 0 ? a : -a;
+    }
+    public static int abs(int a) {
+        return a >= 0 ? a : -a;
+    }
+    public static double abs(double a) {
+        return a >= 0 ? a : -a;
+    }
+
     public static void main(String[] args) {
         System.out.println(aabb(0,0,2,2,3,3,2,2));
         System.out.println(aabbInclusive(0,0,2,2,3,3,2,2));
@@ -384,6 +395,18 @@ public class Util {
 
     public static boolean isTextChar(char c){
         return c>=' '&&c<='~' || c=='\t';
+    }
+
+    public static boolean isAlphanumChar(char c){
+        return c>='0'&&c<='9' || c>='A'&&c<='Z' || c>='a'&&c<='z';
+    }
+
+    public static boolean isExtendedAlphanumChar(char c){
+        return  isAlphanumChar(c) || c=='_';
+    }
+
+    public static boolean isWhitespaceChar(char c){
+        return c=='\t' || c=='\n' || c=='\r' || c==' ';
     }
 
 

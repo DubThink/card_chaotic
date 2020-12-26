@@ -9,6 +9,9 @@ public class AdvancedApplet extends PApplet {
     static{
         SymbolInjector.blockSymbols(new char[]{AdvancedApplet.CC_BOLD});
     }
+
+    public boolean keyControlDown=false;
+
     static boolean scheck(char[] sc, int i, char c, boolean oobFail){
         if(i<0||i>=sc.length)return oobFail;
         return sc[i]==c;
@@ -58,5 +61,19 @@ public class AdvancedApplet extends PApplet {
 
     public AdvancedGraphics getAdvGraphics(){
         return (AdvancedGraphics)g;
+    }
+
+    @Override
+    public void keyPressed() {
+        super.keyPressed();
+        if(key == CODED && keyCode == CONTROL)
+            keyControlDown=true;
+    }
+
+    @Override
+    public void keyReleased() {
+        super.keyReleased();
+        if(key == CODED && keyCode == CONTROL)
+            keyControlDown=false;
     }
 }

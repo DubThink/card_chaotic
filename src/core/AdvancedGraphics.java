@@ -45,7 +45,9 @@ public class AdvancedGraphics extends PGraphics2D {
         float saveLeading = textLeading;
         y-=hfont.baseline*textSize;
         textLeading*=hfont.leading;
+
         super.text(str, x, y);
+
         while(!symbolsToRender.isEmpty()){
             symbolsToRender.poll().draw();
         }

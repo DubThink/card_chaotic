@@ -11,6 +11,11 @@ public class UIButton extends UIBase {
     boolean toggle;
     boolean state;
 
+
+    public UIButton(int x, int y, int w, int h, String text) {
+        this(x, y, w, h, text, null);
+    }
+
     public UIButton(int x, int y, int w, int h, String text, Action action) {
         super(x, y, w, h);
         this.onAction = action;
@@ -45,7 +50,8 @@ public class UIButton extends UIBase {
         else
             p.fill(Style.fillColor);
         p.stroke(focus?Style.borderColorHover:Style.borderColor);
-        p.rect(cx, cy, cw, ch,Style.borderRadius);
+        p.rect(cx, cy, cw, ch, Style.borderRadius);
+        //p.rect(cx, cy, cw, ch,Style.borderRadius,0,0,0);
         p.fill(focus?Style.textColorHover:Style.textColor);
 
         Style.chooseFont(fontFamily, ch).apply(p);
