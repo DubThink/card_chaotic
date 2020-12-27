@@ -189,7 +189,7 @@ public class UITextBox extends UIBase {
 
     protected boolean _textBoxHandleKey(char key, int keyCode) {
         if (key != PConstants.CODED) {
-            System.out.println("Uncoded = '" + (int) key + "'(" + key + ")");
+//            System.out.println("Uncoded = '" + (int) key + "'(" + key + ")");
             if (Util.isTextChar(key)) {
                 lines.set(currentLine, Util.insertChar(lines.get(currentLine), key, cursorPos));
                 cursorPos++;
@@ -238,7 +238,7 @@ public class UITextBox extends UIBase {
             return false;
 
         } else {
-            System.out.println("Coded = " + keyCode);
+//            System.out.println("Coded = " + keyCode);
 
             // CODED
             if (keyCode == LEFT) {
@@ -323,5 +323,13 @@ public class UITextBox extends UIBase {
                 builder.append('\n');
         }
         return builder.toString();
+    }
+
+    public UITextBox clearText(){
+        lines.clear();
+        lines.add("");
+        cursorPos=0;
+        currentLine=0;
+        return this;
     }
 }

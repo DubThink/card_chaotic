@@ -1,3 +1,4 @@
+import Gamestate.ClientGamestate;
 import Globals.DebugConstants;
 import Globals.Style;
 import UI.*;
@@ -5,6 +6,9 @@ import core.AdvancedApplet;
 import core.AdvancedGraphics;
 import core.Symbol;
 import core.SymbolInjector;
+import network.ChatMessageNetEvent;
+import network.NetEvent;
+import network.NetworkClient;
 import processing.core.PApplet;
 import processing.core.PImage;
 
@@ -23,8 +27,12 @@ public class GameClient extends AdvancedApplet {
     int lastMillis = 0;
     UIBase root;
     UITextBox chatBox;
+    UILogView chatView;
     UIBase netPanel;
     UIButton netMenuButton;
+
+    NetworkClient netClient;
+
 
     void loadAndCreateSymbol(String file, String bind) {
         PImage ti = loadImage(file);
@@ -96,9 +104,30 @@ public class GameClient extends AdvancedApplet {
         netPanel.setEnabled(false);
         netPanel.addChild(new UILabel(10, 10 ,-10, 25,hyperText("^Net status^: not implemented lol")));//.setFontFamily(Style.F_FLAVOR);
 
-        chatBox = root.addChild(new UITextBox(100, -25, 400, 25, true));
-        chatBox.setFontFamily(Style.F_CODE);
+        UITextBox username = netPanel.addChild(new UITextBox(10, 45, -10, 25, true));
+        netPanel.addChild(new UIButton(10, 80, -10, 25, "Connect", new Action() {
+            @Override
+            public void action() {
+                if(!netClient.isAlive()){
+                    ClientGamestate.username = username.getText();
+                    netClient.start();
+                }
+            }
+        }));
 
+        chatBox = root.addChild(new UITextBox(100, -25, 400, 25, true));
+        chatView = root.addChild(new UILogView(100,-500,400,-25));
+
+
+        chatBox.textSubmitted = new UIUpdateNotify<UITextBox>() {
+            @Override
+            public void notify(UITextBox source) {
+                System.out.println("Sending message");
+                if(netClient.isReady())
+                    netClient.sendEvent(new ChatMessageNetEvent(source.getText()));
+                source.clearText();
+            }
+        };
         netMenuButton = root.addChild(new UIButton(0, -25, 100, 25, "Disconnected"));
         netMenuButton.onAction = new Action() {
             @Override
@@ -112,6 +141,8 @@ public class GameClient extends AdvancedApplet {
         //Style.font32.font.initInjection();
         ((AdvancedGraphics) g).initializeInjector();
 
+        netClient = new NetworkClient();
+
         lastMillis = millis();
     }
 
@@ -119,33 +150,10 @@ public class GameClient extends AdvancedApplet {
         background(240, 225, 200);
         int dt = millis() - lastMillis;
         lastMillis = millis();
-        //fill(10,10,30,10);
-        //rect(0,0,width,height);
-//        noFill();
-//        pushMatrix();
-//        translate(width/2,height/2);
-//        rotateY(frameCount/255f);
-//        stroke(255);
-//        box(200);
-//        if(frameCount%63==0){
-//            ax=round(random(-1,1));
-//            ay=round(random(-1,1));
-//            az=round(random(-1,1));
-//        }
-//        pushMatrix();
-//
-//        stroke(255,255-5*(frameCount%63));
-//        for(int i=1;i<10;i++){
-//            rotate((i/10f)*0.005f*(frameCount%63),ax,ay,az);
-//            stroke(255,(i%10f)+(i/10f)*(255-5*(frameCount%63)));
-//            box(200+(i/1f)*(frameCount%63));
-//        }
-//
-//        popMatrix();
-//        popMatrix();
-        fill(255,0,0);
-        if(keyControlDown)
-            rect(5,5,15,15);
+
+        handleReceivedNetEvents();
+
+
         noFill();
         noStroke();
         strokeWeight(1);
@@ -158,10 +166,20 @@ public class GameClient extends AdvancedApplet {
         root.render(this);
     }
 
+    public void handleReceivedNetEvents(){
+        if(!netClient.isAlive())return;
+        while (netClient.hasReceivedEvents()){
+            NetEvent event = netClient.pollEvent();
+            if(event instanceof ChatMessageNetEvent){
+                chatView.addLine(event.authorID+": "+ hyperText(((ChatMessageNetEvent) event).message));
+            }
+        }
+    }
+
     @Override
     public void keyPressed() {
         super.keyPressed();
-        println(key, (int) key, keyCode);
+        //println(key, (int) key, keyCode);
 
         if (keyCode == VK_F3)
             DebugConstants.renderUIDebug = !DebugConstants.renderUIDebug;

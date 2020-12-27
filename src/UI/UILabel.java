@@ -57,4 +57,9 @@ public class UILabel extends UIBase {
         this.text = text;
         return this;
     }
+
+    public UILabel setBigLabel(boolean bl) {
+        this.bigLabel = bl;
+        return this;
+    }
 }
