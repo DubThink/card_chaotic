@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static Client.ClientEnvironment.sysMessage;
 import static network.NetEvent.LOCAL_USER;
 
 public class NetworkClient extends NetworkEventTransceiver {
@@ -19,6 +20,8 @@ public class NetworkClient extends NetworkEventTransceiver {
     public void run() {
         try {
             InetAddress ip = InetAddress.getByName("localhost");
+
+            sysMessage("Connecting to "+ip.getHostAddress()+"...");
 
             Socket s = new Socket(ip, 5056);
             DataInputStream dis = new DataInputStream(s.getInputStream());
@@ -43,9 +46,11 @@ public class NetworkClient extends NetworkEventTransceiver {
 
             if(serverHandshake.success) {
                 clientUID = serverHandshake.clientID;
+                sysMessage("Connected");
                 transceiverLoop(dis, dos);
             } else {
                 System.out.println(serverHandshake.message);
+                sysMessage("Error: "+serverHandshake.message);
                 return;
             }
 

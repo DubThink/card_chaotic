@@ -5,9 +5,10 @@ import processing.core.PApplet;
 public class AdvancedApplet extends PApplet {
 
     public static final char CC_BOLD = 0x80;
+    public static final char CC_ITALIC = 0x81;
 
     static{
-        SymbolInjector.blockSymbols(new char[]{AdvancedApplet.CC_BOLD});
+        SymbolInjector.blockSymbols(new char[]{AdvancedApplet.CC_BOLD, CC_ITALIC});
     }
 
     public boolean keyControlDown=false;
@@ -51,6 +52,15 @@ public class AdvancedApplet extends PApplet {
                 } else {
                     output.append(s, start, i);
                     output.append(CC_BOLD);
+                    start = i + 1;
+                }
+            } else if (sc[i] == '*'){
+                if(scheck(sc,i-1,'\\',false)){
+                    output.append(s,start,i-1);
+                    start=i;
+                } else {
+                    output.append(s, start, i);
+                    output.append(CC_ITALIC);
                     start = i + 1;
                 }
             }

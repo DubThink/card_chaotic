@@ -182,6 +182,10 @@ public class UIBase {
         return child;
     }
 
+    public void removeChild(UIBase child){
+        children.remove(child);
+    }
+
     public boolean handleMouseInput(boolean down, int button, int x, int y) {
         if (!enabled || !interactable)
             return false;

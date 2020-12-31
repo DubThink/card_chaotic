@@ -1,8 +1,9 @@
-import Gamestate.PlayerIdentity;
-import Gamestate.ServerGamestate;
 import Globals.Config;
 import Globals.DebugConstants;
 import Globals.Style;
+import Server.PregamePhase;
+import Server.ServerGamePhase;
+import Server.SvPlayer;
 import UI.*;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 
 import static com.jogamp.newt.event.KeyEvent.VK_F12;
 import static com.jogamp.newt.event.KeyEvent.VK_F3;
+import static Server.ServerEnvironment.*;
 
 
 public class GameServer extends AdvancedApplet {
@@ -36,12 +38,12 @@ public class GameServer extends AdvancedApplet {
 
     float ax, ay, az;
     int lastMillis = 0;
-    UIBase root;
     UITextBox chatBox;
     UIButton netMenuButton;
     ServerSocket ss;
     Exception lastE;
-    ArrayList<NetworkClientHandler> handlers;
+
+    ServerGamePhase currentPhase;
 
     UILogView serverlog;
 
@@ -68,16 +70,16 @@ public class GameServer extends AdvancedApplet {
         loadAndCreateSymbol("power.png", "P");
         loadAndCreateSymbol("death.png", "D");
 
-        root = new UIBase(0, 0, width, height);
-        root.addChild(new UILabel(10, 10, -10, 60, "Server")).setBigLabel(true).setJustify(PConstants.CENTER);
+        uiRoot = new UIBase(0, 0, width, height);
+        uiRoot.addChild(new UILabel(10, 10, -10, 60, "Server")).setBigLabel(true).setJustify(PConstants.CENTER);
 
 
-        chatBox = root.addChild(new UITextBox(100, -25, 400, 25, true));
+        chatBox = uiRoot.addChild(new UITextBox(100, -25, 400, 25, true));
         chatBox.setFontFamily(Style.F_CODE);
 
 
-        serverlog = root.addChild(new UILogView(-700, 10, 690, -10));
-        root.addChild(new UIButton(10, 10, 100, 100, "add", new Action() {
+        serverlog = uiRoot.addChild(new UILogView(-700, 10, 690, -10));
+        uiRoot.addChild(new UIButton(10, 10, 100, 100, "add", new Action() {
             @Override
             public void action() {
                 svLog("big dick energy");
@@ -97,9 +99,11 @@ public class GameServer extends AdvancedApplet {
 
         }
 
-        handlers = new ArrayList<>();
+        svPlayers = new ArrayList<>();
 
         lastMillis = millis();
+
+        currentPhase = new PregamePhase();
     }
 
     public void svLog(String s) {
@@ -113,6 +117,12 @@ public class GameServer extends AdvancedApplet {
         int dt = millis() - lastMillis;
         lastMillis = millis();
 
+        while(currentPhase.shouldEnd()){
+            currentPhase.cleanup();
+            svLog("Advancing from phase "+currentPhase.getPhaseName());
+            currentPhase = currentPhase.createNextPhase();
+        }
+
         fill(255, 0, 0);
         if (ss != null) {
             networkUpdateStep();
@@ -125,17 +135,18 @@ public class GameServer extends AdvancedApplet {
         if (lastE != null)
             text(lastE.toString(), 100, 200);
 
+        currentPhase.updateStep(dt);
 
         noFill();
         noStroke();
         strokeWeight(1);
-        if (width != root.getWidth() || height != root.getHeight()) {
-            root.setSize(width, height);
+        if (width != uiRoot.getWidth() || height != uiRoot.getHeight()) {
+            uiRoot.setSize(width, height);
         }
 
-        root.updateFocus(mouseX, mouseY);
-        root.updateLogic(dt);
-        root.render(this);
+        uiRoot.updateFocus(mouseX, mouseY);
+        uiRoot.updateLogic(dt);
+        uiRoot.render(this);
     }
 
     protected void networkUpdateStep() {
@@ -144,15 +155,15 @@ public class GameServer extends AdvancedApplet {
             svLog("Client connected: " + socket);
             NetworkClientHandler t = new NetworkClientHandler(socket);
             t.start();
-            handlers.add(t);
+            clientConnect(t);
         } catch (SocketTimeoutException e) {
             // pass
         } catch (Exception e) {
             lastE = e;
         }
 
-        for (NetworkClientHandler handler : handlers) {
-
+        for(int i=jipHandlers.size()-1;i>=0;i--){
+            NetworkClientHandler handler = jipHandlers.get(i);
             if(handler.needsHandshake()){
                 NetClientHandshake clientHandshake = handler.getClientHandshake();
                 NetServerHandshake reply = new NetServerHandshake();
@@ -160,15 +171,20 @@ public class GameServer extends AdvancedApplet {
                     reply.message = "Net versions do not match (Client = "+clientHandshake.clientNetVersion+", Server = "+Config.NET_VERSION+")";
                 } else if(clientHandshake.clientVersion != Config.GAME_VERSION){
                     reply.message = "Game versions do not match (Client = "+clientHandshake.clientVersion+", Server = "+Config.GAME_VERSION+")";
-                } else if(ServerGamestate.getPlayerUIDByUsername(clientHandshake.username)==-1){
-                    PlayerIdentity id = ServerGamestate.addPlayer(clientHandshake.username);
+                } else if(getPlayerUIDByUsername(clientHandshake.username)==-1){
+                    SvPlayer player = playerConnect(clientHandshake.username, handler);
                     reply.success = true;
-                    reply.clientID = id.uid;
+                    reply.clientID = player.player.uid;
                 } else {
                     reply.message = "User already exists with that name";
                 }
                 handler.replyServerHandshake(reply);
             }
+        }
+
+        for (SvPlayer player : svPlayers) {
+            NetworkClientHandler handler = player.handler;
+
             if(!handler.isSynced()){
                 // send the current game state to client
                 // TODO finish sync code
@@ -176,20 +192,17 @@ public class GameServer extends AdvancedApplet {
             }
 
             if(handler.isReady())
+                if(!player.wasReady) {
+                    // on player finish connecting
+                    player.active = true;
+                }
                 while (handler.hasReceivedEvents()) {
                     NetEvent event = handler.pollEvent();
-                    broadcast(event, true); // Echo server, essentially
-                    svLog(event.toString());
+                    svLog("rcvd:"+event.toString());
+                    if(!currentPhase.processNetEvent(event)) {
+                        broadcast(event, true); // Echo server, essentially
+                    }
                 }
-        }
-    }
-
-    void broadcast(NetEvent event, boolean reflect){
-        for (NetworkClientHandler handler: handlers){
-            if(!handler.isReady())
-                continue;
-            if(reflect||handler.getClientUID()!=event.authorID)
-                handler.sendEvent(event);
         }
     }
 
@@ -201,23 +214,23 @@ public class GameServer extends AdvancedApplet {
             DebugConstants.renderUIDebug = !DebugConstants.renderUIDebug;
         else if (keyCode == VK_F12)
             DebugConstants.breakpoint = !DebugConstants.breakpoint;
-        else root.handleKeyPress(true, key, keyCode);
+        else uiRoot.handleKeyPress(true, key, keyCode);
     }
 
     @Override
     public void keyReleased() {
         super.keyReleased();
-        root.handleKeyPress(false, key, keyCode);
+        uiRoot.handleKeyPress(false, key, keyCode);
     }
 
     @Override
     public void mousePressed() {
-        root.handleMouseInput(true, mouseButton, mouseX, mouseY);
+        uiRoot.handleMouseInput(true, mouseButton, mouseX, mouseY);
     }
 
     @Override
     public void mouseReleased() {
-        root.handleMouseInput(false, mouseButton, mouseX, mouseY);
+        uiRoot.handleMouseInput(false, mouseButton, mouseX, mouseY);
     }
 
     public static void main(String... args) {

@@ -1,12 +1,12 @@
 package network;
 
+import network.event.ChatMessageNetEvent;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import static network.NetEvent.LOCAL_USER;
 
 public class NetworkEventTransceiver extends Thread {
     BlockingQueue<NetEvent> outgoingEvents;

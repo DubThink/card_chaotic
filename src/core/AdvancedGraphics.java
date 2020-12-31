@@ -1,7 +1,9 @@
 package core;
 
 import processing.core.PFont;
+import processing.opengl.PGL;
 import processing.opengl.PGraphics2D;
+import processing.opengl.PGraphicsOpenGL;
 
 import java.awt.*;
 import java.io.InputStream;
@@ -35,6 +37,10 @@ public class AdvancedGraphics extends PGraphics2D {
         return ((HyperFont)textFont);
     }
 
+    protected AdvancedPJOGL getAdvPGL(){
+        return (AdvancedPJOGL)pgl;
+    }
+
     public void initializeInjector(){
         symbolsToRender = new ArrayDeque<>();
     }
@@ -52,7 +58,8 @@ public class AdvancedGraphics extends PGraphics2D {
             symbolsToRender.poll().draw();
         }
         textLeading = saveLeading;
-        hfont.injecting=false;
+        hfont.bold=false;
+        hfont.italic=false;
     }
 
     @Override
@@ -61,8 +68,11 @@ public class AdvancedGraphics extends PGraphics2D {
 
         if (!SymbolInjector.isCharSymbol(ch)) {
             if (ch == AdvancedApplet.CC_BOLD)
-                getHyperFont().injecting = !getHyperFont().injecting;
-            super.textCharImpl(ch, x, y);
+                getHyperFont().bold = !getHyperFont().bold;
+            else if (ch == AdvancedApplet.CC_ITALIC)
+                getHyperFont().italic = !getHyperFont().italic;
+            else
+                super.textCharImpl(ch, x, y);
         } else {
             // enqueue a symbol render
             symbolsToRender.add(new SymbolRender(SymbolInjector.lookupSymbol(ch),x,y));
@@ -71,39 +81,47 @@ public class AdvancedGraphics extends PGraphics2D {
 
     @Override
     protected float textWidthImpl(char[] buffer, int start, int stop) {
-        boolean saveInjecting = getHyperFont().injecting;
+        // TODO optimization for stop-start==1 case
+        boolean saveBold = getHyperFont().bold;
+        boolean saveItalic = getHyperFont().italic;
         float wide = 0;
         int beginning = start;
+        Object font = getHyperFont().getActiveFont().getNative();
         for (int i = start; i < stop; i++) {
-            if (buffer[i] == AdvancedApplet.CC_BOLD) {
-                getHyperFont().injecting = !getHyperFont().injecting;
+            if (buffer[i] == AdvancedApplet.CC_BOLD || buffer[i] == AdvancedApplet.CC_ITALIC) {
+
+                if(buffer[i] == AdvancedApplet.CC_ITALIC)
+                    getHyperFont().italic = !getHyperFont().italic;
+                else if(buffer[i] == AdvancedApplet.CC_BOLD)
+                    getHyperFont().bold = !getHyperFont().bold;
+
+                // refresh font ref
+                font = getHyperFont().getActiveFont().getNative();
+
                 if(i>beginning) // catch up
-                    wide += super.textWidthImpl(buffer, beginning, i);
+                    wide += getAdvPGL().getTextWidth(font, buffer, beginning, i);
                 beginning=i+1; // skip the special char
+
             } else if(SymbolInjector.isCharSymbol(buffer[i])) {
                 if(i>beginning) // catch up
-                    wide += super.textWidthImpl(buffer, beginning, i);
+                    wide += getAdvPGL().getTextWidth(font, buffer, beginning, i);
                 // inject special char spacing
                 wide += (SymbolInjector.lookupSymbol(buffer[i]).mWidth + Symbol.wPad*2) * textSize;
                 beginning=i+1;
             }
         }
-        if(beginning<stop)
-            wide += super.textWidthImpl(buffer, beginning, stop);
-
-        getHyperFont().injecting = saveInjecting;
-        return wide;
-    }
-
-    public float simpleTextWidthImpl(String string, int start, int stop) {
-        float wide = 0;
-        for (int i = start; i < stop; i++) {
-            // could add kerning here, but it just ain't implemented
-            wide += textFont.width(string.charAt(i)) * textSize;
+        if(beginning<stop) {
+            wide += getAdvPGL().getTextWidth(font, buffer, beginning, stop);
         }
+        getHyperFont().bold = saveBold;
+        getHyperFont().italic = saveItalic;
         return wide;
     }
 
+    @Override
+    protected PGL createPGL(PGraphicsOpenGL pg) {
+        return new AdvancedPJOGL(pg);
+    }
 
     @Override
     protected PFont createFont(String name, float size, boolean smooth, char[] charset) {

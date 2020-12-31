@@ -11,6 +11,7 @@ import static com.jogamp.newt.event.KeyEvent.*;
 import static  processing.core.PConstants.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class UITextBox extends UIBase {
     ArrayList<String> lines;
@@ -330,6 +331,17 @@ public class UITextBox extends UIBase {
         lines.add("");
         cursorPos=0;
         currentLine=0;
+        return this;
+    }
+
+    public UITextBox setText(String s){
+        String[] newLines = s.split("\n");
+        if(fieldBox){
+            lines.set(0, newLines[0]);
+        } else {
+            lines.clear();
+            Collections.addAll(lines, newLines);
+        }
         return this;
     }
 }

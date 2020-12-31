@@ -12,8 +12,11 @@ public class Style {
     public static class FontSpec{
         public FontSpec(AdvancedApplet p, String name, int size, float baseline, float leading) {
             font = (HyperFont)p.createFont(name, size);
-            if(name.equals(FONT_FAMILY_NAMES[F_STANDARD]))
-                font.injectedFont=p.createFont(name+" Bold", size);
+            if(name.equals(FONT_FAMILY_NAMES[F_STANDARD])) {
+                font.boldFont = p.createFont(name + " Bold", size);
+                font.italicFont = p.createFont(name + " Italic", size);
+                font.boldItalicFont = p.createFont(name + " Bold Italic", size);
+            }
             this.size = size;
             font.baseline = baseline;
             font.leading = leading;

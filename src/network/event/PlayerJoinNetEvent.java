@@ -1,6 +1,7 @@
-package network;
+package network.event;
 
 import Gamestate.Player;
+import network.NetEvent;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

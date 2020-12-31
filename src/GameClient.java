@@ -1,3 +1,5 @@
+import Client.ClBiddingPhase;
+import Client.ClientGameStateManager;
 import Gamestate.ClientGamestate;
 import Globals.DebugConstants;
 import Globals.Style;
@@ -6,12 +8,14 @@ import core.AdvancedApplet;
 import core.AdvancedGraphics;
 import core.Symbol;
 import core.SymbolInjector;
-import network.ChatMessageNetEvent;
+import network.event.ChatMessageNetEvent;
 import network.NetEvent;
 import network.NetworkClient;
+import network.event.DefineCardNetEvent;
 import processing.core.PApplet;
 import processing.core.PImage;
 
+import static Client.ClientEnvironment.*;
 import static com.jogamp.newt.event.KeyEvent.*; // use this for p2d-based graphics (not KeyEvent)
 
 
@@ -25,13 +29,10 @@ public class GameClient extends AdvancedApplet {
 
     float ax, ay, az;
     int lastMillis = 0;
-    UIBase root;
     UITextBox chatBox;
-    UILogView chatView;
     UIBase netPanel;
     UIButton netMenuButton;
 
-    NetworkClient netClient;
 
 
     void loadAndCreateSymbol(String file, String bind) {
@@ -57,9 +58,11 @@ public class GameClient extends AdvancedApplet {
         loadAndCreateSymbol("power.png", "P");
         loadAndCreateSymbol("death.png", "D");
 
-        root = new UIBase(0, 0, width, height);
+        uiRoot = new UIBase(0, 0, width, height);
 
-        UIBase testButtons = root.addChild(new UIBase(0, 0, 0, 0));
+        uiRoot.addChild(new UITextBox(10, 10, -10, -600, false)).setText(hyperText("*testing*"));
+
+        UIBase testButtons = uiRoot.addChild(new UIBase(0, 0, 0, 0));
         Action test = new Action() {
             @Override
             public void action() {
@@ -86,21 +89,25 @@ public class GameClient extends AdvancedApplet {
 
         //root.addChild(new UIImage(10, 10, -10, -10, loadImage("data/user/inner-well-being.jpg")));
 
-        UIPanel testEditor = root.addChild(new UIPanel(500,10,-10,-10));
+        UIPanel testEditor = uiRoot.addChild(new UIPanel(500,10,-10,-10));
 
         UITextBox editBox = testEditor.addChild(new UITextBox(10, 10, -10, -600, false));
+        editBox.setText("*testing*");
         editBox.setFontFamily(Style.F_CODE);
         UILabel editOutput = testEditor.addChild(new UILabel(10,-590,-10,-10,""));
+        UILabel editOutput2 = testEditor.addChild(new UILabel(10,-340,-10,-10,""));
+        editOutput2.setFontFamily(Style.F_FLAVOR);
         editBox.textUpdated = new UIUpdateNotify<UITextBox>() {
             @Override
             public void notify(UITextBox source) {
                 editOutput.setText(hyperText(editBox.getText()));
+                editOutput2.setText(editBox.getText());
             }
         };
 
 
 
-        netPanel = root.addChild(new UIPanel(0,-400,400,-25),UILayer.POPUP);
+        netPanel = uiRoot.addChild(new UIPanel(0,-400,400,-25),UILayer.POPUP);
         netPanel.setEnabled(false);
         netPanel.addChild(new UILabel(10, 10 ,-10, 25,hyperText("^Net status^: not implemented lol")));//.setFontFamily(Style.F_FLAVOR);
 
@@ -115,8 +122,8 @@ public class GameClient extends AdvancedApplet {
             }
         }));
 
-        chatBox = root.addChild(new UITextBox(100, -25, 400, 25, true));
-        chatView = root.addChild(new UILogView(100,-500,400,-25));
+        chatBox = uiRoot.addChild(new UITextBox(100, -25, 400, 25, true));
+        chatView = uiRoot.addChild(new UILogView(100,-500,400,-25));
 
 
         chatBox.textSubmitted = new UIUpdateNotify<UITextBox>() {
@@ -128,7 +135,7 @@ public class GameClient extends AdvancedApplet {
                 source.clearText();
             }
         };
-        netMenuButton = root.addChild(new UIButton(0, -25, 100, 25, "Disconnected"));
+        netMenuButton = uiRoot.addChild(new UIButton(0, -25, 100, 25, "Disconnected"));
         netMenuButton.onAction = new Action() {
             @Override
             public void action() {
@@ -142,6 +149,9 @@ public class GameClient extends AdvancedApplet {
         ((AdvancedGraphics) g).initializeInjector();
 
         netClient = new NetworkClient();
+
+        gameStateManager = new ClientGameStateManager();
+        gameStateManager.gotoPhase(new ClBiddingPhase());
 
         lastMillis = millis();
     }
@@ -157,13 +167,15 @@ public class GameClient extends AdvancedApplet {
         noFill();
         noStroke();
         strokeWeight(1);
-        if(width != root.getWidth() || height != root.getHeight()){
-            root.setSize(width, height);
+        if(width != uiRoot.getWidth() || height != uiRoot.getHeight()){
+            uiRoot.setSize(width, height);
         }
 
-        root.updateFocus(mouseX, mouseY);
-        root.updateLogic(dt);
-        root.render(this);
+        gameStateManager.updateStep(dt);
+
+        uiRoot.updateFocus(mouseX, mouseY);
+        uiRoot.updateLogic(dt);
+        uiRoot.render(this);
     }
 
     public void handleReceivedNetEvents(){
@@ -172,6 +184,12 @@ public class GameClient extends AdvancedApplet {
             NetEvent event = netClient.pollEvent();
             if(event instanceof ChatMessageNetEvent){
                 chatView.addLine(event.authorID+": "+ hyperText(((ChatMessageNetEvent) event).message));
+            } else if (event instanceof DefineCardNetEvent)
+                cardDefinitionManager.handleNetEvent((DefineCardNetEvent) event);
+            else if(gameStateManager.handleNetEvent(event)){
+                // pass
+            } else {
+                System.out.println("Unhandled event "+event);
             }
         }
     }
@@ -187,23 +205,23 @@ public class GameClient extends AdvancedApplet {
 //            DebugConstants.printUIDebug = !DebugConstants.renderUIDebug;
         else if (keyCode == VK_F12)
             DebugConstants.breakpoint = !DebugConstants.breakpoint;
-        else root.handleKeyPress(true, key, keyCode);
+        else uiRoot.handleKeyPress(true, key, keyCode);
     }
 
     @Override
     public void keyReleased() {
         super.keyReleased();
-        root.handleKeyPress(false, key, keyCode);
+        uiRoot.handleKeyPress(false, key, keyCode);
     }
 
     @Override
     public void mousePressed() {
-        root.handleMouseInput(true, mouseButton, mouseX, mouseY);
+        uiRoot.handleMouseInput(true, mouseButton, mouseX, mouseY);
     }
 
     @Override
     public void mouseReleased() {
-        root.handleMouseInput(false, mouseButton, mouseX, mouseY);
+        uiRoot.handleMouseInput(false, mouseButton, mouseX, mouseY);
     }
 
     public static void main(String... args) {

@@ -1,4 +1,7 @@
-package network;
+package network.event;
+
+import network.NetEvent;
+import network.NetEventTypeID;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
