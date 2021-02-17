@@ -1,5 +1,9 @@
 package Server;
 
+import Gamestate.CardDefinition;
+import network.NetworkClientHandler;
+import network.event.DefineCardNetEvent;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -10,6 +14,7 @@ public class CardSourceManager {
 
     public CardSourceManager() {
         this.cardSources = new ArrayList<>();
+//        cardSources.add(new CardSource(new CardDefinition(0, "Monkey House", "user/b02.jpg")));
         goodCardCount = 0;
         random = new Random();
     }
@@ -45,5 +50,13 @@ public class CardSourceManager {
         if(!source.hasBeenIntroed)
             source.timesAllowed++;
         source.hasBeenIntroed=true;
+    }
+
+    public void defineAllCards(NetworkClientHandler handler){
+        for(CardSource source: cardSources){
+            if(isGoodCard(source)){
+                handler.sendSyncingEvent(new DefineCardNetEvent(source.definition));
+            }
+        }
     }
 }

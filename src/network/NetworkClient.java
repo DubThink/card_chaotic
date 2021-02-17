@@ -57,7 +57,8 @@ public class NetworkClient extends NetworkEventTransceiver {
             //dis.close();
             //dos.close();
         } catch (Exception e){
-            System.out.println(e.toString());
+            System.err.println(e.toString());
+            e.printStackTrace();
             interrupt();
         }
     }

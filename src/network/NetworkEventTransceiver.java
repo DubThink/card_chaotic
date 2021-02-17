@@ -1,6 +1,6 @@
 package network;
 
-import network.event.ChatMessageNetEvent;
+import network.event.*;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -33,14 +33,15 @@ public class NetworkEventTransceiver extends Thread {
 
             if (dis.available() > 0) {
                 int id = dis.readInt();
-                NetEvent rcvd=null;
-                switch (id) {
-                    case NetEventTypeID.CHAT_MESSAGE:
-                        rcvd = new ChatMessageNetEvent(dis);
-                        break;
-                    default:
-                        throw new RuntimeException("how " + id);
-                }
+                System.out.println("rcvid "+id);
+                NetEvent rcvd = switch (id) {
+                    case NetEventTypeID.CHAT_MESSAGE -> new ChatMessageNetEvent(dis);
+                    case NetEventTypeID.DEFINE_CARD -> new DefineCardNetEvent(dis);
+                    case NetEventTypeID.INTRO_CARD -> new IntroCardNetEvent(dis);
+                    case NetEventTypeID.ADD_FLIGHT -> new AddFlightNetEvent(dis);
+                    case NetEventTypeID.PLAYER_JOIN -> new PlayerJoinNetEvent(dis);
+                    default -> throw new RuntimeException("NetEvent with ID " + id +" is unhandled.");
+                };
                 if(preprocessReceivedEvent(rcvd)) {
                     System.out.println("Received:" + rcvd.toString());
                     incomingEvents.add(rcvd);
@@ -56,6 +57,13 @@ public class NetworkEventTransceiver extends Thread {
     public void sendEvent(NetEvent e){
         if(!isReady())
             throw new RuntimeException("Don't do that");
+        outgoingEvents.add(e);
+    }
+
+    /**
+     * Explicit call to override the isReady() check for events sent while syncing client
+     */
+    public void sendSyncingEvent(NetEvent e){
         outgoingEvents.add(e);
     }
 

@@ -2,6 +2,7 @@ package Globals;
 
 import bpw.Util;
 import core.AdvancedApplet;
+import core.AdvancedGraphics;
 import core.HyperFont;
 import processing.core.PFont;
 
@@ -21,6 +22,10 @@ public class Style {
             font.baseline = baseline;
             font.leading = leading;
         }
+        public void apply(AdvancedGraphics p){
+            p.textFont(font, size);
+        }
+
         public void apply(AdvancedApplet p){
             p.textFont(font, size);
         }
@@ -47,13 +52,21 @@ public class Style {
 
     // font wowe
 
+    public static final int FONT_16 = 0;
+    public static final int FONT_14 = 6;
+    public static final int FONT_12 = 7;
+
+    public static final int FONT_33 = 8;
+    public static final int FONT_27 = 9;
+    public static final int FONT_24 = 10;
+
     public static final int FONT_SMALL = 0;
     public static final int FONT_MEDIUM = 1;
     public static final int FONT_MEDLARGE = 2;
     public static final int FONT_LARGE = 3;
     public static final int FONT_XLARGE = 4;
     public static final int FONT_HUGE = 5;
-    static final int[] FONT_SIZES = {16, 18, 22, 32, 36, 48};
+    static final int[] FONT_SIZES = {16, 18, 22, 32, 36, 48, 14, 12, 33, 27, 24};
 
     public static final int F_STANDARD = 0;
     public static final int F_FLAVOR = 1;
@@ -66,7 +79,7 @@ public class Style {
             "Palatino Linotype",//"Palatino Linotype",
             "Palatino Linotype Italic",
             "Lucida Console",//"Palatino Linotype Bold",
-            "Segoe Print",
+            "Palatino Linotype Bold",//"Segoe Print",
             "Century Gothic Bold"
     };
 

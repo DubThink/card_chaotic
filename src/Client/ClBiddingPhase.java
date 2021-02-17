@@ -10,6 +10,7 @@ import network.event.AddFlightNetEvent;
 import java.util.ArrayList;
 
 import static Client.ClientEnvironment.*;
+import static Globals.GlobalEnvironment.*;
 
 public class ClBiddingPhase implements ClientGamePhase {
     ArrayList<CardDefinition> flight;

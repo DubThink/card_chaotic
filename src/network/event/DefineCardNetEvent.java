@@ -8,6 +8,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import static network.NetEventTypeID.DEFINE_CARD;
 import static network.NetEventTypeID.PLAYER_JOIN;
 
 public class DefineCardNetEvent extends NetEvent {
@@ -35,7 +36,7 @@ public class DefineCardNetEvent extends NetEvent {
 
     @Override
     public int eventTypeIdentifier() {
-        return PLAYER_JOIN;
+        return DEFINE_CARD;
     }
 
     @Override

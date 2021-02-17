@@ -34,7 +34,7 @@ public class PlayerLeaveNetEvent extends NetEvent {
 
     @Override
     public int eventTypeIdentifier() {
-        return PLAYER_JOIN;
+        return -1;
     }
 
     @Override

@@ -29,6 +29,8 @@ public class CardStack extends NetOwnedObject {
 
     @Override
     protected void deserialize(DataInputStream dis) throws IOException {
+        if(cards == null)
+            cards = new ArrayList<>();
         NetSerializerUtils.deserializeArrayList(cards,dis,Card::new);
         publicView = dis.readBoolean();
     }

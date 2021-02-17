@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GameClient2" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="GameClient" />
+    <module name="Nec" />
+    <option name="PROGRAM_PARAMETERS" value="--display=2" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

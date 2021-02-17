@@ -11,13 +11,13 @@ public class ServerEnvironment {
     public static ArrayList<NetworkClientHandler> jipHandlers;
     public static ArrayList<SvPlayer> svPlayers;
     public static CardSourceManager cardSourceManager;
-    public static UIBase uiRoot;
 
     private static int nextPlayerUID=1;
 
     static {
         svPlayers = new ArrayList<>();
         jipHandlers = new ArrayList<>();
+        cardSourceManager = new CardSourceManager();
     }
 
     public static int getPlayerCount(){

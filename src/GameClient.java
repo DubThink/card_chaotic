@@ -1,13 +1,12 @@
 import Client.ClBiddingPhase;
 import Client.ClientGameStateManager;
+import Gamestate.CardDefinition;
 import Gamestate.ClientGamestate;
 import Globals.DebugConstants;
+import Globals.GlobalEnvironment;
 import Globals.Style;
 import UI.*;
-import core.AdvancedApplet;
-import core.AdvancedGraphics;
-import core.Symbol;
-import core.SymbolInjector;
+import core.*;
 import network.event.ChatMessageNetEvent;
 import network.NetEvent;
 import network.NetworkClient;
@@ -16,15 +15,16 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 import static Client.ClientEnvironment.*;
+import static Globals.GlobalEnvironment.*;
 import static com.jogamp.newt.event.KeyEvent.*; // use this for p2d-based graphics (not KeyEvent)
 
 
 public class GameClient extends AdvancedApplet {
 
     public void settings() {
-        size(1600, 900, "core.AdvancedGraphics");
+//        size(1600, 900, "core.AdvancedGraphics");
         smooth(4);
-//        fullScreen(P3D,-2);
+        fullScreen("core.AdvancedGraphics");
     }
 
     float ax, ay, az;
@@ -33,6 +33,8 @@ public class GameClient extends AdvancedApplet {
     UIBase netPanel;
     UIButton netMenuButton;
 
+    PImage testimg;
+
 
 
     void loadAndCreateSymbol(String file, String bind) {
@@ -40,12 +42,13 @@ public class GameClient extends AdvancedApplet {
         Symbol cayde = SymbolInjector.createSymbol(ti);
         cayde.setMSize(28);
         SymbolInjector.addKey(bind, cayde);
-        System.out.println("Binding '" + file + "' to char 0x%02x".formatted((int) cayde.c));
+        System.out.println("Binding '" + file + String.format("' to char 0x%02x", (int) cayde.c));
     }
 
     @Override
     public void setup() {
         UIBase.app = this;
+        imageLoader = new ImageLoader(this);
         Style.loadFonts(this);
 
         loadAndCreateSymbol("cayde32.png", "Y");
@@ -59,8 +62,6 @@ public class GameClient extends AdvancedApplet {
         loadAndCreateSymbol("death.png", "D");
 
         uiRoot = new UIBase(0, 0, width, height);
-
-        uiRoot.addChild(new UITextBox(10, 10, -10, -600, false)).setText(hyperText("*testing*"));
 
         UIBase testButtons = uiRoot.addChild(new UIBase(0, 0, 0, 0));
         Action test = new Action() {
@@ -89,8 +90,8 @@ public class GameClient extends AdvancedApplet {
 
         //root.addChild(new UIImage(10, 10, -10, -10, loadImage("data/user/inner-well-being.jpg")));
 
-        UIPanel testEditor = uiRoot.addChild(new UIPanel(500,10,-10,-10));
-
+        UIPanel testEditor = uiRoot.addChild(new UIPanel(700,10,-10,-10),UILayer.OVERLAY);
+        testEditor.setEnabled(true);
         UITextBox editBox = testEditor.addChild(new UITextBox(10, 10, -10, -600, false));
         editBox.setText("*testing*");
         editBox.setFontFamily(Style.F_CODE);
@@ -123,7 +124,7 @@ public class GameClient extends AdvancedApplet {
         }));
 
         chatBox = uiRoot.addChild(new UITextBox(100, -25, 400, 25, true));
-        chatView = uiRoot.addChild(new UILogView(100,-500,400,-25));
+        chatView = uiRoot.addChild(new UILogView(100,-250,400,-25));
 
 
         chatBox.textSubmitted = new UIUpdateNotify<UITextBox>() {
@@ -143,7 +144,19 @@ public class GameClient extends AdvancedApplet {
             }
         };
 
+        cardPreview = uiRoot.addChild(new UICardView(10,-710,.5f,UILayer.INTERFACE));
+        cardPreview.setCardDefinitionView(new CardDefinition(-1, "The Golden Judgement", "Exotic Warrior Behemoth", "At the beginning of your turn:\n" +
+                "If your /P equals your /D, gain a VP for\neach /P.\n" +
+                "Otherwise, loose X VP for the difference\nbetween your /P and /D.", "Power always comes with a cost","b02.jpg"));
+        //uiRoot.addChild(new UICardView(1070,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+        uiRoot.addChild(new UICardView2(510,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+//        uiRoot.addChild(new UICardView3(760,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
 
+//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
 
         //Style.font32.font.initInjection();
         ((AdvancedGraphics) g).initializeInjector();
@@ -152,6 +165,16 @@ public class GameClient extends AdvancedApplet {
 
         gameStateManager = new ClientGameStateManager();
         gameStateManager.gotoPhase(new ClBiddingPhase());
+
+        testimg = imageLoader.getUserImage("test_card12b_half.png");
+        PImage testimg2 = imageLoader.getUserImage("test_card12.png");
+
+        uiRoot.addChild(new UIImage(260, -710, testimg));
+        //uiRoot.addChild(new UIImage(900, -710, 1000,1000, testimg2)).setScaling(false);
+
+
+        //uiRoot.addChild(new UIImage(10,10,1,1,imageLoader.getUserImage("test16.png"))).setScaling(false);
+
 
         lastMillis = millis();
     }
@@ -175,7 +198,25 @@ public class GameClient extends AdvancedApplet {
 
         uiRoot.updateFocus(mouseX, mouseY);
         uiRoot.updateLogic(dt);
+        textAlign(LEFT);
         uiRoot.render(this);
+
+        //image(imageLoader.getCardImage("b02.jpg"),10,10);
+
+        if(DebugConstants.renderUIDebug){
+            stroke(127);
+            line(0,mouseY,width,mouseY);
+            line(mouseX,0,mouseX,height);
+        }
+
+        fill(0);
+        rect(220,10,420,35);
+        fill(255);
+        Style.getFont(Style.F_STANDARD,Style.FONT_12).apply(this);
+        textAlign(CENTER,CENTER);
+        text(CC_BOLD+"Testing @16 pt", 110,25);
+        Style.getFont(Style.F_SCRIPT,Style.FONT_12).apply(this);
+        text("Testing @16 pt", 320,40);
     }
 
     public void handleReceivedNetEvents(){
@@ -225,6 +266,20 @@ public class GameClient extends AdvancedApplet {
     }
 
     public static void main(String... args) {
-        PApplet.main("GameClient");
+        // dumb hack
+        // for some reason, PApplet.main concats the args after the sketch class name
+        // even though any args after the sketch name are ignored
+        // ...
+        final String SKETCH_NAME = "GameClient";
+        if(args.length>0) {
+            String name_tm = args[0];
+            for (int i = 0;i<args.length-1;i++){
+                args[i]=args[i+1];
+            }
+            args[args.length-1]=SKETCH_NAME;
+            PApplet.main(name_tm,args);
+        } else {
+            PApplet.main(SKETCH_NAME);
+        }
     }
 }

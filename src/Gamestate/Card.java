@@ -9,7 +9,7 @@ import java.io.IOException;
 import static Client.ClientEnvironment.cardDefinitionManager;
 
 public class Card extends NetSerializable {
-    CardDefinition definition;
+    public CardDefinition definition;
     public boolean tapped;
 
     public Card(CardDefinition definition) {
@@ -19,6 +19,7 @@ public class Card extends NetSerializable {
 
     public Card(DataInputStream dis) throws IOException {
         super(dis);
+        System.out.println("deserialize");
     }
 
     public void setTapped(boolean tapped) {

@@ -1,21 +1,17 @@
-package Gamestate;
+package Client;
 
+import Gamestate.CardDefinition;
 import network.NetEvent;
 import network.event.DefineCardNetEvent;
 
 import java.util.ArrayList;
 
-import static network.NetEventTypeID.DEFINE_CARD;
+import static Client.ClientEnvironment.*;
 
 public class CardDefinitionManager {
     ArrayList<CardDefinition> cards;
-    static boolean hasBeenInitialized;
 
     public CardDefinitionManager() {
-        if(hasBeenInitialized)
-            throw new RuntimeException("Whatchu doin");
-        else
-            hasBeenInitialized=true;
         cards = new ArrayList<>();
     }
 
@@ -33,5 +29,7 @@ public class CardDefinitionManager {
             return;
         cards.ensureCapacity(event.cardDefinition.uid+1);
         cards.add(event.cardDefinition.uid, event.cardDefinition);
+        sysMessage("Defined card "+event.cardDefinition);
+        cardPreview.setCardDefinitionView(event.cardDefinition);
     }
 }

@@ -25,13 +25,14 @@ import java.util.ArrayList;
 
 import static com.jogamp.newt.event.KeyEvent.VK_F12;
 import static com.jogamp.newt.event.KeyEvent.VK_F3;
-import static Server.ServerEnvironment.*;
 
+import static Server.ServerEnvironment.*;
+import static Globals.GlobalEnvironment.*;
 
 public class GameServer extends AdvancedApplet {
 
     public void settings() {
-        size(1600, 900, "core.AdvancedGraphics");
+        size(1200, 900, "core.AdvancedGraphics");
         smooth(4);
 //        fullScreen(P3D,-2);
     }
@@ -52,7 +53,7 @@ public class GameServer extends AdvancedApplet {
         Symbol cayde = SymbolInjector.createSymbol(ti);
         cayde.setMSize(28);
         SymbolInjector.addKey(bind, cayde);
-        System.out.println("Binding '" + file + "' to char 0x%02x".formatted((int) cayde.c));
+        System.out.println("Binding '" + file + String.format("' to char 0x%02x", (int) cayde.c));
     }
 
     @Override
@@ -104,6 +105,8 @@ public class GameServer extends AdvancedApplet {
         lastMillis = millis();
 
         currentPhase = new PregamePhase();
+
+//        getSurface().setLocation(10,30);
     }
 
     public void svLog(String s) {
@@ -167,7 +170,7 @@ public class GameServer extends AdvancedApplet {
             if(handler.needsHandshake()){
                 NetClientHandshake clientHandshake = handler.getClientHandshake();
                 NetServerHandshake reply = new NetServerHandshake();
-                if(clientHandshake.clientNetVersion != Config.NET_VERSION ){
+                if(clientHandshake.clientNetVersion != Config.NET_VERSION){
                     reply.message = "Net versions do not match (Client = "+clientHandshake.clientNetVersion+", Server = "+Config.NET_VERSION+")";
                 } else if(clientHandshake.clientVersion != Config.GAME_VERSION){
                     reply.message = "Game versions do not match (Client = "+clientHandshake.clientVersion+", Server = "+Config.GAME_VERSION+")";
@@ -187,7 +190,10 @@ public class GameServer extends AdvancedApplet {
 
             if(!handler.isSynced()){
                 // send the current game state to client
+                svLog("Syncing...");
+                cardSourceManager.defineAllCards(handler);
                 // TODO finish sync code
+                svLog("Synced");
                 handler.setSynced(true);
             }
 
@@ -234,6 +240,20 @@ public class GameServer extends AdvancedApplet {
     }
 
     public static void main(String... args) {
-        PApplet.main("GameServer");
+        // dumb hack
+        // for some reason, PApplet.main concats the args after the sketch class name
+        // even though any args after the sketch name are ignored
+        // ...
+        final String SKETCH_NAME = "GameServer";
+        if(args.length>0) {
+            String name_tm = args[0];
+            for (int i = 0;i<args.length-1;i++){
+                args[i]=args[i+1];
+            }
+            args[args.length-1]=SKETCH_NAME;
+                PApplet.main(name_tm,args);
+        } else {
+            PApplet.main(SKETCH_NAME);
+        }
     }
 }

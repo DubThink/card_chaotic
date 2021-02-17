@@ -49,3 +49,5 @@ crashlytics-build.properties
 fabric.properties
 
 data/user/
+art_source/
+!art_source/.placeholder

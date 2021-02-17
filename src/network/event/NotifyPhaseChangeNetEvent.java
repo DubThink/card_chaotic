@@ -2,6 +2,7 @@ package network.event;
 
 import Gamestate.CardDefinition;
 import network.NetEvent;
+import network.NetEventTypeID;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -35,7 +36,7 @@ public class NotifyPhaseChangeNetEvent extends NetEvent {
 
     @Override
     public int eventTypeIdentifier() {
-        return INTRO_CARD;
+        return NetEventTypeID.NOTIFY_PHASE_CHANGE;
     }
 
     @Override

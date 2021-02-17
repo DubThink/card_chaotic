@@ -4,7 +4,7 @@ import UI.Action;
 import UI.UIButton;
 import network.NetEvent;
 
-import static Server.ServerEnvironment.uiRoot;
+import static Globals.GlobalEnvironment.*;
 
 public class PregamePhase implements ServerGamePhase {
     UIButton startButton;

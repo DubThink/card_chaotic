@@ -7,6 +7,18 @@ public class UIImage extends UIBase {
     public PImage image;
     int ix1, iy1, ix2, iy2; // crop
     boolean isCropping;
+    boolean isScaling=true;
+
+
+    public UIImage(int x, int y, PImage image){
+        super(x,y, image.width, image.height);
+        this.image = image;
+        ix1=0;
+        iy1=0;
+        ix2=1;
+        iy2=1;
+        isScaling = false;
+    }
 
     public UIImage(int x, int y, int w, int h, PImage image) {
         super(x, y, w, h);
@@ -35,8 +47,21 @@ public class UIImage extends UIBase {
         if (isCropping){
             p.image(image, cx, cy, cw, ch, ix1,iy1,ix2,iy2);
         } else {
-            p.image(image, cx, cy, cw, ch);
+            if(isScaling)
+                p.image(image, cx, cy, cw, ch);
+            else
+                p.image(image,cx,cy);
         }
+    }
+
+    public UIImage setCropping(boolean cropping) {
+        isCropping = cropping;
+        return this;
+    }
+
+    public UIImage setScaling(boolean scaling) {
+        isScaling = scaling;
+        return this;
     }
 
     @Override
