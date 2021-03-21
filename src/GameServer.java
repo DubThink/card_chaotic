@@ -1,5 +1,5 @@
 import Globals.Config;
-import Globals.DebugConstants;
+import Globals.Debug;
 import Globals.Style;
 import Server.PregamePhase;
 import Server.ServerGamePhase;
@@ -217,9 +217,9 @@ public class GameServer extends AdvancedApplet {
         super.keyPressed();
 
         if (keyCode == VK_F3)
-            DebugConstants.renderUIDebug = !DebugConstants.renderUIDebug;
+            Debug.renderUIDebug = !Debug.renderUIDebug;
         else if (keyCode == VK_F12)
-            DebugConstants.breakpoint = !DebugConstants.breakpoint;
+            Debug.breakpoint = !Debug.breakpoint;
         else uiRoot.handleKeyPress(true, key, keyCode);
     }
 

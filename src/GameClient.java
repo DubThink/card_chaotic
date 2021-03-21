@@ -2,8 +2,7 @@ import Client.ClBiddingPhase;
 import Client.ClientGameStateManager;
 import Gamestate.CardDefinition;
 import Gamestate.ClientGamestate;
-import Globals.DebugConstants;
-import Globals.GlobalEnvironment;
+import Globals.Debug;
 import Globals.Style;
 import UI.*;
 import core.*;
@@ -91,7 +90,7 @@ public class GameClient extends AdvancedApplet {
         //root.addChild(new UIImage(10, 10, -10, -10, loadImage("data/user/inner-well-being.jpg")));
 
         UIPanel testEditor = uiRoot.addChild(new UIPanel(700,10,-10,-10),UILayer.OVERLAY);
-        testEditor.setEnabled(true);
+        testEditor.setEnabled(false);
         UITextBox editBox = testEditor.addChild(new UITextBox(10, 10, -10, -600, false));
         editBox.setText("*testing*");
         editBox.setFontFamily(Style.F_CODE);
@@ -144,13 +143,13 @@ public class GameClient extends AdvancedApplet {
             }
         };
 
-        cardPreview = uiRoot.addChild(new UICardView(10,-710,.5f,UILayer.INTERFACE));
+        cardPreview = uiRoot.addChild(new UICardView(50,10,.5f,UILayer.INTERFACE));
         cardPreview.setCardDefinitionView(new CardDefinition(-1, "The Golden Judgement", "Exotic Warrior Behemoth", "At the beginning of your turn:\n" +
                 "If your /P equals your /D, gain a VP for\neach /P.\n" +
                 "Otherwise, loose X VP for the difference\nbetween your /P and /D.", "Power always comes with a cost","b02.jpg"));
+        uiRoot.addChild(new UICardView(50,-700,1f, UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+        cardPreview.card.definition.setBeingValues(true,3,10);
         //uiRoot.addChild(new UICardView(1070,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
-        uiRoot.addChild(new UICardView2(510,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
-//        uiRoot.addChild(new UICardView3(760,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
 
 //        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
 //        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
@@ -167,9 +166,11 @@ public class GameClient extends AdvancedApplet {
         gameStateManager.gotoPhase(new ClBiddingPhase());
 
         testimg = imageLoader.getUserImage("test_card12b_half.png");
-        PImage testimg2 = imageLoader.getUserImage("test_card12.png");
+        PImage testimg2 = imageLoader.getUserImage("test_card12_half.png");
+        PImage testimg3 = imageLoader.getUserImage("test_card12.png");
 
-        uiRoot.addChild(new UIImage(260, -710, testimg));
+        uiRoot.addChild(new UIImage(300, 10, testimg2));
+        uiRoot.addChild(new UIImage(550, -700, testimg3));
         //uiRoot.addChild(new UIImage(900, -710, 1000,1000, testimg2)).setScaling(false);
 
 
@@ -183,6 +184,7 @@ public class GameClient extends AdvancedApplet {
         background(240, 225, 200);
         int dt = millis() - lastMillis;
         lastMillis = millis();
+        float drawStartTime = Debug.perfTimeMS();
 
         handleReceivedNetEvents();
 
@@ -202,21 +204,24 @@ public class GameClient extends AdvancedApplet {
         uiRoot.render(this);
 
         //image(imageLoader.getCardImage("b02.jpg"),10,10);
-
-        if(DebugConstants.renderUIDebug){
+        cardPreview.card.definition.drawPreview(this,1050,380,1);
+        cardPreview.card.definition.drawPreview(this,550,10,.5f);
+        if(Debug.renderUIDebug){
             stroke(127);
             line(0,mouseY,width,mouseY);
             line(mouseX,0,mouseX,height);
         }
 
-        fill(0);
-        rect(220,10,420,35);
-        fill(255);
-        Style.getFont(Style.F_STANDARD,Style.FONT_12).apply(this);
-        textAlign(CENTER,CENTER);
-        text(CC_BOLD+"Testing @16 pt", 110,25);
-        Style.getFont(Style.F_SCRIPT,Style.FONT_12).apply(this);
-        text("Testing @16 pt", 320,40);
+//        fill(255);
+//        Style.getFont(Style.F_STANDARD,Style.FONT_12).apply(this);
+//        textAlign(CENTER,CENTER);
+//        text(CC_BOLD+"Testing @16 pt", 110,25);
+//        Style.getFont(Style.F_SCRIPT,Style.FONT_12).apply(this);
+        //text("Testing @16 pt", 320,40);
+        Debug.perfView.frameGraph.addVal(Debug.perfTimeMS()-drawStartTime);
+        Debug.perfView.nextFrame(dt);
+        if(Debug.renderPerfView)
+            Debug.perfView.render(this.getAdvGraphics());
     }
 
     public void handleReceivedNetEvents(){
@@ -241,11 +246,13 @@ public class GameClient extends AdvancedApplet {
         //println(key, (int) key, keyCode);
 
         if (keyCode == VK_F3)
-            DebugConstants.renderUIDebug = !DebugConstants.renderUIDebug;
+            Debug.renderUIDebug = !Debug.renderUIDebug;
+        if (keyCode == VK_F7)
+            Debug.renderPerfView = !Debug.renderPerfView;
 //        else if (keyCode == VK_F4)
 //            DebugConstants.printUIDebug = !DebugConstants.renderUIDebug;
         else if (keyCode == VK_F12)
-            DebugConstants.breakpoint = !DebugConstants.breakpoint;
+            Debug.breakpoint = !Debug.breakpoint;
         else uiRoot.handleKeyPress(true, key, keyCode);
     }
 

@@ -3,7 +3,7 @@ package UI;
 import Globals.Style;
 import bpw.Util;
 import core.AdvancedApplet;
-import Globals.DebugConstants;
+import Globals.Debug;
 
 import java.util.ArrayList;
 
@@ -64,7 +64,7 @@ public class UIBase {
         focus = false;
         // if a child element is in focus
         for (int i = children.size() - 1; i >= 0; i--) {
-            DebugConstants.breakpointToggle();
+            Debug.breakpointToggle();
             if (!focus) {
                 focus = children.get(i).updateFocus(mouseX, mouseY);
             } else {
@@ -128,7 +128,7 @@ public class UIBase {
         p.pushStyle();
         _draw(p);
         p.popStyle();
-        if (DebugConstants.renderUIDebug) {
+        if (Debug.renderUIDebug) {
             p.pushStyle();
             p.strokeWeight(1);
             _debugDraw(p);

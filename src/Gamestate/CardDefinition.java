@@ -1,20 +1,23 @@
 package Gamestate;
 
-import Client.ClientEnvironment;
+import Globals.Debug;
 import Globals.GlobalEnvironment;
 import Globals.Style;
-import bpw.PUtil;
+import bpw.Util;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
 import network.NetSerializable;
+import processing.core.PApplet;
+import processing.core.PGraphics;
 import processing.core.PImage;
-import processing.opengl.PGL;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import static Globals.Debug.perfTimeMS;
 import static core.AdvancedApplet.CC_BOLD;
+import static processing.core.PApplet.sqrt;
 import static processing.core.PConstants.*;
 
 /**
@@ -41,10 +44,11 @@ public class CardDefinition extends NetSerializable {
     float u1,v1,u2,v2;
 
     // LOCAL ONLY
+    public PImage renderedBase;
     public PImage renderedImage;
 
     // STATIC GEN
-    public static AdvancedGraphics renderTarget;
+    private static AdvancedGraphics renderTarget;
 
     public static final int CARD_SCALE = 24;
     public static final int CARD_WIDTH = CARD_SCALE *20;
@@ -70,7 +74,7 @@ public class CardDefinition extends NetSerializable {
     }
 
     private static float colorCurve(float c){
-        return c*1.5f;//sin(c*90);
+        return sqrt(c);//sin(c*90);
     }
 
     private static void textEnhanceFilter(AdvancedApplet a,PImage p){
@@ -85,62 +89,95 @@ public class CardDefinition extends NetSerializable {
         }
         p.updatePixels();
     }
-//
-//    private static void blit(AdvancedGraphics a, PImage source,PImage dest){
-//        source.loadPixels();
-//        dest.loadPixels();
-//        assert source.width==dest.width && source.height==dest.height && source.format==dest.format;
-//        for(int i=0;i<source.pixels.length;i++){
-//            dest.pixels[i] = PUtil.mixColor(a, source.pixels[i], dest.pixels[i], a.alpha(dest.pixels[i])/255.0f);
-//        }
-//        dest.updatePixels();
-//    }
 
-    private static void prepareRenderTarget(AdvancedApplet a){
+    private static void prepareRenderTargets(AdvancedApplet a){
         if(renderTarget == null){
             renderTarget = (AdvancedGraphics) a.createGraphics(CARD_WIDTH, CARD_HEIGHT, "core.AdvancedGraphics");
             renderTarget.initializeInjector();
             //renderTarget.noSmooth();
         }
+
     }
 
-    public PImage getRenderedImage(AdvancedApplet a){
-        if(renderedImage==null) {
-            prepareRenderTarget(a);
-            if(renderedImage==null || renderedImage.width != CARD_WIDTH || renderedImage.height != CARD_HEIGHT)
-                renderedImage = a.createImage(CARD_WIDTH, CARD_HEIGHT, ARGB);
-
-            //render text layer, and store in renderedImage
-            renderTarget.beginDraw();
-            renderText(renderTarget);
-            textEnhanceFilter(a, renderTarget);
-            renderTarget.loadPixels();
-            renderedImage.set(0,0,renderTarget);
-            renderTarget.endDraw();
-
-            // render full boi
-            renderTarget.beginDraw();
-            renderBase(renderTarget);
-            renderTarget.image(renderedImage,0,0);
-            renderTarget.loadPixels();
-            renderedImage.set(0,0,renderTarget);
-            renderTarget.endDraw();
-
-
-
+    PImage getRenderedBase(AdvancedApplet a){
+        float startTime = perfTimeMS();
+        if(renderedBase==null){
+            refreshBase(a);
         }
+        Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
+        return renderedBase;
+    }
 
+    private void refreshBase(AdvancedApplet a){
+        prepareRenderTargets(a);
+        if(renderedBase==null || renderedBase.width != CARD_WIDTH || renderedBase.height != CARD_HEIGHT)
+            renderedBase = a.createImage(CARD_WIDTH, CARD_HEIGHT, ARGB);
+
+        renderTarget.beginDraw();
+        renderBase(renderTarget);
+        renderTarget.loadPixels();
+        renderedBase.set(0,0,renderTarget);
+        renderedBase.mask(getCardMask(a)); // this has to be here and I'm very unclear why
+        renderTarget.endDraw();
+    }
+
+    public PImage getRenderedImage(AdvancedApplet a) {
+        float startTime = perfTimeMS();
+        if(renderedImage==null) {
+            refreshImage(a);
+        }
+        Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
         return renderedImage;
+    }
+
+    private void refreshImage(AdvancedApplet a){
+        float startTime = perfTimeMS();
+        prepareRenderTargets(a);
+        if (renderedImage == null || renderedImage.width != CARD_WIDTH || renderedImage.height != CARD_HEIGHT)
+            renderedImage = a.createImage(CARD_WIDTH, CARD_HEIGHT, ARGB);
+
+        // make sure the base is rendered
+        getRenderedBase(a);
+
+        // render text layer, and store in renderedImage
+        renderTarget.beginDraw();
+        renderText(renderTarget);
+        textEnhanceFilter(a, renderTarget);
+        renderTarget.loadPixels();
+        renderedImage.set(0, 0, renderTarget);
+        renderTarget.endDraw();
+
+        // render full boi, drawing renderedImage over top
+        renderTarget.beginDraw();
+        renderTarget.image(renderedBase, 0, 0);
+        renderTarget.image(renderedImage, 0, 0);
+        renderTarget.loadPixels();
+        renderedImage.set(0, 0, renderTarget);
+        renderTarget.endDraw();
+        Debug.perfView.lastCardRenderMS = Debug.perfTimeMS() - startTime;
+    }
+
+    public void drawPreview(AdvancedApplet a, float x, float y, float scale) {
+        float startTime = perfTimeMS();
+        a.pushMatrix();
+        a.translate(x,y);
+        a.scale(scale);
+        a.image(renderedBase,0,0);
+        renderText(a.getAdvGraphics());
+        a.popMatrix();
+        Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
     }
 
     static private PImage _cardMask;
     static private PImage getCardMask(AdvancedApplet a){
         if(_cardMask==null) {
-            prepareRenderTarget(a);
+            _cardMask = a.createImage(CARD_WIDTH, CARD_HEIGHT, ARGB);
+
+            prepareRenderTargets(a);
             renderTarget.beginDraw();
-            renderTarget.strokeWeight(2);
+            renderTarget.background(0);
             renderTarget.noStroke();
-            renderTarget.fill(0);
+            renderTarget.fill(255);
 
             renderTarget.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE / 2f);
             renderTarget.loadPixels();
@@ -150,37 +187,63 @@ public class CardDefinition extends NetSerializable {
         return _cardMask;
     }
 
-    public void renderBase(AdvancedGraphics p){
+    private void renderBase(AdvancedGraphics p){
         p.strokeWeight(2);
         p.noStroke();
         p.fill(0);
 
+        // background
         p.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE /2f);
 
+        // image
         PImage cardImage = GlobalEnvironment.imageLoader.getCardImage(imageFileName);
         p.texture(cardImage);
         p.image(cardImage,0,0);
 
+        // panels
+        p.fill(0,150);
+        p.noStroke();
+        p.rect(0,0,CARD_WIDTH,m(3));
+        p.rect(0,m(16),CARD_WIDTH,m(12));
+
+
+        // details
+        p.noFill();
+        p.stroke(255,150);
+        fadeLine(p,0,m(18), CARD_WIDTH,m(18),.15f,.15f);
     }
 
     // renders card to target
-    public void renderText(AdvancedGraphics p){
+    private void renderText(AdvancedGraphics p){
 //        p.strokeWeight(2);
 //        p.noStroke();
 //        p.fill(0);
 //
 //        p.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE /2f);
+
+        // the font we use isn't quite base-aligned right, so tweak it
+        final int TBA = 4; // text base alignment
+
         p.fill(255);
 
-        p.textAlign(LEFT,CENTER);
+        p.textAlign(LEFT);
         Style.getFont(Style.F_STANDARD,Style.FONT_33).apply(p);
-        p.text(CC_BOLD+name,m(1),m(1.5f));
+        p.text(CC_BOLD+name,m(1),m(2));
+
+        p.textAlign(LEFT, CENTER);
         Style.getFont(Style.F_STANDARD,Style.FONT_27).apply(p);
         p.text(CC_BOLD+type,m(1),m(17));
+
+        if(isBeing) {
+            p.textAlign(RIGHT, CENTER);
+            p.text(CC_BOLD +(attackDefaultValue+"/"+healthDefaultValue), m(19), m(17));
+        }
+        p.textAlign(LEFT, CENTER);
         Style.getFont(Style.F_STANDARD,Style.FONT_24).apply(p);
-        p.text(desc,m(1),m(22));
-        Style.getFont(Style.F_FLAVOR,Style.FONT_24).apply(p);
+        p.text(desc,m(1),m(21.5f));
+
         p.textAlign(LEFT);
+        Style.getFont(Style.F_FLAVOR,Style.FONT_24).apply(p);
         p.text(flavor, m(1), m(27));
     }
 
@@ -188,6 +251,22 @@ public class CardDefinition extends NetSerializable {
         return v * CARD_SCALE;
     }
 
+    private static void fadeLine(AdvancedGraphics p, float x1, float y1, float x2, float y2, float alphamult, float alphabase){
+        p.beginShape();
+        for(float i=0;i<1.05;i+=.1){
+            float alpha = PApplet.sin(i*PI)*alphamult+alphabase;
+            p.stroke(255,alpha*255);
+            p.vertex(Util.lerp(i,x1,x2),Util.lerp(i,y1,y2));
+        }
+        p.endShape(LINE);
+    }
+
+    public CardDefinition setBeingValues(boolean isBeing, int attackDefaultValue, int healthDefaultValue){
+        this.isBeing = isBeing;
+        this.attackDefaultValue = attackDefaultValue;
+        this.healthDefaultValue = healthDefaultValue;
+        return this;
+    }
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException {

@@ -24,7 +24,6 @@ public class UICardView extends UIBase {
         //p.image(imageLoader.getCardImage(card.definition.imageFileName), cx, cy,cw/2f,ch/2f);
         p.smooth();
         p.image(card.definition.getRenderedImage(p), cx, cy,cw,ch);
-        p.image(card.definition.getRenderedImage(p), cx+900, cy);
 
 //        AdvancedGraphics ps = (AdvancedGraphics) p.createGraphics(cw, ch, "core.AdvancedGraphics");
 //        ps.initializeInjector();
@@ -53,11 +52,18 @@ public class UICardView extends UIBase {
             p.text("no card", cx+20,cy+20);
         else
             p.text("id:"+card.definition.uid, cx+20,cy+20);
-        p.stroke(127,255,255,100);
         for (int j=0;j<29;j++){
+            if(j%5==0)
+                p.stroke(255,127,255,200);
+            else
+                p.stroke(127,255,255,200);
             p.line(cx,cy+m(j),cx+cw,cy+m(j));
         }
         for(int i=0;i<21;i++){
+            if(i%5==0)
+                p.stroke(255,127,255,200);
+            else
+                p.stroke(127,255,255,200);
             p.line(cx+m(i),cy,cx+m(i),cy+ch);
 
         }

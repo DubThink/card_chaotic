@@ -84,17 +84,17 @@ public class Style {
     };
 
     static float[] FONT_FAMILY_BASELINES = {
-            .1f,
-            .1f,
-            .1f,
+            .0f,
+            .0f,
+            .0f,
             .3f,
             .18f
     };
 
     static float[] FONT_FAMILY_LEADINGS = {
-            .95f,
-            .95f,
-            .9f,
+            .85f,
+            .85f,
+            .85f,
             .5f,
             .75f
     };
