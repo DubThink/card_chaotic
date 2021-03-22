@@ -31,6 +31,7 @@ public class GameClient extends AdvancedApplet {
     UITextBox chatBox;
     UIBase netPanel;
     UIButton netMenuButton;
+    UICardEditor cardEditor;
 
     PImage testimg;
 
@@ -122,6 +123,14 @@ public class GameClient extends AdvancedApplet {
             }
         }));
 
+        netMenuButton = uiRoot.addChild(new UIButton(0, -25, 100, 25, "Disconnected"));
+        netMenuButton.onAction = new Action() {
+            @Override
+            public void action() {
+                netPanel.setEnabled(!netPanel.isEnabled());
+            }
+        };
+
         chatBox = uiRoot.addChild(new UITextBox(100, -25, 400, 25, true));
         chatView = uiRoot.addChild(new UILogView(100,-250,400,-25));
 
@@ -135,13 +144,7 @@ public class GameClient extends AdvancedApplet {
                 source.clearText();
             }
         };
-        netMenuButton = uiRoot.addChild(new UIButton(0, -25, 100, 25, "Disconnected"));
-        netMenuButton.onAction = new Action() {
-            @Override
-            public void action() {
-                netPanel.setEnabled(!netPanel.isEnabled());
-            }
-        };
+
 
         cardPreview = uiRoot.addChild(new UICardView(50,10,.5f,UILayer.INTERFACE));
         cardPreview.setCardDefinitionView(new CardDefinition(-1, "The Golden Judgement", "Exotic Warrior Behemoth", "At the beginning of your turn:\n" +
@@ -171,6 +174,8 @@ public class GameClient extends AdvancedApplet {
 
         uiRoot.addChild(new UIImage(300, 10, testimg2));
         uiRoot.addChild(new UIImage(550, -700, testimg3));
+
+        cardEditor = uiRoot.addChild(new UICardEditor(uiRoot));
         //uiRoot.addChild(new UIImage(900, -710, 1000,1000, testimg2)).setScaling(false);
 
 
@@ -181,13 +186,12 @@ public class GameClient extends AdvancedApplet {
     }
 
     public void draw() {
-        background(240, 225, 200);
+        background(Style.fillColorPanel);
         int dt = millis() - lastMillis;
         lastMillis = millis();
         float drawStartTime = Debug.perfTimeMS();
 
         handleReceivedNetEvents();
-
 
         noFill();
         noStroke();
@@ -203,8 +207,8 @@ public class GameClient extends AdvancedApplet {
         textAlign(LEFT);
         uiRoot.render(this);
 
-        cardPreview.card.definition.drawPreview(this,1050,380,1);
-        cardPreview.card.definition.drawPreview(this,550,10,.5f);
+//        cardPreview.card.definition.drawPreview(this,1050,380,1);
+//        cardPreview.card.definition.drawPreview(this,550,10,.5f);
         if(Debug.renderUIDebug){
             stroke(127);
             line(0,mouseY,width,mouseY);
@@ -243,12 +247,13 @@ public class GameClient extends AdvancedApplet {
     public void keyPressed() {
         super.keyPressed();
         //println(key, (int) key, keyCode);
-        if (keyCode == VK_2) {
-            cardPreview.card.definition.setCropCenteredSmall().refreshDisplay(this);
+        if (keyCode == VK_F2) {
+            cardEditor.setEnabled(!cardEditor.isEnabled());
+            //cardPreview.card.definition.setCropCenteredSmall().refreshDisplay(this);
         }
-        if (keyCode == VK_1) {
-            cardPreview.card.definition.setCropCenteredFull().refreshDisplay(this);
-        }
+//        if (keyCode == VK_1) {
+//            cardPreview.card.definition.setCropCenteredFull().refreshDisplay(this);
+//        }
         if (keyCode == VK_F3)
             Debug.renderUIDebug = !Debug.renderUIDebug;
         if (keyCode == VK_F7)

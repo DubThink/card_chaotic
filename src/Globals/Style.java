@@ -33,18 +33,31 @@ public class Style {
         public HyperFont font;
         public int size;
     }
-    public static int borderColor = Util.pColor(new Color(135, 135, 135));
-    public static int borderColorHover = Util.pColor(new Color(0, 0, 0));
 
-    public static int textColor = Util.pColor(new Color(54, 55, 61));
-    public static int textColorHover = Util.pColor(new Color(0, 0, 0));
+    public static int borderColorHover = Util.pColor(new Color(135, 135, 135));
+    public static int borderColor = Util.pColor(new Color(0, 0, 0));
 
-    public static int fillColor = Util.pColor(new Color(189, 189, 189));
+    public static int textColor = Util.pColor(new Color(178, 181, 184));
+    public static int textColorHover = Util.pColor(new Color(246, 250, 250));
+
+    public static int fillColor = Util.pColor(new Color(49, 50, 52));
     //public static int fillColorHover = Util.pColor(new Color(127,127,127,200));
-    public static int fillColorActive = Util.pColor(new Color(123, 123, 123));
+    public static int fillColorActive = Util.pColor(new Color(87, 87, 90));
     //public static int fillColorActiveHover = Util.pColor(new Color(65, 65, 65,200));
-    public static int fillColorInputField = Util.pColor(new Color(226, 226, 226));
-    public static int fillColorPanel = Util.pColor(new Color(226, 226, 226));
+    public static int fillColorInputField = Util.pColor(new Color(75, 77, 82));
+    public static int fillColorPanel = Util.pColor(new Color(28, 29, 33));
+//    public static int borderColor = Util.pColor(new Color(135, 135, 135));
+//    public static int borderColorHover = Util.pColor(new Color(0, 0, 0));
+//
+//    public static int textColor = Util.pColor(new Color(54, 55, 61));
+//    public static int textColorHover = Util.pColor(new Color(0, 0, 0));
+//
+//    public static int fillColor = Util.pColor(new Color(189, 189, 189));
+//    //public static int fillColorHover = Util.pColor(new Color(127,127,127,200));
+//    public static int fillColorActive = Util.pColor(new Color(123, 123, 123));
+//    //public static int fillColorActiveHover = Util.pColor(new Color(65, 65, 65,200));
+//    public static int fillColorInputField = Util.pColor(new Color(226, 226, 226));
+//    public static int fillColorPanel = Util.pColor(new Color(226, 226, 226));
 
     public static int borderRadius = 0; // for some reason having a border radius causes rects to be offset by -0.5,-0.5
 

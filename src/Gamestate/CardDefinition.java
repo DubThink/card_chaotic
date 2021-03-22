@@ -8,7 +8,6 @@ import core.AdvancedApplet;
 import core.AdvancedGraphics;
 import network.NetSerializable;
 import processing.core.PApplet;
-import processing.core.PGraphics;
 import processing.core.PImage;
 
 import java.io.DataInputStream;
@@ -26,16 +25,16 @@ import static processing.core.PConstants.*;
 public class CardDefinition extends NetSerializable {
     public final int uid;
 
-    public int creatorid;
+//    public int creatorid;
 
     public String name;
     public String type;
     public String desc;
     public String flavor;
 
-    boolean isBeing;
-    int attackDefaultValue;
-    int healthDefaultValue;
+    public boolean isBeing;
+    public int attackDefaultValue;
+    public int healthDefaultValue;
 
     boolean hasCounter;
     int counterDefaultValue;
@@ -45,8 +44,10 @@ public class CardDefinition extends NetSerializable {
     float u1,v1,u2,v2;
 
     // LOCAL ONLY
-    public PImage renderedBase;
-    public PImage renderedImage;
+    private PImage renderedBase;
+    private boolean baseInvalidated;
+    private PImage renderedImage;
+    private boolean imageInvalidated;
 
     // STATIC GEN
     private static AdvancedGraphics renderTarget;
@@ -103,19 +104,19 @@ public class CardDefinition extends NetSerializable {
 
     }
 
-    public CardDefinition refreshDisplay(AdvancedApplet a){
+    private CardDefinition refreshDisplay(AdvancedApplet a){
         refreshBase(a);
         return refreshImage(a);
     }
 
     PImage getRenderedBase(AdvancedApplet a){
-        if(renderedBase==null){
+        if(renderedBase==null||baseInvalidated){
             refreshBase(a);
         }
         return renderedBase;
     }
 
-    public CardDefinition refreshBase(AdvancedApplet a){
+    private CardDefinition refreshBase(AdvancedApplet a){
         float startTime = perfTimeMS();
         prepareRenderTargets(a);
         if(renderedBase==null || renderedBase.width != CARD_WIDTH || renderedBase.height != CARD_HEIGHT)
@@ -129,17 +130,18 @@ public class CardDefinition extends NetSerializable {
         renderedBase.mask(getCardMask(a)); // this has to be here and I'm very unclear why
         renderTarget.endDraw();
         Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
+        baseInvalidated=false;
         return this;
     }
 
     public PImage getRenderedImage(AdvancedApplet a) {
-        if(renderedImage==null) {
+        if(renderedImage==null|| imageInvalidated) {
             refreshImage(a);
         }
         return renderedImage;
     }
 
-    public CardDefinition refreshImage(AdvancedApplet a){
+    private CardDefinition refreshImage(AdvancedApplet a){
         float startTime = perfTimeMS();
         prepareRenderTargets(a);
         if (renderedImage == null || renderedImage.width != CARD_WIDTH || renderedImage.height != CARD_HEIGHT)
@@ -167,6 +169,18 @@ public class CardDefinition extends NetSerializable {
         renderTarget.endDraw();
         Debug.perfView.lastCardRenderMS = Debug.perfTimeMS() - startTime;
         Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
+        imageInvalidated =false;
+        return this;
+    }
+
+    public CardDefinition invalidateBase(){
+        baseInvalidated=true;
+        imageInvalidated=true;
+        return this;
+    }
+
+    public CardDefinition invalidateImage(){
+        imageInvalidated=true;
         return this;
     }
 
@@ -175,7 +189,7 @@ public class CardDefinition extends NetSerializable {
         a.pushMatrix();
         a.translate(x,y);
         a.scale(scale);
-        a.image(renderedBase,0,0);
+        a.image(getRenderedBase(a),0,0);
         renderText(a.getAdvGraphics());
         a.popMatrix();
         Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
@@ -290,11 +304,16 @@ public class CardDefinition extends NetSerializable {
 
     public CardDefinition setCropCenteredFull(){
         setCropForHeight(CARD_HEIGHT);
+        if(imageDisplayMode!=IMAGE_SHOW_FULL)
+            invalidateBase();
         imageDisplayMode = IMAGE_SHOW_FULL;
         return this;
     }
+
     public CardDefinition setCropCenteredSmall(){
         setCropForHeight(13*CARD_SCALE);
+        if(imageDisplayMode!=IMAGE_SHOW_SMALL)
+            invalidateBase();
         imageDisplayMode = IMAGE_SHOW_SMALL;
         return this;
     }
@@ -337,7 +356,23 @@ public class CardDefinition extends NetSerializable {
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeUTF(name);
+        dos.writeUTF(type);
+        dos.writeUTF(desc);
+        dos.writeUTF(flavor);
+
+        dos.writeBoolean(isBeing);
+        dos.writeInt(attackDefaultValue);
+        dos.writeInt(healthDefaultValue);
+
+        dos.writeBoolean(hasCounter);
+        dos.writeInt(counterDefaultValue);
+
         dos.writeUTF(imageFileName);
+        dos.writeInt(imageDisplayMode);
+        dos.writeFloat(u1);
+        dos.writeFloat(v1);
+        dos.writeFloat(u2);
+        dos.writeFloat(v2);
 
         // FINAL VALUES BELOW
         dos.writeInt(uid);
@@ -346,7 +381,23 @@ public class CardDefinition extends NetSerializable {
     @Override
     protected void deserialize(DataInputStream dis) throws IOException {
         name = dis.readUTF();
+        type = dis.readUTF();
+        desc = dis.readUTF();
+        flavor = dis.readUTF();
+
+        isBeing = dis.readBoolean();
+        attackDefaultValue = dis.readInt();
+        healthDefaultValue = dis.readInt();
+
+        hasCounter = dis.readBoolean();
+        counterDefaultValue = dis.readInt();
+
         imageFileName = dis.readUTF();
+        imageDisplayMode = dis.readInt();
+        u1 = dis.readFloat();
+        v1 = dis.readFloat();
+        u2 = dis.readFloat();
+        v2 = dis.readFloat();
     }
 
     @Override

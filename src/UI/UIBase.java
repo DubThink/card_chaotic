@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class UIBase {
     int x, y; // relative (to parent)
     int w, h;
+    // calculated values
     int cx, cy;
     int cw, ch;
     int fontFamily = Style.F_STANDARD;

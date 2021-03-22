@@ -76,6 +76,7 @@ public class SpikeGraph {
             thisFrameCount = 0;
         } else {
             history[nextIndex++]=0;
+            nextIndex%=MAX_SIZE;
         }
     }
 

@@ -25,6 +25,8 @@ public class UITextBox extends UIBase {
 
     float lastLeading=10;
 
+    int textSize=Style.FONT_SMALL;
+
     boolean fieldBox;
 
     public UIUpdateNotify<UITextBox> textUpdated;
@@ -71,7 +73,22 @@ public class UITextBox extends UIBase {
     }
 
     protected void applyTextSettings(){
-        Style.getFont(fontFamily, Style.FONT_SMALL).apply(app);
+        Style.getFont(fontFamily, textSize).apply(app);
+    }
+
+    public UITextBox setFontSize(int size){
+        textSize=size;
+        return this;
+    }
+
+    public UITextBox setTextUpdatedCallback(UIUpdateNotify<UITextBox> callback){
+        textUpdated=callback;
+        return this;
+    }
+
+    public UITextBox setTextSubmittedCallback(UIUpdateNotify<UITextBox> callback){
+        textSubmitted=callback;
+        return this;
     }
 
     @Override

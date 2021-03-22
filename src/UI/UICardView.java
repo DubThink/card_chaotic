@@ -9,6 +9,7 @@ import core.AdvancedGraphics;
 public class UICardView extends UIBase {
     public Card card;
     public boolean readonly;
+    public boolean previewMode;
 
     float scale;
 
@@ -18,13 +19,21 @@ public class UICardView extends UIBase {
 
     }
 
+    public void centerAt(int x, int y){
+        setPos(x-w/2,y-h/2);
+    }
+
     @Override
     protected void _draw(AdvancedApplet p) {
         //long nt = System.nanoTime();
         //p.image(imageLoader.getCardImage(card.definition.imageFileName), cx, cy,cw/2f,ch/2f);
         p.smooth();
-        p.image(card.definition.getRenderedImage(p), cx, cy,cw,ch);
-
+        if(card!=null) {
+            if(previewMode)
+                card.definition.drawPreview(p,cx,cy,scale);
+            else
+                p.image(card.definition.getRenderedImage(p), cx, cy, cw, ch);
+        }
 //        AdvancedGraphics ps = (AdvancedGraphics) p.createGraphics(cw, ch, "core.AdvancedGraphics");
 //        ps.initializeInjector();
 //        ps.beginDraw();

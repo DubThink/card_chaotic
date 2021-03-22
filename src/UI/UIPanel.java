@@ -11,6 +11,9 @@ public class UIPanel extends UIBase {
         super(x, y, w, h);
     }
 
+    public UIPanel(int x, int y, int w, int h, UILayer layer) {
+        super(x, y, w, h, layer);
+    }
 
     @Override
     protected void _draw(AdvancedApplet p) {

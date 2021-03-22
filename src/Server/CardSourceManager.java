@@ -14,7 +14,7 @@ public class CardSourceManager {
 
     public CardSourceManager() {
         this.cardSources = new ArrayList<>();
-//        cardSources.add(new CardSource(new CardDefinition(0, "Monkey House", "user/b02.jpg")));
+        cardSources.add(new CardSource(new CardDefinition(0, "Monkey House","Abode","+1 shelter","Not to be confused with\n Ape Trailer Home", "b02.jpg")));
         goodCardCount = 0;
         random = new Random();
     }
