@@ -5,12 +5,12 @@ import core.AdvancedGraphics;
 
 public class PerfView {
     public float lastCardRenderMS;
-    public SpikeGraph frameGraph;
+    public SpikeGraph drawTimeGraph;
     public SpikeGraph cardRendersGraph;
     private float timeSinceLastRefresh;
 
     public PerfView(){
-        frameGraph = new SpikeGraph();
+        drawTimeGraph = new SpikeGraph();
         cardRendersGraph = new SpikeGraph(true);
     }
 
@@ -21,8 +21,8 @@ public class PerfView {
         p.fill(255);
         Style.getFont(Style.F_CODE, Style.FONT_12).apply(p);
         printMS(p, 0, "last full card bake", lastCardRenderMS);
-        print(p, 20, "Frame Time ms");
-        frameGraph.render(p,10, ly(21));
+        print(p, 20, "draw() ms");
+        drawTimeGraph.render(p,10, ly(21));
 
         print(p, 27, "Card render total ms");
         cardRendersGraph.render(p,10, ly(28));
@@ -41,13 +41,13 @@ public class PerfView {
     }
 
     public void nextFrame(float dt){
-        frameGraph.advanceFrame();
+        drawTimeGraph.advanceFrame();
         cardRendersGraph.advanceFrame();
 
         timeSinceLastRefresh+=dt;
         if(timeSinceLastRefresh>1000){
             timeSinceLastRefresh-=1000;
-            frameGraph.reMinMax();
+            drawTimeGraph.reMinMax();
             cardRendersGraph.reMinMax();
         }
     }

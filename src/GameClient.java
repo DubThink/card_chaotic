@@ -146,7 +146,7 @@ public class GameClient extends AdvancedApplet {
         cardPreview = uiRoot.addChild(new UICardView(50,10,.5f,UILayer.INTERFACE));
         cardPreview.setCardDefinitionView(new CardDefinition(-1, "The Golden Judgement", "Exotic Warrior Behemoth", "At the beginning of your turn:\n" +
                 "If your /P equals your /D, gain a VP for\neach /P.\n" +
-                "Otherwise, loose X VP for the difference\nbetween your /P and /D.", "Power always comes with a cost","b02.jpg"));
+                "Otherwise, loose X VP for the difference\nbetween your /P and /D.", "Power always comes with a cost","gato.jpg"));
         uiRoot.addChild(new UICardView(50,-700,1f, UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
         cardPreview.card.definition.setBeingValues(true,3,10);
         //uiRoot.addChild(new UICardView(1070,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
@@ -203,7 +203,6 @@ public class GameClient extends AdvancedApplet {
         textAlign(LEFT);
         uiRoot.render(this);
 
-        //image(imageLoader.getCardImage("b02.jpg"),10,10);
         cardPreview.card.definition.drawPreview(this,1050,380,1);
         cardPreview.card.definition.drawPreview(this,550,10,.5f);
         if(Debug.renderUIDebug){
@@ -218,7 +217,7 @@ public class GameClient extends AdvancedApplet {
 //        text(CC_BOLD+"Testing @16 pt", 110,25);
 //        Style.getFont(Style.F_SCRIPT,Style.FONT_12).apply(this);
         //text("Testing @16 pt", 320,40);
-        Debug.perfView.frameGraph.addVal(Debug.perfTimeMS()-drawStartTime);
+        Debug.perfView.drawTimeGraph.addVal(Debug.perfTimeMS()-drawStartTime);
         Debug.perfView.nextFrame(dt);
         if(Debug.renderPerfView)
             Debug.perfView.render(this.getAdvGraphics());
@@ -244,7 +243,12 @@ public class GameClient extends AdvancedApplet {
     public void keyPressed() {
         super.keyPressed();
         //println(key, (int) key, keyCode);
-
+        if (keyCode == VK_2) {
+            cardPreview.card.definition.setCropCenteredSmall().refreshDisplay(this);
+        }
+        if (keyCode == VK_1) {
+            cardPreview.card.definition.setCropCenteredFull().refreshDisplay(this);
+        }
         if (keyCode == VK_F3)
             Debug.renderUIDebug = !Debug.renderUIDebug;
         if (keyCode == VK_F7)

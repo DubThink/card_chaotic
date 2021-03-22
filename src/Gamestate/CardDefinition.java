@@ -41,6 +41,7 @@ public class CardDefinition extends NetSerializable {
     int counterDefaultValue;
 
     public String imageFileName;
+    int imageDisplayMode = IMAGE_SHOW_FULL;
     float u1,v1,u2,v2;
 
     // LOCAL ONLY
@@ -54,6 +55,9 @@ public class CardDefinition extends NetSerializable {
     public static final int CARD_WIDTH = CARD_SCALE *20;
     public static final int CARD_HEIGHT = CARD_SCALE *28;
 
+    private static final int IMAGE_SHOW_FULL = 0;
+    private static final int IMAGE_SHOW_SMALL = 1;
+
     public CardDefinition(int uid, String name, String type, String desc, String flavor, String imageFileName) {
         this.uid = uid;
         this.name = name;
@@ -64,8 +68,8 @@ public class CardDefinition extends NetSerializable {
 
         u1=0;
         v1=0;
-        u2=0;
-        v2=0;
+        u2=1;
+        v2=1;
     }
 
     public CardDefinition(DataInputStream dis) throws IOException {
@@ -99,38 +103,43 @@ public class CardDefinition extends NetSerializable {
 
     }
 
+    public CardDefinition refreshDisplay(AdvancedApplet a){
+        refreshBase(a);
+        return refreshImage(a);
+    }
+
     PImage getRenderedBase(AdvancedApplet a){
-        float startTime = perfTimeMS();
         if(renderedBase==null){
             refreshBase(a);
         }
-        Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
         return renderedBase;
     }
 
-    private void refreshBase(AdvancedApplet a){
+    public CardDefinition refreshBase(AdvancedApplet a){
+        float startTime = perfTimeMS();
         prepareRenderTargets(a);
         if(renderedBase==null || renderedBase.width != CARD_WIDTH || renderedBase.height != CARD_HEIGHT)
             renderedBase = a.createImage(CARD_WIDTH, CARD_HEIGHT, ARGB);
 
         renderTarget.beginDraw();
+        renderTarget.clear();
         renderBase(renderTarget);
         renderTarget.loadPixels();
         renderedBase.set(0,0,renderTarget);
         renderedBase.mask(getCardMask(a)); // this has to be here and I'm very unclear why
         renderTarget.endDraw();
+        Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
+        return this;
     }
 
     public PImage getRenderedImage(AdvancedApplet a) {
-        float startTime = perfTimeMS();
         if(renderedImage==null) {
             refreshImage(a);
         }
-        Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
         return renderedImage;
     }
 
-    private void refreshImage(AdvancedApplet a){
+    public CardDefinition refreshImage(AdvancedApplet a){
         float startTime = perfTimeMS();
         prepareRenderTargets(a);
         if (renderedImage == null || renderedImage.width != CARD_WIDTH || renderedImage.height != CARD_HEIGHT)
@@ -141,6 +150,7 @@ public class CardDefinition extends NetSerializable {
 
         // render text layer, and store in renderedImage
         renderTarget.beginDraw();
+        renderTarget.clear();
         renderText(renderTarget);
         textEnhanceFilter(a, renderTarget);
         renderTarget.loadPixels();
@@ -149,12 +159,15 @@ public class CardDefinition extends NetSerializable {
 
         // render full boi, drawing renderedImage over top
         renderTarget.beginDraw();
+        renderTarget.clear();
         renderTarget.image(renderedBase, 0, 0);
         renderTarget.image(renderedImage, 0, 0);
         renderTarget.loadPixels();
         renderedImage.set(0, 0, renderTarget);
         renderTarget.endDraw();
         Debug.perfView.lastCardRenderMS = Debug.perfTimeMS() - startTime;
+        Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
+        return this;
     }
 
     public void drawPreview(AdvancedApplet a, float x, float y, float scale) {
@@ -198,8 +211,15 @@ public class CardDefinition extends NetSerializable {
         // image
         PImage cardImage = GlobalEnvironment.imageLoader.getCardImage(imageFileName);
         p.texture(cardImage);
-        p.image(cardImage,0,0);
-
+        if (imageDisplayMode == IMAGE_SHOW_FULL) {
+            p.image(cardImage, 0, 0, CARD_WIDTH, CARD_HEIGHT,
+                    (int) (u1 * cardImage.width), (int) (v1 * cardImage.height),
+                    (int) (u2 * cardImage.width), (int) (v2 * cardImage.height));
+        } else {
+            p.image(cardImage, 0, m(3), CARD_WIDTH, m(13),
+                    (int) (u1 * cardImage.width), (int) (v1 * cardImage.height),
+                    (int) (u2 * cardImage.width), (int) (v2 * cardImage.height));
+        }
         // panels
         p.fill(0,150);
         p.noStroke();
@@ -266,6 +286,52 @@ public class CardDefinition extends NetSerializable {
         this.attackDefaultValue = attackDefaultValue;
         this.healthDefaultValue = healthDefaultValue;
         return this;
+    }
+
+    public CardDefinition setCropCenteredFull(){
+        setCropForHeight(CARD_HEIGHT);
+        imageDisplayMode = IMAGE_SHOW_FULL;
+        return this;
+    }
+    public CardDefinition setCropCenteredSmall(){
+        setCropForHeight(13*CARD_SCALE);
+        imageDisplayMode = IMAGE_SHOW_SMALL;
+        return this;
+    }
+
+    private void setCropForHeight(int height){
+        PImage cardImage = GlobalEnvironment.imageLoader.getCardImage(imageFileName);
+        final float cardAspect = CARD_WIDTH / (float)height;
+        final float sourceAspect = cardImage.width/ (float)cardImage.height;
+        //System.out.printf("Card aspect ratio %.3f%n", cardAspect);
+        //System.out.printf("Source aspect ratio %.3f%n", sourceAspect);
+        if (sourceAspect>cardAspect) {
+            // vertically bound
+            v1 = 0;
+            v2 = 1;
+            final float scale = cardImage.height / (float) height;
+            float imageWidth = scale * CARD_WIDTH;
+            imageWidth /= cardImage.width; // to [0,1]
+            imageWidth*=.5f;
+
+            assert imageWidth < cardImage.width;
+            u1 = 0.5f - imageWidth;
+            u2 = 0.5f + imageWidth;
+        } else {
+            // horizontally bound
+            u1 = 0;
+            u2 = 1;
+            final float scale = cardImage.width / (float) CARD_WIDTH;
+            float imageHeight = scale * height;
+            imageHeight /= cardImage.height; // to [0,1]
+            imageHeight*=.5f;
+
+            assert imageHeight < cardImage.height;
+            v1 = 0.5f - imageHeight;
+            v2 = 0.5f + imageHeight;
+        }
+
+        //System.out.printf("Setting uv values to (%.3f, %.3f) (%.3f, %.3f)%n",u1,v1,u2,v2);
     }
 
     @Override
