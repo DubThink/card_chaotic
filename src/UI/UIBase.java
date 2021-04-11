@@ -1,9 +1,14 @@
 package UI;
 
+import Globals.Assert;
 import Globals.Style;
 import bpw.Util;
 import core.AdvancedApplet;
 import Globals.Debug;
+import processing.core.PConstants;
+
+import static Globals.GlobalEnvironment.modifierShift;
+
 
 import java.util.ArrayList;
 
@@ -28,6 +33,9 @@ public class UIBase {
     boolean interactable = true;
     ArrayList<UIBase> children;
     UIBase parent;
+
+    // if this is a nav root, prevent walking outside of it while navigating
+    boolean navRoot;
 
     public UIBase(int x, int y, int w, int h) {
         this(x, y, w, h, UILayer.INTERFACE);
@@ -57,7 +65,7 @@ public class UIBase {
         if (!enabled) {
             if (focus) {
                 focus = false;
-                _looseFocus();
+                _notifyLooseFocus();
             }
             return false;
         }
@@ -76,15 +84,15 @@ public class UIBase {
         if (!focus)
             focus = interactable && isPointOver(mouseX, mouseY);
         if (wasFocus && !focus)
-            _looseFocus();
+            _notifyLooseFocus();
         if (!wasFocus && focus)
-            _gainFocus();
+            _notifyGainFocus();
         return focus;
     }
 
     protected void _unfocus() {
         if (focus) {
-            _looseFocus();
+            _notifyLooseFocus();
             for (UIBase child : children) {
                 child._unfocus();
             }
@@ -92,10 +100,10 @@ public class UIBase {
         }
     }
 
-    protected void _looseFocus() {
+    protected void _notifyLooseFocus() {
     }
 
-    protected void _gainFocus() {
+    protected void _notifyGainFocus() {
     }
 
     protected void _updateCalculatedLayout() {
@@ -152,6 +160,9 @@ public class UIBase {
         else
             p.stroke(255, 0, 0);
         p.rect(cx, cy, cw, ch);
+        Style.getFont(Style.F_CODE, Style.FONT_12).apply(p);
+        p.textAlign(PConstants.LEFT,PConstants.TOP);
+        p.text(""+this,cx+2,cy+2);
     }
 
 
@@ -205,18 +216,113 @@ public class UIBase {
     public boolean handleKeyPress(boolean down, char key, int keyCode) {
         if (!enabled || !interactable)
             return false;
-
         if (textFocusTarget != null) {
-            textFocusTarget._handleKeyPress(down, key, keyCode);
-            return true;
+            if(textFocusTarget._handleKeyPress(down, key, keyCode))
+                return true;
         }
 
         for (int i = children.size() - 1; i >= 0; i--) {
             if (children.get(i).handleKeyPress(down, key, keyCode))
                 return true;
         }
-        return _handleKeyPress(down, key, keyCode);
+        boolean result = _handleKeyPress(down, key, keyCode);
+
+        // only run at root level
+        if(parent==null && !result && keyCode == '\t' && down) {
+            // didn't eat TAB, navigate instead
+
+            if(modifierShift)
+                navigatePrevious();
+            else
+                navigateNext();
+
+            if(textFocusTarget != null)
+                result = true;
+        }
+        return result;
     }
+
+    public void navigateNext(){
+        UIBase result = (textFocusTarget!=null?textFocusTarget:this).searchForward(takesTextInput);
+        System.out.println("next returned "+result);
+        if(result!=null)
+            result.claimTextFocus();
+    }
+
+    public void navigatePrevious(){
+        UIBase result = (textFocusTarget!=null?textFocusTarget:this).searchReverse(takesTextInput);
+        System.out.println("prev returned "+result);
+        if(result!=null)
+            result.claimTextFocus();
+    }
+
+    interface TestUIElement{
+        boolean test(UIBase base);
+    }
+
+    TestUIElement takesTextInput = UIBase::canAcceptTextInput;
+
+    protected UIBase searchForward(TestUIElement test){
+        return _ascendingSearchForward(test,0);
+    }
+
+    protected UIBase searchReverse(TestUIElement test){
+        return _ascendingSearchReverse(test,children.size()-1);
+    }
+
+    protected UIBase _ascendingSearchForward(TestUIElement test, int startIdx){
+        for (int i = startIdx; i < children.size(); i++) {
+            UIBase res = children.get(i)._recursiveSearchForwardDown(test);
+            if (res!=null)
+                return res;
+        }
+        if(parent == null || this.navRoot)
+            return null;
+        // continue the search after this one in the parent
+        return parent._ascendingSearchForward(test,parent.children.indexOf(this)+1);
+    }
+
+    protected UIBase _ascendingSearchReverse(TestUIElement test, int startIdx){
+        for (int i = startIdx; i >= 0; i--) {
+            UIBase res = children.get(i)._recursiveSearchReverseDown(test);
+            if (res!=null)
+                return res;
+        }
+        if(parent == null || this.navRoot)
+            return null;
+        // continue the search after this one in the parent
+        return parent._ascendingSearchReverse(test,parent.children.indexOf(this)-1);
+    }
+
+    protected UIBase _recursiveSearchForwardDown(TestUIElement test){
+        // base case
+        if(test.test(this))
+            return this;
+        // recursive case
+        for(UIBase c: children) {
+            UIBase res = c._recursiveSearchForwardDown(test);
+            if(res != null)
+                return res;
+        }
+        return null;
+    }
+
+    protected UIBase _recursiveSearchReverseDown(TestUIElement test){
+
+        // recursive case
+        for (int i = children.size()-1; i >= 0 ; i--) {
+            UIBase res = children.get(i)._recursiveSearchReverseDown(test);
+            if (res != null)
+                return res;
+        }
+
+        // base case
+        if(test.test(this))
+            return this;
+
+        return null;
+    }
+
 
     protected boolean _handleKeyPress(boolean down, char key, int keyCode) {
         return false;
@@ -269,6 +375,22 @@ public class UIBase {
         return enabled;
     }
 
+    /**
+     * Checks if a given element is fully enabled (i.e. all containing elements are enabled)
+     * Some increased perf cost; don't use in tight code.
+     * @return
+     */
+    public boolean isLineageEnabled() {
+        UIBase p=parent;
+        while (p!=null) {
+            if (!p.enabled)
+                return false;
+            p = p.parent;
+        }
+        return true;
+    }
+
+
     public UIBase setEnabled(boolean e) {
         enabled = e;
         return this;
@@ -279,7 +401,31 @@ public class UIBase {
         return this;
     }
 
+    public UIBase setNavRoot(boolean isNavRoot){
+        navRoot = isNavRoot;
+        return this;
+    }
+
+    public UIBase findNavRoot(){
+        UIBase result=this;
+        while (!result.navRoot&&result.parent!=null)
+            result=result.parent;
+        return result;
+    }
+
+    public UIBase findRoot(){
+        UIBase result=this;
+        while (result.parent!=null)
+            result=result.parent;
+        return result;
+    }
+
+    public boolean canAcceptTextInput(){
+        return false;
+    }
+
     protected void claimTextFocus() {
+        // Assert.bool(canAcceptTextInput()); // we allow things to take text focus as a placeholder for navigation reasons
         if (textFocus) return;
         propagateClaimTextFocus(this);
     }
@@ -301,8 +447,8 @@ public class UIBase {
             if (textFocusTarget != null) {
                 // new target
                 textFocusTarget.textFocus = true;
-                this.textFocusTarget = textFocusTarget;
             }
+            this.textFocusTarget = textFocusTarget;
         }
     }
 

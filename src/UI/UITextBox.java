@@ -29,6 +29,9 @@ public class UITextBox extends UIBase {
 
     boolean fieldBox;
 
+    // TODO switch to using interactable
+    boolean editable=true;
+
     public UIUpdateNotify<UITextBox> textUpdated;
     public UIUpdateNotify<UITextBox> textSubmitted;
 
@@ -39,20 +42,41 @@ public class UITextBox extends UIBase {
         lines.add("");
     }
 
+    public UITextBox setEditable(boolean editable) {
+        if(!editable && this.editable && textFocus) {
+            UIBase navRoot = findRoot();
+            navRoot.navigatePrevious();
+            if(textFocus) // if we didn't successfully hand off focus
+                navRoot.navigateNext();
+            if(textFocus){
+                disposeTextFocus();
+                findNavRoot().claimTextFocus(); // just make the nav root claim focus to keep it within
+            }
+        }
+        this.editable = editable;
+        return this;
+    }
+
+    @Override
+    protected void _debugDraw(AdvancedApplet p) {
+        super._debugDraw(p);
+        p.text(lines.get(0).length(),cx+10,cy+10);
+    }
+
     @Override
     protected void _draw(AdvancedApplet p) {
         AdvancedGraphics g = p.getAdvGraphics();
         g.pushMatrix();
 
         g.translate(cx,cy);
-        p.stroke(focus?Style.borderColorHover:Style.borderColor);
-        p.fill(Style.fillColorInputField);
+        p.stroke(focus&&editable?Style.borderColorHover:Style.borderColor);
+        p.fill(editable?Style.fillColorInputField:Style.fillColor);
         p.rect(0, 0, cw, ch,Style.borderRadius);
 
         g.translate(Style.textMargin, Style.textMargin);
         applyTextSettings();
         g.noStroke();
-        g.fill(textFocus?Style.textColorHover:Style.textColor);
+        g.fill(textFocus&&editable?Style.textColorHover:Style.textColor);
 
         for(int i=0;i<lines.size();i++){
 
@@ -61,7 +85,7 @@ public class UITextBox extends UIBase {
         }
         // draw cursor
         int deltaMillis=p.millis()-lastInputMillis;
-        if(textFocus && deltaMillis%(Config.CURSOR_BLINK_RATE*2)<Config.CURSOR_BLINK_RATE){
+        if(textFocus&&editable && deltaMillis%(Config.CURSOR_BLINK_RATE*2)<Config.CURSOR_BLINK_RATE){
             float over = p.textWidth(lines.get(currentLine).substring(0,cursorPos));//g.simpleTextWidthImpl(lines.get(currentLine),0,cursorPos);
             g.strokeWeight(2);
             g.stroke(Style.textColorHover);
@@ -93,7 +117,7 @@ public class UITextBox extends UIBase {
 
     @Override
     protected boolean _handleMouseInput(boolean down, int button, int x, int y) {
-        if(down){
+        if(down&&editable){
             if(isPointOver(x, y)) {
                 claimTextFocus();
                 if(textFocus)
@@ -176,7 +200,7 @@ public class UITextBox extends UIBase {
 
     @Override
     protected boolean _handleKeyPress(boolean down, char key, int keyCode) {
-        if(!textFocus) return false;
+        if(!textFocus||!editable) return false;
         if(key==CODED &&( keyCode==CONTROL || keyCode == SHIFT || keyCode == ALT)){
             // ignore these for now
         } else {
@@ -205,10 +229,27 @@ public class UITextBox extends UIBase {
         return ret;
     }
 
+    @Override
+    protected void _notifyGainFocus() {
+        lastInputMillis = app.millis();
+    }
+
+    @Override
+    protected void claimTextFocus() {
+        super.claimTextFocus();
+        lastInputMillis = app.millis();
+    }
+
+    @Override
+    public boolean canAcceptTextInput() {
+        return isLineageEnabled() && editable;
+    }
+
     protected boolean _textBoxHandleKey(char key, int keyCode) {
         if (key != PConstants.CODED) {
 //            System.out.println("Uncoded = '" + (int) key + "'(" + key + ")");
-            if (Util.isTextChar(key)) {
+            // processing can't render tabs, and besides we use them for navigation
+            if (key!='\t' && Util.isTextChar(key)) {
                 lines.set(currentLine, Util.insertChar(lines.get(currentLine), key, cursorPos));
                 cursorPos++;
                 return true;

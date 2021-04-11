@@ -29,49 +29,27 @@ import static com.jogamp.newt.event.KeyEvent.VK_F3;
 import static Server.ServerEnvironment.*;
 import static Globals.GlobalEnvironment.*;
 
-public class GameServer extends AdvancedApplet {
+public class GameServer extends GameBase {
 
     public void settings() {
+        super.settings();
         size(1200, 900, "core.AdvancedGraphics");
-        smooth(4);
 //        fullScreen(P3D,-2);
     }
 
-    float ax, ay, az;
-    int lastMillis = 0;
-    UITextBox chatBox;
-    UIButton netMenuButton;
     ServerSocket ss;
     Exception lastE;
+
+    UITextBox chatBox;
 
     ServerGamePhase currentPhase;
 
     UILogView serverlog;
 
-    void loadAndCreateSymbol(String file, String bind) {
-        PImage ti = loadImage(file);
-        Symbol cayde = SymbolInjector.createSymbol(ti);
-        cayde.setMSize(28);
-        SymbolInjector.addKey(bind, cayde);
-        System.out.println("Binding '" + file + String.format("' to char 0x%02x", (int) cayde.c));
-    }
-
     @Override
     public void setup() {
-        UIBase.app = this;
-        Style.loadFonts(this);
+        super.setup();
 
-        loadAndCreateSymbol("cayde32.png", "Y");
-        loadAndCreateSymbol("earth.png", "E");
-        loadAndCreateSymbol("air.png", "A");
-        loadAndCreateSymbol("fire.png", "F");
-        loadAndCreateSymbol("water.png", "W");
-        loadAndCreateSymbol("cool.png", "C");
-        loadAndCreateSymbol("love.png", "L");
-        loadAndCreateSymbol("power.png", "P");
-        loadAndCreateSymbol("death.png", "D");
-
-        uiRoot = new UIBase(0, 0, width, height);
         uiRoot.addChild(new UILabel(10, 10, -10, 60, "Server")).setBigLabel(true).setJustify(PConstants.CENTER);
 
 
@@ -102,11 +80,11 @@ public class GameServer extends AdvancedApplet {
 
         svPlayers = new ArrayList<>();
 
-        lastMillis = millis();
-
         currentPhase = new PregamePhase();
 
 //        getSurface().setLocation(10,30);
+
+        super.finalizeSetup();
     }
 
     public void svLog(String s) {
@@ -115,11 +93,8 @@ public class GameServer extends AdvancedApplet {
         serverlog.addLine(ms);
     }
 
-    public void draw() {
-        background(240, 225, 200);
-        int dt = millis() - lastMillis;
-        lastMillis = millis();
-
+    @Override
+    public void _draw(int dt) {
         while(currentPhase.shouldEnd()){
             currentPhase.cleanup();
             svLog("Advancing from phase "+currentPhase.getPhaseName());
@@ -134,22 +109,13 @@ public class GameServer extends AdvancedApplet {
             text("UNABLE TO START SOCKET RIP", 100, 100);
 
         }
+
         Style.getFont(Style.F_CODE, Style.FONT_MEDIUM).apply(this);
         if (lastE != null)
             text(lastE.toString(), 100, 200);
 
         currentPhase.updateStep(dt);
 
-        noFill();
-        noStroke();
-        strokeWeight(1);
-        if (width != uiRoot.getWidth() || height != uiRoot.getHeight()) {
-            uiRoot.setSize(width, height);
-        }
-
-        uiRoot.updateFocus(mouseX, mouseY);
-        uiRoot.updateLogic(dt);
-        uiRoot.render(this);
     }
 
     protected void networkUpdateStep() {
@@ -215,45 +181,14 @@ public class GameServer extends AdvancedApplet {
     @Override
     public void keyPressed() {
         super.keyPressed();
-
-        if (keyCode == VK_F3)
-            Debug.renderUIDebug = !Debug.renderUIDebug;
-        else if (keyCode == VK_F12)
-            Debug.breakpoint = !Debug.breakpoint;
-        else uiRoot.handleKeyPress(true, key, keyCode);
     }
 
     @Override
     public void keyReleased() {
         super.keyReleased();
-        uiRoot.handleKeyPress(false, key, keyCode);
-    }
-
-    @Override
-    public void mousePressed() {
-        uiRoot.handleMouseInput(true, mouseButton, mouseX, mouseY);
-    }
-
-    @Override
-    public void mouseReleased() {
-        uiRoot.handleMouseInput(false, mouseButton, mouseX, mouseY);
     }
 
     public static void main(String... args) {
-        // dumb hack
-        // for some reason, PApplet.main concats the args after the sketch class name
-        // even though any args after the sketch name are ignored
-        // ...
-        final String SKETCH_NAME = "GameServer";
-        if(args.length>0) {
-            String name_tm = args[0];
-            for (int i = 0;i<args.length-1;i++){
-                args[i]=args[i+1];
-            }
-            args[args.length-1]=SKETCH_NAME;
-                PApplet.main(name_tm,args);
-        } else {
-            PApplet.main(SKETCH_NAME);
-        }
+        run(GameServer.class.getSimpleName(),args);
     }
 }

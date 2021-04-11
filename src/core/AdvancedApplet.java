@@ -1,6 +1,7 @@
 package core;
 
 import processing.core.PApplet;
+import processing.core.PImage;
 
 public class AdvancedApplet extends PApplet {
 
@@ -9,6 +10,14 @@ public class AdvancedApplet extends PApplet {
 
     static{
         SymbolInjector.blockSymbols(new char[]{AdvancedApplet.CC_BOLD, CC_ITALIC});
+    }
+
+    public void loadAndCreateSymbol(String file, String bind) {
+        PImage ti = loadImage(file);
+        Symbol cayde = SymbolInjector.createSymbol(ti);
+        cayde.setMSize(28);
+        SymbolInjector.addKey(bind, cayde);
+        System.out.println("Binding '" + file + String.format("' to char 0x%02x", (int) cayde.c));
     }
 
     public boolean keyControlDown=false;

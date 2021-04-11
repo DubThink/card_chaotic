@@ -18,50 +18,25 @@ import static Globals.GlobalEnvironment.*;
 import static com.jogamp.newt.event.KeyEvent.*; // use this for p2d-based graphics (not KeyEvent)
 
 
-public class GameClient extends AdvancedApplet {
+public class GameClient extends GameBase {
 
     public void settings() {
+        super.settings();
 //        size(1600, 900, "core.AdvancedGraphics");
-        smooth(4);
         fullScreen("core.AdvancedGraphics");
     }
 
-    float ax, ay, az;
-    int lastMillis = 0;
-    UITextBox chatBox;
     UIBase netPanel;
     UIButton netMenuButton;
+    UITextBox chatBox;
     UICardEditor cardEditor;
+
 
     PImage testimg;
 
-
-
-    void loadAndCreateSymbol(String file, String bind) {
-        PImage ti = loadImage(file);
-        Symbol cayde = SymbolInjector.createSymbol(ti);
-        cayde.setMSize(28);
-        SymbolInjector.addKey(bind, cayde);
-        System.out.println("Binding '" + file + String.format("' to char 0x%02x", (int) cayde.c));
-    }
-
     @Override
     public void setup() {
-        UIBase.app = this;
-        imageLoader = new ImageLoader(this);
-        Style.loadFonts(this);
-
-        loadAndCreateSymbol("cayde32.png", "Y");
-        loadAndCreateSymbol("earth.png", "E");
-        loadAndCreateSymbol("air.png", "A");
-        loadAndCreateSymbol("fire.png", "F");
-        loadAndCreateSymbol("water.png", "W");
-        loadAndCreateSymbol("cool.png", "C");
-        loadAndCreateSymbol("love.png", "L");
-        loadAndCreateSymbol("power.png", "P");
-        loadAndCreateSymbol("death.png", "D");
-
-        uiRoot = new UIBase(0, 0, width, height);
+        super.setup();
 
         UIBase testButtons = uiRoot.addChild(new UIBase(0, 0, 0, 0));
         Action test = new Action() {
@@ -151,7 +126,7 @@ public class GameClient extends AdvancedApplet {
                 "If your /P equals your /D, gain a VP for\neach /P.\n" +
                 "Otherwise, loose X VP for the difference\nbetween your /P and /D.", "Power always comes with a cost","gato.jpg"));
         uiRoot.addChild(new UICardView(50,-700,1f, UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
-        cardPreview.card.definition.setBeingValues(true,3,10);
+        cardPreview.card.definition.setBeingValues(3,10);
         //uiRoot.addChild(new UICardView(1070,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
 
 //        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
@@ -182,49 +157,20 @@ public class GameClient extends AdvancedApplet {
         //uiRoot.addChild(new UIImage(10,10,1,1,imageLoader.getUserImage("test16.png"))).setScaling(false);
 
 
-        lastMillis = millis();
+        super.finalizeSetup();
     }
 
-    public void draw() {
-        background(Style.fillColorPanel);
-        int dt = millis() - lastMillis;
-        lastMillis = millis();
-        float drawStartTime = Debug.perfTimeMS();
-
+    @Override
+    public void _draw(int dt) {
         handleReceivedNetEvents();
-
-        noFill();
-        noStroke();
-        strokeWeight(1);
-        if(width != uiRoot.getWidth() || height != uiRoot.getHeight()){
-            uiRoot.setSize(width, height);
-        }
 
         gameStateManager.updateStep(dt);
 
-        uiRoot.updateFocus(mouseX, mouseY);
-        uiRoot.updateLogic(dt);
-        textAlign(LEFT);
-        uiRoot.render(this);
-
-//        cardPreview.card.definition.drawPreview(this,1050,380,1);
-//        cardPreview.card.definition.drawPreview(this,550,10,.5f);
         if(Debug.renderUIDebug){
             stroke(127);
             line(0,mouseY,width,mouseY);
             line(mouseX,0,mouseX,height);
         }
-
-//        fill(255);
-//        Style.getFont(Style.F_STANDARD,Style.FONT_12).apply(this);
-//        textAlign(CENTER,CENTER);
-//        text(CC_BOLD+"Testing @16 pt", 110,25);
-//        Style.getFont(Style.F_SCRIPT,Style.FONT_12).apply(this);
-        //text("Testing @16 pt", 320,40);
-        Debug.perfView.drawTimeGraph.addVal(Debug.perfTimeMS()-drawStartTime);
-        Debug.perfView.nextFrame(dt);
-        if(Debug.renderPerfView)
-            Debug.perfView.render(this.getAdvGraphics());
     }
 
     public void handleReceivedNetEvents(){
@@ -246,56 +192,20 @@ public class GameClient extends AdvancedApplet {
     @Override
     public void keyPressed() {
         super.keyPressed();
-        //println(key, (int) key, keyCode);
+
         if (keyCode == VK_F2) {
             cardEditor.setEnabled(!cardEditor.isEnabled());
             //cardPreview.card.definition.setCropCenteredSmall().refreshDisplay(this);
         }
-//        if (keyCode == VK_1) {
-//            cardPreview.card.definition.setCropCenteredFull().refreshDisplay(this);
-//        }
-        if (keyCode == VK_F3)
-            Debug.renderUIDebug = !Debug.renderUIDebug;
-        if (keyCode == VK_F7)
-            Debug.renderPerfView = !Debug.renderPerfView;
-//        else if (keyCode == VK_F4)
-//            DebugConstants.printUIDebug = !DebugConstants.renderUIDebug;
-        else if (keyCode == VK_F12)
-            Debug.breakpoint = !Debug.breakpoint;
-        else uiRoot.handleKeyPress(true, key, keyCode);
+
     }
 
     @Override
     public void keyReleased() {
         super.keyReleased();
-        uiRoot.handleKeyPress(false, key, keyCode);
-    }
-
-    @Override
-    public void mousePressed() {
-        uiRoot.handleMouseInput(true, mouseButton, mouseX, mouseY);
-    }
-
-    @Override
-    public void mouseReleased() {
-        uiRoot.handleMouseInput(false, mouseButton, mouseX, mouseY);
     }
 
     public static void main(String... args) {
-        // dumb hack
-        // for some reason, PApplet.main concats the args after the sketch class name
-        // even though any args after the sketch name are ignored
-        // ...
-        final String SKETCH_NAME = "GameClient";
-        if(args.length>0) {
-            String name_tm = args[0];
-            for (int i = 0;i<args.length-1;i++){
-                args[i]=args[i+1];
-            }
-            args[args.length-1]=SKETCH_NAME;
-            PApplet.main(name_tm,args);
-        } else {
-            PApplet.main(SKETCH_NAME);
-        }
+        run(GameClient.class.getSimpleName(),args);
     }
 }

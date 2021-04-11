@@ -3,6 +3,8 @@ package Debug;
 import Globals.Style;
 import core.AdvancedGraphics;
 
+import static Globals.GlobalEnvironment.modifierShift;
+
 public class PerfView {
     public float lastCardRenderMS;
     public SpikeGraph drawTimeGraph;
@@ -22,6 +24,7 @@ public class PerfView {
         Style.getFont(Style.F_CODE, Style.FONT_12).apply(p);
         printMS(p, 0, "last full card bake", lastCardRenderMS);
         print(p, 20, "draw() ms");
+        print(p, 19, "shift"+modifierShift);
         drawTimeGraph.render(p,10, ly(21));
 
         print(p, 27, "Card render total ms");

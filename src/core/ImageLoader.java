@@ -3,6 +3,9 @@ package core;
 import core.AdvancedApplet;
 import processing.core.PImage;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class ImageLoader {
@@ -39,6 +42,17 @@ public class ImageLoader {
         imageMap.put(name, img);
         return img;
 
+    }
+
+    public boolean isCardImageValid(String name){
+        return getCardImage(name)==nullimg;
+    }
+
+    public void launchCardFolder(){
+        try {
+            Desktop.getDesktop().open(appletHandle.dataFile("user\\card\\"));
+        }
+        catch (IOException ignored){};
     }
 
     public void uncacheCardImage(String name){

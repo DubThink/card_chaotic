@@ -6,7 +6,7 @@ public class Debug {
     public static boolean renderUIDebug = false;
     public static boolean renderPerfView = false;
 //    public static boolean printUIDebug = false;
-    public static boolean breakpoint = false;
+    public static boolean debugBreakpoint = false;
 
     public static PerfView perfView;
 
@@ -20,7 +20,7 @@ public class Debug {
         perfView = new PerfView();
     }
     public static void breakpointToggle(){
-        if(breakpoint)
+        if(debugBreakpoint)
         {
             System.out.println("breakpoint");
         }

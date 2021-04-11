@@ -16,6 +16,7 @@ import java.io.IOException;
 
 import static Globals.Debug.perfTimeMS;
 import static core.AdvancedApplet.CC_BOLD;
+import static core.AdvancedApplet.CC_ITALIC;
 import static processing.core.PApplet.sqrt;
 import static processing.core.PConstants.*;
 
@@ -23,6 +24,11 @@ import static processing.core.PConstants.*;
  * Defines the invariable portions of a card (used to generate cards)
  */
 public class CardDefinition extends NetSerializable {
+    public static final int ARCHETYPE_OBJECT=0;
+    public static final int ARCHETYPE_BEING=1;
+    public static final int ARCHETYPE_GEAR=2;
+    public static final int ARCHETYPE_ACTION=3;
+    public static final int _ARCHETYPE_COUNT=4;
     public final int uid;
 
 //    public int creatorid;
@@ -32,9 +38,10 @@ public class CardDefinition extends NetSerializable {
     public String desc;
     public String flavor;
 
-    public boolean isBeing;
     public int attackDefaultValue;
     public int healthDefaultValue;
+    // nocommit
+    public int archetype;
 
     boolean hasCounter;
     int counterDefaultValue;
@@ -58,6 +65,7 @@ public class CardDefinition extends NetSerializable {
 
     private static final int IMAGE_SHOW_FULL = 0;
     private static final int IMAGE_SHOW_SMALL = 1;
+    private static final int IMAGE_SHOW_SQUARE = 2;
 
     public CardDefinition(int uid, String name, String type, String desc, String flavor, String imageFileName) {
         this.uid = uid;
@@ -229,6 +237,10 @@ public class CardDefinition extends NetSerializable {
             p.image(cardImage, 0, 0, CARD_WIDTH, CARD_HEIGHT,
                     (int) (u1 * cardImage.width), (int) (v1 * cardImage.height),
                     (int) (u2 * cardImage.width), (int) (v2 * cardImage.height));
+        } else if (imageDisplayMode == IMAGE_SHOW_SQUARE) {
+            p.image(cardImage, 0, 0, CARD_WIDTH, m(18),
+                    (int) (u1 * cardImage.width), (int) (v1 * cardImage.height),
+                    (int) (u2 * cardImage.width), (int) (v2 * cardImage.height));
         } else {
             p.image(cardImage, 0, m(3), CARD_WIDTH, m(13),
                     (int) (u1 * cardImage.width), (int) (v1 * cardImage.height),
@@ -268,10 +280,23 @@ public class CardDefinition extends NetSerializable {
         Style.getFont(Style.F_STANDARD,Style.FONT_27).apply(p);
         p.text(CC_BOLD+type,m(1),m(17));
 
-        if(isBeing) {
-            p.textAlign(RIGHT, CENTER);
-            p.text(CC_BOLD +(attackDefaultValue+"/"+healthDefaultValue), m(19), m(17));
+        p.textAlign(RIGHT, CENTER);
+        switch (archetype){
+            case ARCHETYPE_OBJECT:
+                break;
+            case ARCHETYPE_BEING:
+                p.text(CC_BOLD +(attackDefaultValue+"/"+healthDefaultValue), m(19), m(17));
+                break;
+            case ARCHETYPE_GEAR:
+                p.text(CC_ITALIC +"Gear", m(19), m(17));
+                break;
+            case ARCHETYPE_ACTION:
+                p.text(CC_ITALIC +"Action", m(19), m(17));
+                break;
+            default:
+                throw new RuntimeException("Not all archetypes implemented in render");
         }
+
         p.textAlign(LEFT, CENTER);
         Style.getFont(Style.F_STANDARD,Style.FONT_24).apply(p);
         p.text(desc,m(1),m(21.5f));
@@ -295,8 +320,7 @@ public class CardDefinition extends NetSerializable {
         p.endShape(LINE);
     }
 
-    public CardDefinition setBeingValues(boolean isBeing, int attackDefaultValue, int healthDefaultValue){
-        this.isBeing = isBeing;
+    public CardDefinition setBeingValues(int attackDefaultValue, int healthDefaultValue){
         this.attackDefaultValue = attackDefaultValue;
         this.healthDefaultValue = healthDefaultValue;
         return this;
@@ -315,6 +339,14 @@ public class CardDefinition extends NetSerializable {
         if(imageDisplayMode!=IMAGE_SHOW_SMALL)
             invalidateBase();
         imageDisplayMode = IMAGE_SHOW_SMALL;
+        return this;
+    }
+
+    public CardDefinition setCropCenteredSquare(){
+        setCropForHeight(18*CARD_SCALE);
+        if(imageDisplayMode!=IMAGE_SHOW_SQUARE)
+            invalidateBase();
+        imageDisplayMode = IMAGE_SHOW_SQUARE;
         return this;
     }
 
@@ -360,9 +392,9 @@ public class CardDefinition extends NetSerializable {
         dos.writeUTF(desc);
         dos.writeUTF(flavor);
 
-        dos.writeBoolean(isBeing);
         dos.writeInt(attackDefaultValue);
         dos.writeInt(healthDefaultValue);
+        dos.writeInt(archetype);
 
         dos.writeBoolean(hasCounter);
         dos.writeInt(counterDefaultValue);
@@ -385,9 +417,9 @@ public class CardDefinition extends NetSerializable {
         desc = dis.readUTF();
         flavor = dis.readUTF();
 
-        isBeing = dis.readBoolean();
         attackDefaultValue = dis.readInt();
         healthDefaultValue = dis.readInt();
+        archetype = dis.readInt();
 
         hasCounter = dis.readBoolean();
         counterDefaultValue = dis.readInt();
@@ -405,6 +437,30 @@ public class CardDefinition extends NetSerializable {
         return "CardDefinition{" +
                 "uid=" + uid +
                 ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", desc='" + desc + '\'' +
+                ", flavor='" + flavor + '\'' +
+                ", attackDefaultValue=" + attackDefaultValue +
+                ", healthDefaultValue=" + healthDefaultValue +
+                ", archetype=" + archetype +
+                ", hasCounter=" + hasCounter +
+                ", counterDefaultValue=" + counterDefaultValue +
+                ", imageFileName='" + imageFileName + '\'' +
+                ", imageDisplayMode=" + imageDisplayMode +
+                ", u1=" + u1 +
+                ", v1=" + v1 +
+                ", u2=" + u2 +
+                ", v2=" + v2 +
                 '}';
+    }
+
+    public static String getArchetypeName(int archetype){
+        return switch (archetype) {
+            case ARCHETYPE_OBJECT -> "Object";
+            case ARCHETYPE_BEING -> "Being";
+            case ARCHETYPE_GEAR -> "Gear";
+            case ARCHETYPE_ACTION -> "Action";
+            default -> throw new RuntimeException("Not all archetypes covered");
+        };
     }
 }

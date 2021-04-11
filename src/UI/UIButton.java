@@ -36,7 +36,7 @@ public class UIButton extends UIBase {
     }
 
     @Override
-    protected void _looseFocus() {
+    protected void _notifyLooseFocus() {
         if(!toggle) {
             state = false;
             if(offAction!=null)offAction.action();
