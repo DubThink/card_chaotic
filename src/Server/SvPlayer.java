@@ -9,6 +9,8 @@ public class SvPlayer {
     public boolean wasReady = false;
     public boolean active = false;
 
+    public int currentNewCardID=-1;
+
     public SvPlayer(Player player, NetworkClientHandler handler) {
         this.player = player;
         this.handler = handler;

@@ -1,3 +1,4 @@
+import Globals.Config;
 import Globals.Debug;
 import Globals.GlobalEnvironment;
 import Globals.Style;
@@ -55,6 +56,9 @@ public abstract class GameBase extends AdvancedApplet {
         lastMillis = millis();
         float drawStartTime = Debug.perfTimeMS();
 
+
+        _draw(dt);
+
         noFill();
         noStroke();
         strokeWeight(1);
@@ -67,6 +71,12 @@ public abstract class GameBase extends AdvancedApplet {
         textAlign(LEFT);
         uiRoot.render(this);
 
+        pushStyle();
+        Style.getFont(Style.F_CODE, Style.FONT_12).apply(this);
+        textAlign(RIGHT,TOP);
+        fill(Style.textColor);
+        text("Shift+F12 to exit. ver="+ Config.GAME_VERSION+" net="+Config.NET_VERSION,width-3,3);
+        popStyle();
 
         if(Debug.renderUIDebug){
             stroke(127);
@@ -76,13 +86,20 @@ public abstract class GameBase extends AdvancedApplet {
 
         Debug.perfView.drawTimeGraph.addVal(Debug.perfTimeMS()-drawStartTime);
         Debug.perfView.nextFrame(dt);
+        Debug.stateDebug.nextFrame(dt);
         if(Debug.renderPerfView)
             Debug.perfView.render(this.getAdvGraphics());
+        if(Debug.renderStateDebug)
+            Debug.stateDebug.render(this.getAdvGraphics());
     }
 
 
     @Override
     public void keyPressed() {
+        if(key == ESC)
+            key=0;
+        if(keyCode == VK_F12 && modifierShift)
+            exit();
         super.keyPressed();
         if(keyCode == CONTROL)
             modifierCtrl = true;
@@ -93,6 +110,8 @@ public abstract class GameBase extends AdvancedApplet {
             Debug.renderUIDebug = !Debug.renderUIDebug;
         if (keyCode == VK_F7)
             Debug.renderPerfView = !Debug.renderPerfView;
+        if (keyCode == VK_F8)
+            Debug.renderStateDebug = !Debug.renderStateDebug;
 //        else if (keyCode == VK_F4)
 //            DebugConstants.printUIDebug = !DebugConstants.renderUIDebug;
         else if (keyCode == VK_F12)

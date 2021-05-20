@@ -5,18 +5,21 @@ import core.AdvancedGraphics;
 
 import static Globals.GlobalEnvironment.modifierShift;
 
-public class PerfView {
+public class PerfView extends DebugPanel {
     public float lastCardRenderMS;
     public SpikeGraph drawTimeGraph;
     public SpikeGraph cardRendersGraph;
+    public SpikeGraph imageTXRXGraph;
     private float timeSinceLastRefresh;
 
     public PerfView(){
         drawTimeGraph = new SpikeGraph();
         cardRendersGraph = new SpikeGraph(true);
+        imageTXRXGraph = new SpikeGraph(true);
     }
 
-    public void render(AdvancedGraphics p){
+    @Override
+    protected void _render(AdvancedGraphics p){
         p.fill(0,200);
         p.noStroke();
         p.rect(0,0, 400,700);
@@ -29,29 +32,21 @@ public class PerfView {
 
         print(p, 27, "Card render total ms");
         cardRendersGraph.render(p,10, ly(28));
-    }
-
-    private static void printMS(AdvancedGraphics p, int pos, String label, float ms){
-        print(p,pos,String.format("%s: %.3fms",label, ms));
-    }
-
-    private static void print(AdvancedGraphics p, int pos, String s){
-        p.text(s,10,ly(pos)+8);
-    }
-
-    private static float ly(int pos){
-        return 40 + 15*pos;
+        print(p, 35, "Image TX/RX total ms");
+        imageTXRXGraph.render(p,10, ly(36));
     }
 
     public void nextFrame(float dt){
         drawTimeGraph.advanceFrame();
         cardRendersGraph.advanceFrame();
+        imageTXRXGraph.advanceFrame();
 
         timeSinceLastRefresh+=dt;
         if(timeSinceLastRefresh>1000){
             timeSinceLastRefresh-=1000;
             drawTimeGraph.reMinMax();
             cardRendersGraph.reMinMax();
+            imageTXRXGraph.reMinMax();
         }
     }
 }

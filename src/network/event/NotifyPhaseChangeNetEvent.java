@@ -41,6 +41,8 @@ public class NotifyPhaseChangeNetEvent extends NetEvent {
 
     @Override
     public String toString() {
-        return "NotifyPhaseChange[authorID="+authorID+", newPhase=\""+newPhase+"\"]";
+        return "NotifyPhaseChangeNetEvent(#"+serial+", @"+authorID+"){" +
+                "newPhase=" + newPhase +
+                '}';
     }
 }

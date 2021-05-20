@@ -7,15 +7,19 @@ import java.io.IOException;
 public abstract class NetEvent  extends NetSerializable {
     public static final int LOCAL_USER = -1;
     public static final int SERVER_USER = 0;
+    public final int serial;
     public int authorID = LOCAL_USER;
+    private static int nextSerial = 0;
 
-    public NetEvent(){};
+    public NetEvent(){serial=nextSerial++;};
     public NetEvent(DataInputStream dis) throws IOException {
+        serial=dis.readInt();
         deserialize(dis);
     }
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException{
+        dos.writeInt(serial);
         dos.writeInt(authorID);
     }
 

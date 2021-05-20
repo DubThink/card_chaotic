@@ -244,14 +244,14 @@ public class UIBase {
 
     public void navigateNext(){
         UIBase result = (textFocusTarget!=null?textFocusTarget:this).searchForward(takesTextInput);
-        System.out.println("next returned "+result);
+        //System.out.println("next returned "+result);
         if(result!=null)
             result.claimTextFocus();
     }
 
     public void navigatePrevious(){
         UIBase result = (textFocusTarget!=null?textFocusTarget:this).searchReverse(takesTextInput);
-        System.out.println("prev returned "+result);
+        //System.out.println("prev returned "+result);
         if(result!=null)
             result.claimTextFocus();
     }

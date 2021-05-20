@@ -29,6 +29,7 @@ public class CardDefinition extends NetSerializable {
     public static final int ARCHETYPE_GEAR=2;
     public static final int ARCHETYPE_ACTION=3;
     public static final int _ARCHETYPE_COUNT=4;
+
     public final int uid;
 
 //    public int creatorid;
@@ -40,7 +41,6 @@ public class CardDefinition extends NetSerializable {
 
     public int attackDefaultValue;
     public int healthDefaultValue;
-    // nocommit
     public int archetype;
 
     boolean hasCounter;
@@ -67,6 +67,10 @@ public class CardDefinition extends NetSerializable {
     private static final int IMAGE_SHOW_SMALL = 1;
     private static final int IMAGE_SHOW_SQUARE = 2;
 
+    public CardDefinition(int uid) {
+        this(uid, "","","","","");
+    }
+
     public CardDefinition(int uid, String name, String type, String desc, String flavor, String imageFileName) {
         this.uid = uid;
         this.name = name;
@@ -80,6 +84,8 @@ public class CardDefinition extends NetSerializable {
         u2=1;
         v2=1;
     }
+
+
 
     public CardDefinition(DataInputStream dis) throws IOException {
         super(dis);

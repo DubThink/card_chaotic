@@ -37,8 +37,8 @@ public class Style {
     public static int borderColorHover = Util.pColor(new Color(135, 135, 135));
     public static int borderColor = Util.pColor(new Color(0, 0, 0));
 
-    public static int textColor = Util.pColor(new Color(178, 181, 184));
-    public static int textColorHover = Util.pColor(new Color(246, 250, 250));
+    public static int textColor = Util.pColor(new Color(212, 212, 212));
+    public static int textColorHover = Util.pColor(new Color(255, 255, 255));
 
     public static int fillColor = Util.pColor(new Color(49, 50, 52));
     //public static int fillColorHover = Util.pColor(new Color(127,127,127,200));
@@ -46,6 +46,7 @@ public class Style {
     //public static int fillColorActiveHover = Util.pColor(new Color(65, 65, 65,200));
     public static int fillColorInputField = Util.pColor(new Color(75, 77, 82));
     public static int fillColorPanel = Util.pColor(new Color(28, 29, 33));
+    public static int fillColorModalBG = Util.pColor(new Color(0, 0, 0, 65));
 //    public static int borderColor = Util.pColor(new Color(135, 135, 135));
 //    public static int borderColorHover = Util.pColor(new Color(0, 0, 0));
 //

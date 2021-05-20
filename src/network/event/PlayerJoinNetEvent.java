@@ -39,6 +39,8 @@ public class PlayerJoinNetEvent extends NetEvent {
 
     @Override
     public String toString() {
-        return "PlayerJoin[authorID="+authorID+", player=\""+player+"\"]";
+        return "PlayerJoinNetEvent(#"+serial+", @"+authorID+"){" +
+                "player=" + player +
+                '}';
     }
 }

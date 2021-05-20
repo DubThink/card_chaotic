@@ -1,21 +1,31 @@
 package UI;
 
+import Gamestate.Card;
 import Gamestate.CardDefinition;
 import Globals.Assert;
 import Globals.GlobalEnvironment;
 import Globals.Style;
 import core.AdvancedApplet;
 import core.ImageLoader;
+import network.event.GrantCardIDNetEvent;
+import network.event.ImageNetEvent;
+import network.event.RequestCardIDNetEvent;
 import processing.core.PConstants;
 
 import java.awt.*;
 
+import static Client.ClientEnvironment.netClient;
+
 public class UICardEditor extends UIPanel{
     private UICardView cardView;
     private UIBase editPanel;
+    private UIBase filePanel;
     private CardDefinition definition;
     private UILabel imgStatus;
 
+    private UITextBox tbID;
+
+    private UIModal waitingModal;
 
     abstract class ValNotify implements UIUpdateNotify<UITextBox>{
         @Override
@@ -35,10 +45,10 @@ public class UICardEditor extends UIPanel{
         cardView.previewMode=true;
         cardView.centerAt(sz.cw/4,sz.ch/2);
 
-        clearCard();
+        editPanel = addChild(new UIPanel(sz.cw/2,0,0,-200));
+        this.setNavRoot(true);
 
-        editPanel = addChild(new UIPanel(sz.cw/2,0,0,0));
-        editPanel.setNavRoot(true);
+        filePanel = addChild(new UIPanel(sz.cw/2,-200,0,0));
 
         final int colw=110;
         final int col1=(10+colw);
@@ -46,7 +56,12 @@ public class UICardEditor extends UIPanel{
         final int col3=(10+colw)*3;
         final int col4=(10+colw)*4;
         // edit panel
-        int pos=4;
+        int pos=3;
+        editPanel.addChild(new UILabel(10,m(pos),colw,30,"ID #").setBigLabel(true));
+        tbID=editPanel.addChild(new UITextBox(col1,m(pos),60,30,true)
+                .setFontSize(Style.FONT_MEDIUM)
+                .setEditable(false));
+        pos++;
         editPanel.addChild(new UILabel(10,m(pos),colw,30,"Name").setBigLabel(true));
         editPanel.addChild(new UITextBox(col1,m(pos),-80,30,true)
                 .setFontSize(Style.FONT_MEDIUM)
@@ -168,17 +183,71 @@ public class UICardEditor extends UIPanel{
             archetypeBox.addOption(CardDefinition.getArchetypeName(i));
         }
 
+        // file panel
+        pos=0;
+        filePanel.addChild(new UIButton(10,m(pos),colw*2,30,"New Card", this::actionNewCard));
+        pos++;
+        filePanel.addChild(new UIButton(10,m(pos),colw*2,30,"Save Card", this::actionSaveCard));
+        pos++;
+//        filePanel.addChild(new UIButton(10,m(pos),colw*2,30,"Reload Card", () -> netClient.sendEvent(new ImageNetEvent(GlobalEnvironment.imageLoader.getCardImage(definition.imageFileName)))));
 
+        modal(UIModal.MODAL_CONTINUE, "Create new card", this::requestNewCard);
+    }
+
+    protected void actionNewCard(){
+        modal(UIModal.MODAL_YES_NO, "This will destroy all your\ncurrent progress. Continue?",this::requestNewCard);
+    }
+
+    protected void actionSaveCard(){
+        if(!netClient.isReady()){
+            modal(UIModal.MODAL_CONTINUE,"Not connected");
+        } else if(definition.uid==-1){
+            modal(UIModal.MODAL_CONTINUE, "Card was created offline,\nand cannot be saved.");
+        } else {
+            //netClient.sendEvent();
+        }
 
     }
 
-    public void clearCard(){
-        definition=new CardDefinition(-1,"","","","","");
+    protected void requestNewCard(){
+        if(!netClient.isReady()){
+            modal(UIModal.MODAL_CONTINUE, "You are offline. New cards\ncreated offline cannot be saved,\neven once connected.",()->createNewCard(-1));
+            createNewCard(-1);
+            return;
+        }
+        waitingModal=modal(UIModal.MODAL_INFO_ONLY,"Requesting new card id...");
+        netClient.sendEvent(new RequestCardIDNetEvent());
+    }
+
+    public void createNewCard(int cardUID){
+        definition=new CardDefinition(cardUID);
+        refreshEditor();
+    }
+
+    public void handleNetEvent(GrantCardIDNetEvent event){
+        createNewCard(event.id);
+        waitingModal.closePositive();
+    }
+
+    private void refreshEditor(){
+        tbID.setText(""+definition.uid);
         cardView.setCardDefinitionView(definition);
     }
 
     private int m(int pos){
         return 10+40*pos;
+    }
+
+    private UIModal modal(int type, String message) {
+        return modal(type,message,null,null);
+    }
+
+    private UIModal modal(int type, String message, Action positive) {
+        return modal(type, message, positive,null);
+    }
+
+    private UIModal modal(int type, String message, Action positive, Action negative){
+        return addChild(new UIModal(type,message,positive,negative));
     }
 
 }

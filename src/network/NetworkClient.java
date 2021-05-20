@@ -4,10 +4,10 @@ import Gamestate.ClientGamestate;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.net.SocketException;
 
 import static Client.ClientEnvironment.sysMessage;
 import static network.NetEvent.LOCAL_USER;
@@ -15,6 +15,7 @@ import static network.NetEvent.LOCAL_USER;
 public class NetworkClient extends NetworkEventTransceiver {
 
     int clientUID;
+    Socket socket;
 
     @Override
     public void run() {
@@ -23,9 +24,9 @@ public class NetworkClient extends NetworkEventTransceiver {
 
             sysMessage("Connecting to "+ip.getHostAddress()+"...");
 
-            Socket s = new Socket(ip, 5056);
-            DataInputStream dis = new DataInputStream(s.getInputStream());
-            DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+            socket = new Socket(ip, 5056);
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
             NetClientHandshake clientHandshake = new NetClientHandshake(ClientGamestate.username);
             clientHandshake.serialize(dos);
@@ -42,7 +43,7 @@ public class NetworkClient extends NetworkEventTransceiver {
             }
             System.out.println("beat");
             NetServerHandshake serverHandshake = new NetServerHandshake(dis);
-            System.out.println("Received "+clientHandshake);
+            System.out.println("Received "+serverHandshake);
 
             if(serverHandshake.success) {
                 clientUID = serverHandshake.clientID;
@@ -51,22 +52,40 @@ public class NetworkClient extends NetworkEventTransceiver {
             } else {
                 System.out.println(serverHandshake.message);
                 sysMessage("Error: "+serverHandshake.message);
-                return;
             }
 
             //dis.close();
             //dos.close();
+        } catch (RuntimeException runtimeException){
+            runtimeException.printStackTrace();
+            System.err.println(runtimeException.toString());
+            throw runtimeException;
         } catch (Exception e){
             System.err.println(e.toString());
             e.printStackTrace();
             interrupt();
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException ioException){
+                System.err.println("While handling error, :"+ioException);
+            }
         }
     }
 
     @Override
-    protected boolean preprocessReceivedEvent(NetEvent e) {
+    protected boolean preprocessRxEvent(NetEvent e) {
         if(e.authorID==clientUID)
             e.authorID = LOCAL_USER;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "NetworkClient{}";
+    }
+
+    public int getClientUID() {
+        return clientUID;
     }
 }

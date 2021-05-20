@@ -2,6 +2,7 @@ package network;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 
 public class NetworkClientHandler extends NetworkEventTransceiver{
@@ -56,14 +57,32 @@ public class NetworkClientHandler extends NetworkEventTransceiver{
 
 
             transceiverLoop(dis, dos);
+        } catch (RuntimeException runtimeException){
+            runtimeException.printStackTrace();
+            System.err.println(runtimeException.toString());
+            throw runtimeException;
         } catch (Exception e){
-            System.out.println(e.toString());
+            System.err.println(e.toString());
+            e.printStackTrace();
             interrupt();
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException ioException){
+                System.err.println("While handling error, :"+ioException);
+            }
         }
     }
 
     @Override
-    protected boolean preprocessReceivedEvent(NetEvent e) {
+    protected boolean preprocessTxEvent(NetEvent e) {
+        if(e.authorID==NetEvent.LOCAL_USER)
+            e.authorID = NetEvent.SERVER_USER;
+        return true;
+    }
+
+    @Override
+    protected boolean preprocessRxEvent(NetEvent e) {
         e.authorID = clientUID;
         return true;
     }
@@ -93,5 +112,10 @@ public class NetworkClientHandler extends NetworkEventTransceiver{
     @Override
     public boolean isReady() {
         return super.isReady() && isSynced();
+    }
+
+    @Override
+    public String toString() {
+        return "NetworkClientHandler{uid="+clientUID+"}";
     }
 }

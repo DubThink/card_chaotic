@@ -8,7 +8,7 @@ public class AdvancedApplet extends PApplet {
     public static final char CC_BOLD = 0x80;
     public static final char CC_ITALIC = 0x81;
 
-    static{
+    static {
         SymbolInjector.blockSymbols(new char[]{AdvancedApplet.CC_BOLD, CC_ITALIC});
     }
 

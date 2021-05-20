@@ -39,6 +39,8 @@ public class ChatMessageNetEvent extends NetEvent {
 
     @Override
     public String toString() {
-        return "ChatMessage[authorID="+authorID+", message=\""+message+"\"]";
+        return "ChatMessageNetEvent(#"+serial+", @"+authorID+"){" +
+                "message='" + message + '\'' +
+                '}';
     }
 }

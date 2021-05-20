@@ -62,7 +62,7 @@ public class SvBiddingIntroPhase implements ServerGamePhase {
     }
 
     @Override
-    public boolean processNetEvent(NetEvent event) {
+    public boolean processNetEvent(SvPlayer player, NetEvent event) {
         return false;
     }
 
@@ -73,7 +73,7 @@ public class SvBiddingIntroPhase implements ServerGamePhase {
 
     @Override
     public ServerGamePhase createNextPhase() {
-        return null;
+        return new PregamePhase();
     }
 
     @Override

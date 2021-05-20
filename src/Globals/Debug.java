@@ -1,14 +1,16 @@
 package Globals;
 
-import Debug.PerfView;
+import Debug.*;
 
 public class Debug {
     public static boolean renderUIDebug = false;
     public static boolean renderPerfView = false;
+    public static boolean renderStateDebug = false;
 //    public static boolean printUIDebug = false;
     public static boolean debugBreakpoint = false;
 
     public static PerfView perfView;
+    public static DebugPanel stateDebug;
 
     private final static long startNS;
 
@@ -19,6 +21,7 @@ public class Debug {
     static {
         perfView = new PerfView();
     }
+
     public static void breakpointToggle(){
         if(debugBreakpoint)
         {

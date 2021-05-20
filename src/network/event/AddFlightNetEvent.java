@@ -41,6 +41,8 @@ public class AddFlightNetEvent extends NetEvent {
 
     @Override
     public String toString() {
-        return "AddFlight[authorID="+authorID+", card=\""+cardDefinition+"\"]";
+        return "AddFlightNetEvent(#"+serial+", @"+authorID+"){" +
+                "cardDefinition=" + cardDefinition +
+                '}';
     }
 }

@@ -23,4 +23,6 @@ public class ClientEnvironment {
     public static void sysMessage(String s){
         chatView.addLine(CC_ITALIC+s);
     }
+
+
 }

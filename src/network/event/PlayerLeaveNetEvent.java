@@ -39,6 +39,8 @@ public class PlayerLeaveNetEvent extends NetEvent {
 
     @Override
     public String toString() {
-        return "PlayerLeave[authorID="+authorID+", playerUID=\""+playerUID+"\"]";
+        return "PlayerLeaveNetEvent(#"+serial+", @"+authorID+"){" +
+                "playerUID=" + playerUID +
+                '}';
     }
 }

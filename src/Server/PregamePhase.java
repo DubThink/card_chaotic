@@ -4,14 +4,14 @@ import UI.Action;
 import UI.UIButton;
 import network.NetEvent;
 
-import static Globals.GlobalEnvironment.*;
+import static Server.ServerEnvironment.phasePanel;
 
 public class PregamePhase implements ServerGamePhase {
     UIButton startButton;
     boolean shouldStart;
 
     public PregamePhase() {
-        startButton = uiRoot.addChild(new UIButton(10, 10, 100, 25, "Start Game", new Action() {
+        startButton = phasePanel.addChild(new UIButton(10, 10, 100, 25, "Start Game", new Action() {
             @Override
             public void action() {
                 shouldStart=true;
@@ -25,7 +25,7 @@ public class PregamePhase implements ServerGamePhase {
     }
 
     @Override
-    public boolean processNetEvent(NetEvent event) {
+    public boolean processNetEvent(SvPlayer player, NetEvent event) {
         return false;
     }
 
@@ -41,7 +41,7 @@ public class PregamePhase implements ServerGamePhase {
 
     @Override
     public void cleanup() {
-        uiRoot.removeChild(startButton);
+        phasePanel.removeChild(startButton);
     }
 
     @Override

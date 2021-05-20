@@ -10,6 +10,10 @@ public class CardSource {
 
     public int sumWinningBids;
     public int countWinningBids;
+    public int rev=-1;
+
+    // runtime
+    boolean matchesFile=false;
 
     public CardSource(CardDefinition definition) {
         this.definition = definition;
@@ -22,6 +26,14 @@ public class CardSource {
     public void submitWinningBid(int bid){
         sumWinningBids+=bid;
         countWinningBids++;
+    }
+
+    public void updateDefinition(CardDefinition definition){
+        if(definition.uid!=this.definition.uid)
+            throw new RuntimeException("cannot update definition with different card");
+        this.definition=definition;
+        this.matchesFile=false;
+        rev++;
     }
 
 }

@@ -42,6 +42,8 @@ public class IntroCardNetEvent extends NetEvent {
 
     @Override
     public String toString() {
-        return "IntroCard[authorID="+authorID+", card=\""+cardDefinition+"\"]";
+        return "IntroCardNetEvent(#"+serial+", @"+authorID+"){" +
+                "cardDefinition=" + cardDefinition +
+                '}';
     }
 }

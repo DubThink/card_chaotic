@@ -1,9 +1,8 @@
+import Client.ClientDebugPanel;
 import Globals.Config;
 import Globals.Debug;
 import Globals.Style;
-import Server.PregamePhase;
-import Server.ServerGamePhase;
-import Server.SvPlayer;
+import Server.*;
 import UI.*;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
@@ -13,6 +12,10 @@ import network.NetClientHandshake;
 import network.NetEvent;
 import network.NetServerHandshake;
 import network.NetworkClientHandler;
+import network.event.ChatMessageNetEvent;
+import network.event.GrantCardIDNetEvent;
+import network.event.RequestCardIDNetEvent;
+import network.event.UpdateCardDefinitionNetEvent;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
@@ -23,6 +26,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
+import static Client.ClientEnvironment.netClient;
 import static com.jogamp.newt.event.KeyEvent.VK_F12;
 import static com.jogamp.newt.event.KeyEvent.VK_F3;
 
@@ -37,6 +41,10 @@ public class GameServer extends GameBase {
 //        fullScreen(P3D,-2);
     }
 
+    static {
+        Globals.Debug.stateDebug = new ServerDebugPanel();
+    }
+
     ServerSocket ss;
     Exception lastE;
 
@@ -45,6 +53,8 @@ public class GameServer extends GameBase {
     ServerGamePhase currentPhase;
 
     UILogView serverlog;
+
+    UILabel phaseLabel;
 
     @Override
     public void setup() {
@@ -56,21 +66,27 @@ public class GameServer extends GameBase {
         chatBox = uiRoot.addChild(new UITextBox(100, -25, 400, 25, true));
         chatBox.setFontFamily(Style.F_CODE);
 
+        chatBox.textSubmitted = source -> {
+//            System.out.println("Sending message");
+            broadcast(new ChatMessageNetEvent(source.getText()), false);
+            source.clearText();
+        };
 
         serverlog = uiRoot.addChild(new UILogView(-700, 10, 690, -10));
-        uiRoot.addChild(new UIButton(10, 10, 100, 100, "add", new Action() {
-            @Override
-            public void action() {
-                svLog("big dick energy");
-            }
-        }));
+//        uiRoot.addChild(new UIButton(10, 10, 100, 100, "add", new Action() {
+//            @Override
+//            public void action() {
+//                svLog("big dick energy");
+//            }
+//        }));
 
+        phasePanel = uiRoot.addChild(new UIPanel(10,45,-710,-100));
 
         //Style.font32.font.initInjection();
         ((AdvancedGraphics) g).initializeInjector();
         try {
             ss = new ServerSocket(5056);
-            ss.setSoTimeout(33);
+            ss.setSoTimeout(16);
 
         } catch (IOException e) {
             lastE = e;
@@ -81,6 +97,8 @@ public class GameServer extends GameBase {
         svPlayers = new ArrayList<>();
 
         currentPhase = new PregamePhase();
+
+        phaseLabel = uiRoot.addChild(new UILabel(10,10,200,30,currentPhase.getPhaseName()));
 
 //        getSurface().setLocation(10,30);
 
@@ -99,6 +117,7 @@ public class GameServer extends GameBase {
             currentPhase.cleanup();
             svLog("Advancing from phase "+currentPhase.getPhaseName());
             currentPhase = currentPhase.createNextPhase();
+            phaseLabel.setText(currentPhase.getPhaseName());
         }
 
         fill(255, 0, 0);
@@ -116,6 +135,27 @@ public class GameServer extends GameBase {
 
         currentPhase.updateStep(dt);
 
+    }
+
+    protected boolean globalProcessNetEvent(SvPlayer player, NetEvent event){
+        if(event instanceof RequestCardIDNetEvent){
+            if(player.currentNewCardID!=-1){
+                // player already has a new card allocated
+                send(player, new GrantCardIDNetEvent(player.currentNewCardID));
+            } else {
+                CardSource newSource = cardSourceManager.allocateNextCardSource();
+                player.currentNewCardID = newSource.definition.uid;
+                send(player, new GrantCardIDNetEvent(newSource.definition.uid));
+            }
+            return true;
+        }
+        if(event instanceof UpdateCardDefinitionNetEvent){
+            UpdateCardDefinitionNetEvent typedEvent = (UpdateCardDefinitionNetEvent)event;
+            // TODO validate that the correct player is the author of this card, etc
+            cardSourceManager.applyCardDefinitionUpdate(typedEvent.cardDefinition);
+            player.currentNewCardID=-1; // we used the new card, so clear it
+        }
+        return false;
     }
 
     protected void networkUpdateStep() {
@@ -144,6 +184,10 @@ public class GameServer extends GameBase {
                     SvPlayer player = playerConnect(clientHandshake.username, handler);
                     reply.success = true;
                     reply.clientID = player.player.uid;
+                } else if(getPlayerByUsername(clientHandshake.username).handler.connectionDropped){
+                    SvPlayer player = playerConnect(clientHandshake.username, handler);
+                    reply.success = true;
+                    reply.clientID = player.player.uid;
                 } else {
                     reply.message = "User already exists with that name";
                 }
@@ -163,18 +207,25 @@ public class GameServer extends GameBase {
                 handler.setSynced(true);
             }
 
-            if(handler.isReady())
-                if(!player.wasReady) {
+            if(handler.isReady()) {
+                if (!player.wasReady) {
                     // on player finish connecting
                     player.active = true;
+                    //todo broadcast playerConnected event
                 }
                 while (handler.hasReceivedEvents()) {
                     NetEvent event = handler.pollEvent();
-                    svLog("rcvd:"+event.toString());
-                    if(!currentPhase.processNetEvent(event)) {
+                    svLog("rcvd:" + event.toString());
+                    if (!currentPhase.processNetEvent(player, event) && !globalProcessNetEvent(player, event)) {
                         broadcast(event, true); // Echo server, essentially
                     }
                 }
+            } else {
+                if(player.wasReady){
+                    player.active=false;
+                    //todo broadcast playerDisconnected
+                }
+            }
         }
     }
 

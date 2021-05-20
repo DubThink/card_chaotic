@@ -42,14 +42,18 @@ public class SpikeGraph {
 
     void render(AdvancedGraphics p, float x, float y){
 
-        if(maxVal-minVal<=0)
-            return;
+
         p.pushMatrix();
         p.translate(x,y);
         p.noFill();
         p.stroke(127);
         p.strokeWeight(1);
         p.rect(0,0,MAX_SIZE,75);
+
+        if(maxVal-minVal<=0) {
+            p.popMatrix();
+            return;
+        }
         p.text(maxVal,MAX_SIZE,12);
         p.text(minVal,MAX_SIZE,75);
 

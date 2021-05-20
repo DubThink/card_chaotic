@@ -41,6 +41,8 @@ public class DefineCardNetEvent extends NetEvent {
 
     @Override
     public String toString() {
-        return "DefineCard[authorID="+authorID+", card=\""+cardDefinition+"\"]";
+        return "DefineCardNetEvent(#"+serial+", @"+authorID+"){" +
+                "cardDefinition=" + cardDefinition +
+                '}';
     }
 }

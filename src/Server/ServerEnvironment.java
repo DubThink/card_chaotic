@@ -2,6 +2,7 @@ package Server;
 
 import Gamestate.Player;
 import UI.UIBase;
+import UI.UIPanel;
 import network.NetEvent;
 import network.NetworkClientHandler;
 
@@ -13,6 +14,8 @@ public class ServerEnvironment {
     public static CardSourceManager cardSourceManager;
 
     private static int nextPlayerUID=1;
+
+    public static UIPanel phasePanel;
 
     static {
         svPlayers = new ArrayList<>();
@@ -36,6 +39,13 @@ public class ServerEnvironment {
                 return svPlayer.player.uid;
         }
         return -1;
+    }
+
+    public static SvPlayer getPlayerByUsername(String s){
+        int uid = getPlayerUIDByUsername(s);
+        if(uid==-1)
+            return null;
+        return getPlayerByUID(uid);
     }
 
     public static void clientConnect(NetworkClientHandler handler){
@@ -70,5 +80,11 @@ public class ServerEnvironment {
             if(reflect||player.handler.getClientUID()!=event.authorID)
                 player.handler.sendEvent(event);
         }
+    }
+
+    public static void send(SvPlayer player, NetEvent event){
+        if(!player.handler.isReady())
+            throw new RuntimeException("player not ready");
+        player.handler.sendEvent(event);
     }
 }

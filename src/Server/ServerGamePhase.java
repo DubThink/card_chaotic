@@ -15,7 +15,7 @@ public interface ServerGamePhase {
      * @param event the event to process
      * @return true if the event was handled
      */
-    boolean processNetEvent(NetEvent event);
+    boolean processNetEvent(SvPlayer player, NetEvent event);
 
     /**
      * Is tested once at the beginning of each update step. If return value is false, advances phase

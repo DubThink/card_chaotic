@@ -13,6 +13,8 @@ public class NetClientHandshake extends NetSerializable {
 
     public NetClientHandshake(String username) {
         this.username = username;
+        clientNetVersion = Config.NET_VERSION;
+        clientVersion = Config.GAME_VERSION;
     }
 
     public NetClientHandshake(DataInputStream dis) throws IOException {
@@ -21,8 +23,8 @@ public class NetClientHandshake extends NetSerializable {
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
-        dos.writeInt(Config.NET_VERSION);
-        dos.writeInt(Config.GAME_VERSION);
+        dos.writeInt(clientNetVersion);
+        dos.writeInt(clientVersion);
         dos.writeUTF(username);
     }
 
