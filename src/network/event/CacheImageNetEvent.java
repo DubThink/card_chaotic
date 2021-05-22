@@ -35,6 +35,7 @@ public class CacheImageNetEvent extends NetEvent {
         super.deserialize(dis);
         image = NetSerializerUtils.deserializeImage(dis);
         name = dis.readUTF();
+
     }
 
     @Override

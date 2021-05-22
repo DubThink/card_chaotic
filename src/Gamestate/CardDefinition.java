@@ -1,12 +1,14 @@
 package Gamestate;
 
+import Schema.SchemaTypeID;
+import Schema.VersionMismatchException;
+import Schema.VersionedSerializable;
 import Globals.Debug;
 import Globals.GlobalEnvironment;
 import Globals.Style;
 import bpw.Util;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
-import network.NetSerializable;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
@@ -19,12 +21,13 @@ import static Globals.Debug.perfTimeMS;
 import static core.AdvancedApplet.CC_BOLD;
 import static core.AdvancedApplet.CC_ITALIC;
 import static processing.core.PApplet.*;
-import static processing.core.PConstants.*;
 
 /**
  * Defines the invariable portions of a card (used to generate cards)
  */
-public class CardDefinition extends NetSerializable {
+public class CardDefinition extends VersionedSerializable {
+    private static final int SCHEMA_VERSION_NUMBER = 1;
+
     public static final int ARCHETYPE_OBJECT=0;
     public static final int ARCHETYPE_BEING=1;
     public static final int ARCHETYPE_GEAR=2;
@@ -97,6 +100,17 @@ public class CardDefinition extends NetSerializable {
     public CardDefinition(DataInputStream dis) throws IOException {
         super(dis);
         uid = dis.readInt();
+    }
+
+
+    @Override
+    public int getVersionNumber() {
+        return SCHEMA_VERSION_NUMBER;
+    }
+
+    @Override
+    public int getSchemaType() {
+        return SchemaTypeID.CARD_DEFINITION;
     }
 
     private static float colorCurve(float c){
@@ -532,6 +546,7 @@ public class CardDefinition extends NetSerializable {
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
+        super.serialize(dos);
         dos.writeUTF(name);
         dos.writeUTF(type);
         dos.writeUTF(desc);
@@ -553,6 +568,11 @@ public class CardDefinition extends NetSerializable {
 
         // FINAL VALUES BELOW
         dos.writeInt(uid);
+    }
+
+    @Override
+    protected void deserializeFromVersion(DataInputStream dis, int i) throws IOException {
+        throw new VersionMismatchException(i, getVersionNumber(), getSchemaType());
     }
 
     @Override
