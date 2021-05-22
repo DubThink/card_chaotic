@@ -13,6 +13,7 @@ import network.NetworkClient;
 import network.event.DefineCardNetEvent;
 import network.event.GrantCardIDNetEvent;
 import network.event.ImageNetEvent;
+import processing.opengl.PGraphicsOpenGL;
 
 import static Client.ClientEnvironment.*;
 import static Globals.GlobalEnvironment.*;
@@ -22,9 +23,9 @@ import static com.jogamp.newt.event.KeyEvent.*; // use this for p2d-based graphi
 public class GameClient extends GameBase {
 
     public void settings() {
+        fullScreen("core.AdvancedGraphics");
         super.settings();
 //        size(1600, 900, "core.AdvancedGraphics");
-        fullScreen("core.AdvancedGraphics");
     }
 
     UIBase netPanel;
@@ -41,7 +42,6 @@ public class GameClient extends GameBase {
     @Override
     public void setup() {
         super.setup();
-
         UIPanel testEditor = uiRoot.addChild(new UIPanel(700,10,-10,-10),UILayer.OVERLAY);
         testEditor.setEnabled(false);
         UITextBox editBox = testEditor.addChild(new UITextBox(10, 10, -10, -600, false));
@@ -90,7 +90,7 @@ public class GameClient extends GameBase {
         cardPreview.setCardDefinitionView(new CardDefinition(-1, "The Golden Judgement", "Exotic Warrior Behemoth", "At the beginning of your turn:\n" +
                 "If your /P equals your /D, gain a VP for\neach /P.\n" +
                 "Otherwise, loose X VP for the difference\nbetween your /P and /D.", "Power always comes with a cost","gato.jpg"));
-//        uiRoot.addChild(new UICardView(50,-700,1f, UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+        uiRoot.addChild(new UICardView(400,10,1f, UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
         cardPreview.card.definition.setBeingValues(3,10);
         //uiRoot.addChild(new UICardView(1070,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
 
@@ -110,6 +110,7 @@ public class GameClient extends GameBase {
 
         cardEditor = uiRoot.addChild(new UICardEditor(uiRoot));
 
+        cardEditor.setEnabled(false);
 
 
         //uiRoot.addChild(new UIImage(10,10,1,1,imageLoader.getUserImage("test16.png"))).setScaling(false);
@@ -134,6 +135,7 @@ public class GameClient extends GameBase {
     @Override
     public void _draw(int dt) {
         handleReceivedNetEvents();
+        CardDefinition.updateCardBack(this,dt);
 
         gameStateManager.updateStep(dt);
 

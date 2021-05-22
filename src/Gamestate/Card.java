@@ -11,6 +11,7 @@ import static Client.ClientEnvironment.cardDefinitionManager;
 public class Card extends NetSerializable {
     public CardDefinition definition;
     public boolean tapped;
+    public boolean flipped=true;
 
     public Card(CardDefinition definition) {
         this.definition = definition;

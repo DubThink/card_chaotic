@@ -9,6 +9,7 @@ import core.AdvancedGraphics;
 import network.NetSerializable;
 import processing.core.PApplet;
 import processing.core.PImage;
+import processing.core.PVector;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -17,7 +18,7 @@ import java.io.IOException;
 import static Globals.Debug.perfTimeMS;
 import static core.AdvancedApplet.CC_BOLD;
 import static core.AdvancedApplet.CC_ITALIC;
-import static processing.core.PApplet.sqrt;
+import static processing.core.PApplet.*;
 import static processing.core.PConstants.*;
 
 /**
@@ -59,9 +60,15 @@ public class CardDefinition extends NetSerializable {
     // STATIC GEN
     private static AdvancedGraphics renderTarget;
 
+    // CARD BACK
+    private static AdvancedGraphics cardBackTarget;
+    private static PVector tracers[];
+
     public static final int CARD_SCALE = 24;
     public static final int CARD_WIDTH = CARD_SCALE *20;
     public static final int CARD_HEIGHT = CARD_SCALE *28;
+    private static final float CARD_H_W = CARD_WIDTH/2f;
+    private static final float CARD_H_H = CARD_HEIGHT/2f;
 
     private static final int IMAGE_SHOW_FULL = 0;
     private static final int IMAGE_SHOW_SMALL = 1;
@@ -115,7 +122,19 @@ public class CardDefinition extends NetSerializable {
             renderTarget.initializeInjector();
             //renderTarget.noSmooth();
         }
+        if(cardBackTarget == null){
+            cardBackTarget = (AdvancedGraphics) a.createGraphics(CARD_WIDTH, CARD_HEIGHT, "core.AdvancedGraphics");
+            cardBackTarget.initializeInjector();
+            tracers = new PVector[400];
+            for (int i=0;i<tracers.length;i++) {
+                float dir = a.random(0,TWO_PI);
+                tracers[i]=new PVector(
+                        0,0);
+                tracers[i].set(CARD_H_W+cos(dir)*40,CARD_H_H+sin(dir)*40);
 
+            }
+            //renderTarget.noSmooth();
+        }
     }
 
     private CardDefinition refreshDisplay(AdvancedApplet a){
@@ -196,6 +215,126 @@ public class CardDefinition extends NetSerializable {
     public CardDefinition invalidateImage(){
         imageInvalidated=true;
         return this;
+    }
+
+    public static boolean isPointOutsideCard(PVector p){
+        return !Util.in(p.x,CARD_SCALE*2.5f,CARD_WIDTH-CARD_SCALE*2.5f) ||
+                !Util.in(p.y,CARD_SCALE*2.5f,CARD_HEIGHT-CARD_SCALE*2.5f);
+    }
+
+    public static PVector sampleNoise(PVector point, AdvancedApplet a, float t){
+        float ns=.02f;
+        t*=0.1;
+        return new PVector(a.noise(point.x*ns,point.y*ns,t)-0.5f,a.noise(point.x*ns+1000,point.y*ns+1000,t)-0.5f);
+    }
+
+    private static boolean _blanked;
+    public static void updateCardBack(AdvancedApplet a, int dt){
+        float startTime = perfTimeMS();
+        prepareRenderTargets(a);
+
+        float t= a.millis()/1000f;
+
+        cardBackTarget.smooth(8);
+        cardBackTarget.beginDraw();
+        AdvancedGraphics p = cardBackTarget;
+        //p.clear();
+
+        // blanker
+        if(!_blanked){
+            System.out.println("blanking");
+            p.noStroke();
+            p.fill(0);
+            p.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE /2f);
+            _blanked=true;
+        }
+
+        p.noStroke();
+        p.fill(0,3);
+        // background
+        p.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE /2f);
+
+        p.noStroke();
+        p.fill(255);
+        p.strokeWeight(1);
+        for (PVector tracer :
+                tracers) {
+//            if(tracer==tracers[0]){
+//                p.fill(255,255,0);
+//            }else {
+//                p.fill(255);
+//            }
+            // update tracer pos
+            if(isPointOutsideCard(tracer)){
+                float dir = a.random(0,TWO_PI);
+                tracer.set(CARD_H_W+cos(dir)*40,CARD_H_H+sin(dir)*40);
+            }
+            // step tracer
+            PVector currentDelta = new PVector(tracer.x-CARD_H_W,tracer.y-CARD_H_H);
+            float d=currentDelta.mag();
+            currentDelta.setMag(0.4f);
+            currentDelta.add(sampleNoise(tracer,a,t));
+            currentDelta.mult(0.126f*min(dt,20));
+            tracer.add(currentDelta);
+
+            // render
+            float sz=2+8*d/CARD_H_H;
+            p.ellipse(tracer.x, tracer.y, sz, sz);
+        }
+
+        // black blocks
+        p.fill(0);
+        int U=CARD_SCALE;
+        p.rect(U,U,U*1.5f,CARD_HEIGHT-U);
+        p.rect(CARD_WIDTH-U*2.5f,U,U*1.5f,CARD_HEIGHT-U);
+        p.rect(U,U,CARD_WIDTH-U,U*1.5f);
+        p.rect(U,CARD_HEIGHT-U*2.5f,CARD_WIDTH-U,U*1.5f);
+
+        // borders
+        p.noFill();
+        p.stroke(255);
+        p.strokeWeight(7);
+        p.rect(CARD_SCALE, CARD_SCALE, CARD_WIDTH-CARD_SCALE*2, CARD_HEIGHT-CARD_SCALE*2, CARD_SCALE /5f);
+        p.strokeWeight(2);
+        p.rect(CARD_SCALE*2, CARD_SCALE*2, CARD_WIDTH-CARD_SCALE*4, CARD_HEIGHT-CARD_SCALE*4);
+
+        // center logo thing
+        p.noStroke();
+        p.fill(20);
+        p.ellipse(CARD_H_W,CARD_H_H, 120,120);
+        p.noFill();
+        p.stroke(255);
+        p.strokeWeight(2);
+        p.ellipse(CARD_H_W,CARD_H_H, 100,100);
+
+
+//        p.strokeWeight(2);
+//        for(int i=0;i<9;i++){
+//            float f=1-i/5f;
+//            f+=(t%1)*.5f;
+//            p.stroke(40+215*(1-f));
+//            float offset = CARD_SCALE * (1+pow(f+.1f,2f));
+//            if(i==0)
+//                System.out.println("f="+f);
+//            p.rect(offset, offset, CARD_WIDTH-offset*2, CARD_HEIGHT-offset*2,1);
+//
+//        }
+//        ggg+=.01;
+//        p.line(0,10+ggg,100,10+ggg);
+//        p.line(0,0,100,100);
+
+
+        p.stroke(255,200,50);
+
+//        for (int i = 0; i < 100; i++) {
+//            p.line((float)Math.sin(i/50f)*20f,(float)Math.cos(i/40f)*20f, (float)Math.sin(i/150f)*120f,(float)Math.cos(i/120f)*120f);
+//        }
+        cardBackTarget.endDraw();
+        Debug.perfView.cardBackRenderMS = (Debug.perfTimeMS() - startTime);
+    }
+
+    public static PImage getCardBack(){
+        return cardBackTarget;
     }
 
     public void drawPreview(AdvancedApplet a, float x, float y, float scale) {

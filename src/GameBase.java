@@ -13,7 +13,7 @@ import static com.jogamp.newt.event.KeyEvent.*; // use this for p2d-based graphi
 public abstract class GameBase extends AdvancedApplet {
 
     public void settings() {
-        smooth(4);
+        smooth(8);
     }
 
     int lastMillis = 0;

@@ -27,12 +27,15 @@ public class UICardView extends UIBase {
     protected void _draw(AdvancedApplet p) {
         //long nt = System.nanoTime();
         //p.image(imageLoader.getCardImage(card.definition.imageFileName), cx, cy,cw/2f,ch/2f);
-        p.smooth();
         if(card!=null) {
-            if(previewMode)
-                card.definition.drawPreview(p,cx,cy,scale);
-            else
-                p.image(card.definition.getRenderedImage(p), cx, cy, cw, ch);
+            if(card.flipped){
+                p.image(CardDefinition.getCardBack(), cx, cy, cw, ch);
+            } else {
+                if (previewMode)
+                    card.definition.drawPreview(p, cx, cy, scale);
+                else
+                    p.image(card.definition.getRenderedImage(p), cx, cy, cw, ch);
+            }
         }
 //        AdvancedGraphics ps = (AdvancedGraphics) p.createGraphics(cw, ch, "core.AdvancedGraphics");
 //        ps.initializeInjector();
