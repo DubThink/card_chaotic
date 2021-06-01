@@ -11,7 +11,7 @@ public class PregamePhase implements ServerGamePhase {
     boolean shouldStart;
 
     public PregamePhase() {
-        startButton = phasePanel.addChild(new UIButton(10, 10, 100, 25, "Start Game", new Action() {
+        startButton = phasePanel.addChild(new UIButton(10, 10, 150, 30, "Start Game", new Action() {
             @Override
             public void action() {
                 shouldStart=true;

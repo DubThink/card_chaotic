@@ -135,7 +135,6 @@ public class GameClient extends GameBase {
     @Override
     public void _draw(int dt) {
         handleReceivedNetEvents();
-        CardDefinition.updateCardBack(this,dt);
 
         gameStateManager.updateStep(dt);
 

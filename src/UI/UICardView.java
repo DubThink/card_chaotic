@@ -96,4 +96,11 @@ public class UICardView extends UIBase {
         readonly = true;
         return this;
     }
+
+    public UICardView setCardBackView(){
+        card = new Card(new CardDefinition(-1));
+        readonly = true;
+        card.flipped=true;
+        return this;
+    }
 }

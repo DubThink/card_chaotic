@@ -10,6 +10,7 @@ public class UIButton extends UIBase {
     public Action offAction;
     boolean toggle;
     boolean state;
+    boolean transparent;
 
 
     public UIButton(int x, int y, int w, int h, String text) {
@@ -45,12 +46,15 @@ public class UIButton extends UIBase {
 
     @Override
     protected void _draw(AdvancedApplet p) {
-        if(state)
-            p.fill(Style.fillColorActive);
-        else
-            p.fill(Style.fillColor);
-        p.stroke(focus?Style.borderColorHover:Style.borderColor);
-        p.rect(cx, cy, cw, ch, Style.borderRadius);
+        if(!transparent) {
+            if (state)
+                p.fill(Style.fillColorActive);
+            else
+                p.fill(Style.fillColor);
+
+            p.stroke(focus ? Style.borderColorHover : Style.borderColor);
+            p.rect(cx, cy, cw, ch, Style.borderRadius);
+        }
         //p.rect(cx, cy, cw, ch,Style.borderRadius,0,0,0);
         p.fill(focus?Style.textColorHover:Style.textColor);
 
@@ -79,5 +83,10 @@ public class UIButton extends UIBase {
             if(offAction!=null)offAction.action();
         }
         return true;
+    }
+
+    public UIButton setTransparent(boolean b){
+        transparent = b;
+        return this;
     }
 }

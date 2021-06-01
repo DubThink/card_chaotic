@@ -3,6 +3,7 @@
     <option name="MAIN_CLASS_NAME" value="GameServer" />
     <module name="Nec" />
     <option name="PROGRAM_PARAMETERS" value="--display=2" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

@@ -1,3 +1,4 @@
+import Gamestate.CardDefinition;
 import Globals.Config;
 import Globals.Debug;
 import Globals.GlobalEnvironment;
@@ -55,7 +56,7 @@ public abstract class GameBase extends AdvancedApplet {
         int dt = millis() - lastMillis;
         lastMillis = millis();
         float drawStartTime = Debug.perfTimeMS();
-
+        CardDefinition.updateCardBack(this,dt);
 
         _draw(dt);
 

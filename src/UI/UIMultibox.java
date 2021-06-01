@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class UIMultibox extends UIBase {
-    ArrayList<String> text;
+    ArrayList<String> options;
     public UIUpdateNotify<UIMultibox> selectionChangedAction;
     int selection;
     int focusSelection;
@@ -22,7 +22,7 @@ public class UIMultibox extends UIBase {
     public UIMultibox(int x, int y, int w, int h, UIUpdateNotify<UIMultibox> action) {
         super(x, y, w, h);
         selectionChangedAction = action;
-        text = new ArrayList<>();
+        options = new ArrayList<>();
     }
 
     @Override
@@ -38,7 +38,7 @@ public class UIMultibox extends UIBase {
 
     protected void updateFocusSelection(int y){
         focusSelection = y/rowH; // floor
-        focusSelection = Util.clamp(focusSelection,0,text.size()-1);
+        focusSelection = Util.clamp(focusSelection,0, options.size()-1);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class UIMultibox extends UIBase {
         p.rect(cx, cy, cw, ch, Style.borderRadius);
         Style.chooseFont(fontFamily, rowH).apply(p);
         p.textAlign(PConstants.LEFT,PConstants.CENTER);
-        for(int i=0;i<text.size();i++) {
+        for(int i = 0; i< options.size(); i++) {
             if(i==selection){
                 p.fill(Style.fillColorActive);
                 p.rect(cx, i*rowH + cy, cw, rowH, Style.borderRadius);
@@ -62,7 +62,7 @@ public class UIMultibox extends UIBase {
             } else {
                 p.fill(Style.textColor);
             }
-            p.text(text.get(i), cx + Style.textMargin, i*rowH + cy + rowH/2);
+            p.text(options.get(i), cx + Style.textMargin, i*rowH + cy + rowH/2);
         }
     }
 
@@ -79,19 +79,23 @@ public class UIMultibox extends UIBase {
     }
 
     public String getSelection() {
-        return text.get(selection);
+        return options.get(selection);
     }
 
     public int getSelectionIndex() {
         return selection;
     }
 
+    public int getOptionCount(){
+        return options.size();
+    }
+
     public UIMultibox addOption(String string){
-        text.add(string);
+        options.add(string);
         return this;
     }
     public UIMultibox addOptions(String ... strings){
-        Collections.addAll(text, strings);
+        Collections.addAll(options, strings);
         return this;
     }
 }

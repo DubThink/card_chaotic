@@ -52,16 +52,15 @@ public class GameServer extends GameBase {
 
     ServerGamePhase currentPhase;
 
-    UILogView serverlog;
-
     UILabel phaseLabel;
+
+    UITabWell tabWell;
+
+    UIPanel cardControlPanel;
 
     @Override
     public void setup() {
         super.setup();
-
-        uiRoot.addChild(new UILabel(10, 10, -10, 60, "Server")).setBigLabel(true).setJustify(PConstants.CENTER);
-
 
         chatBox = uiRoot.addChild(new UITextBox(100, -25, 400, 25, true));
         chatBox.setFontFamily(Style.F_CODE);
@@ -72,7 +71,7 @@ public class GameServer extends GameBase {
             source.clearText();
         };
 
-        serverlog = uiRoot.addChild(new UILogView(-700, 10, 690, -10));
+        serverlog = uiRoot.addChild(new UILogView(810, 10, -10, -40));
 //        uiRoot.addChild(new UIButton(10, 10, 100, 100, "add", new Action() {
 //            @Override
 //            public void action() {
@@ -80,7 +79,9 @@ public class GameServer extends GameBase {
 //            }
 //        }));
 
-        phasePanel = uiRoot.addChild(new UIPanel(10,45,-710,-100));
+        tabWell = uiRoot.addChild(new UITabWell(10,45,790,-40));
+        phasePanel = tabWell.addTab("Phase Control");
+        cardControlPanel = tabWell.addTab("Card Library");
 
         //Style.font32.font.initInjection();
         ((AdvancedGraphics) g).initializeInjector();
@@ -99,17 +100,17 @@ public class GameServer extends GameBase {
         currentPhase = new PregamePhase();
 
         phaseLabel = uiRoot.addChild(new UILabel(10,10,200,30,currentPhase.getPhaseName()));
+        phaseLabel.setEnabled(false);
 
 //        getSurface().setLocation(10,30);
+
+        // ==== SET UP CARD CONTROL ==== //
+        cardSourceManager.setupControlPanel(cardControlPanel);
 
         super.finalizeSetup();
     }
 
-    public void svLog(String s) {
-        String ms = millis() / 1000 + "." + String.format("%03d", millis() % 1000) + " : " + s;
-        println(ms);
-        serverlog.addLine(ms);
-    }
+
 
     @Override
     public void _draw(int dt) {

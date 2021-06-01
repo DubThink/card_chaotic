@@ -2,7 +2,9 @@ package Server;
 
 import Gamestate.Player;
 import UI.UIBase;
+import UI.UILogView;
 import UI.UIPanel;
+import core.AdvancedApplet;
 import network.NetEvent;
 import network.NetworkClientHandler;
 
@@ -16,6 +18,9 @@ public class ServerEnvironment {
     private static int nextPlayerUID=1;
 
     public static UIPanel phasePanel;
+    public static UILogView serverlog;
+
+
 
     static {
         svPlayers = new ArrayList<>();
@@ -35,7 +40,7 @@ public class ServerEnvironment {
 
     public static int getPlayerUIDByUsername(String s){
         for(SvPlayer svPlayer: svPlayers){
-            if(svPlayer.player!=null && svPlayer.player.username.equals(s))
+            if(svPlayer.player!=null && svPlayer.player.displayName.equals(s))
                 return svPlayer.player.uid;
         }
         return -1;
@@ -86,5 +91,17 @@ public class ServerEnvironment {
         if(!player.handler.isReady())
             throw new RuntimeException("player not ready");
         player.handler.sendEvent(event);
+    }
+
+    public static void svLog(String s) {
+        //String ms = millis() / 1000 + "." + String.format("%03d", millis() % 1000) + " : " + s;
+        System.out.println(s);
+        serverlog.addLine(s);
+    }
+
+    public static void svErr(String s) {
+        //String ms = millis() / 1000 + "." + String.format("%03d", millis() % 1000) + " : " + s;
+        System.err.println(s);
+        serverlog.addLine(AdvancedApplet.hyperText("/]")+s);
     }
 }

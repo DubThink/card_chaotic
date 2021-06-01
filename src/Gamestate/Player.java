@@ -8,11 +8,13 @@ import java.io.IOException;
 
 public class Player extends NetSerializable {
     public final int uid;
-    public String username;
+
+    public String displayName;
+
     public CardStack hand;
 
     public Player(int uid, String username) {
-        this.username = username;
+        this.displayName = username;
         this.uid = uid;
         hand = new CardStack();
     }
@@ -24,7 +26,7 @@ public class Player extends NetSerializable {
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
-        dos.writeUTF(username);
+        dos.writeUTF(displayName);
         dos.writeInt(uid);
         hand.serialize(dos);
     }
@@ -32,7 +34,7 @@ public class Player extends NetSerializable {
     @Override
     protected void deserialize(DataInputStream dis) throws IOException {
         // uid = dis.readInt(); // in constructor since field is final
-        username = dis.readUTF();
+        displayName = dis.readUTF();
         hand = new CardStack(dis);
     }
 }
