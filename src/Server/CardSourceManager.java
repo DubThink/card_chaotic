@@ -5,6 +5,7 @@ import Schema.DiskUtil;
 import UI.*;
 import network.NetworkClientHandler;
 import network.event.DefineCardNetEvent;
+import processing.core.PImage;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -76,12 +77,16 @@ public class CardSourceManager {
             throw new RuntimeException("Can't create a card in a range that already exists");
         cardSources.add(source);
         if(uiCardList!=null){
-            uiCardList.addOption(String.format("%1$3d", source.definition.uid)+" | "+String.format("%1$60s",source.definition.name));
+            uiCardList.addOption(uiCardStringFromDefinition(source.definition));
             if(cardSources.size()==1){
                 // first card loaded, gotta update
                 uiCardList.selectionChangedAction.notify(uiCardList);
             }
         }
+    }
+
+    private static String uiCardStringFromDefinition(CardDefinition definition){
+        return String.format("%1$3d", definition.uid)+" | "+String.format("%1$60s",definition.name);
     }
 
     public CardSource allocateNextCardSource() {
@@ -96,6 +101,10 @@ public class CardSourceManager {
         if (definition.uid >= cardSources.size())
             throw new RuntimeException("Not in range");
         cardSources.get(definition.uid).updateDefinition(definition);
+        uiCardList.setOption(definition.uid, uiCardStringFromDefinition(definition));
+        if(definition.uid == uiCardList.getSelectionIndex())
+            // card updated, gotta update
+            uiCardList.selectionChangedAction.notify(uiCardList);
     }
 
     public void saveCardLibraryToDisk() {
@@ -115,23 +124,33 @@ public class CardSourceManager {
         CardLibraryMetadata metadata = DiskUtil.tryToLoadFromFileTyped(CardLibraryMetadata.class, cardPath+"cardLibraryMetadata.bs");
 
         if(metadata!=null){
-            nextCardID = metadata.maxCardID+1;
             System.out.println("Loading "+(metadata.maxCardID+1)+" cards");
             for (int i = 0; i <= metadata.maxCardID; i++) {
                 CardSource card = DiskUtil.tryToLoadFromFileTyped(CardSource.class, cardPath+"card_" + i + ".card");
                 if(card!=null){
                     System.out.println("loaded card #"+card.definition.uid+" '"+card.definition.name+"'");
                     putCardSource(card);
+                    nextCardID++;
                 } else {
                     // insert placeholder card
                     System.out.println("unable to load card #"+i);
                     allocateNextCardSource();
                 }
             }
+            if(nextCardID != metadata.maxCardID+1)
+                throw new RuntimeException("how");
+
         } else {
             svErr("no library metadata file found; not loading cards");
         }
         isLoaded=true;
+    }
+
+    public void clearLibrary(){
+        cardSources.clear();
+        nextCardID=0;
+        goodCardCount=0;
+        uiCardList.clearOptions();
     }
 
     // ==== UI ==== //
@@ -140,10 +159,13 @@ public class CardSourceManager {
     UICardView uiCardSmallView;
     UIPanel uiBigViewPanel;
     UICardView uiCardBigView;
+    UIPanel rootPanel;
 
     public void setupControlPanel(UIPanel panel){
+        rootPanel=panel;
         panel.addChild(new UIButton(10, m(0), 150, 30, "Load Library", this::loadCardLibraryFromDisk));
         panel.addChild(new UIButton(10, m(1), 150, 30, "Save Library", this::saveCardLibraryToDisk));
+        panel.addChild(new UIButton(10, m(2), 150, 30, "Clear Library", this::uiActionClearLibrary));
         uiCardSmallView = panel.addChild(new UICardView(10,-220,.3125f, UILayer.INTERFACE));
         uiCardSmallView.setCardBackView();
 
@@ -169,6 +191,10 @@ public class CardSourceManager {
 
         //putCardSource(new CardSource(new CardDefinition(0, "Monkey House", "Abode", "+1 shelter", "Not to be confused with Ape Trailer Home", "monkeyhouse.png")));
         nextCardID = cardSources.size();
+    }
+
+    public void uiActionClearLibrary(){
+        rootPanel.addChild(new UIModal(UIModal.MODAL_YES_NO, "Clearing the library will discard any unsaved data\nand fuck anyone currently using the editor.\nContinue?",this::clearLibrary));
     }
 
     private int m(int i){

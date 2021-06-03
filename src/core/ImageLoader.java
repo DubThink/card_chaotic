@@ -14,7 +14,7 @@ import java.util.Random;
 public class ImageLoader {
     private AdvancedApplet appletHandle;
     private HashMap<String, PImage> imageMap;
-    private PImage nullimg;
+    public final PImage nullimg;
     private Random random;
     private static final String userCardPath = "user/card/";
     private static final String cachePath = "cache/";
@@ -70,7 +70,7 @@ public class ImageLoader {
     }
 
     public boolean isCardImageValid(String name){
-        return getCardImage(name)==nullimg;
+        return name!=null && getCardImage(name)!=nullimg;
     }
 
     public void launchCardFolder(){

@@ -2,6 +2,8 @@ package network.event;
 
 import Gamestate.CardDefinition;
 import network.NetEvent;
+import network.NetSerializerUtils;
+import processing.core.PImage;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,6 +16,10 @@ public class UpdateCardDefinitionNetEvent extends NetEvent {
     public CardDefinition cardDefinition;
 
     public UpdateCardDefinitionNetEvent(CardDefinition cardDefinition) {
+        this.cardDefinition = cardDefinition;
+    }
+
+    public UpdateCardDefinitionNetEvent(CardDefinition cardDefinition, PImage image) {
         this.cardDefinition = cardDefinition;
     }
 

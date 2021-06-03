@@ -94,6 +94,17 @@ public class UIMultibox extends UIBase {
         options.add(string);
         return this;
     }
+
+    public UIMultibox setOption(int idx, String string){
+        options.set(idx, string);
+        return this;
+    }
+
+    public void clearOptions(){
+        options.clear();
+        selection=0;
+    }
+
     public UIMultibox addOptions(String ... strings){
         Collections.addAll(options, strings);
         return this;

@@ -155,6 +155,7 @@ public class GameServer extends GameBase {
             // TODO validate that the correct player is the author of this card, etc
             cardSourceManager.applyCardDefinitionUpdate(typedEvent.cardDefinition);
             player.currentNewCardID=-1; // we used the new card, so clear it
+            return true;
         }
         return false;
     }

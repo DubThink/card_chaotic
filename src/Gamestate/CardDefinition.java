@@ -9,6 +9,7 @@ import Globals.Style;
 import bpw.Util;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
+import network.NetSerializerUtils;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
@@ -26,7 +27,7 @@ import static processing.core.PApplet.*;
  * Defines the invariable portions of a card (used to generate cards)
  */
 public class CardDefinition extends VersionedSerializable {
-    private static final int SCHEMA_VERSION_NUMBER = 1;
+    private static final int SCHEMA_VERSION_NUMBER = 2;
 
     public static final int ARCHETYPE_OBJECT=0;
     public static final int ARCHETYPE_BEING=1;
@@ -50,11 +51,14 @@ public class CardDefinition extends VersionedSerializable {
     boolean hasCounter;
     int counterDefaultValue;
 
-    public String imageFileName;
+    private PImage sourceImage;
     int imageDisplayMode = IMAGE_SHOW_FULL;
     float u1,v1,u2,v2;
 
     // LOCAL ONLY
+    public String localSourceImageFilename;
+    private boolean localSourceLoaded;
+
     private PImage renderedBase;
     private boolean baseInvalidated;
     private PImage renderedImage;
@@ -65,7 +69,7 @@ public class CardDefinition extends VersionedSerializable {
 
     // CARD BACK
     private static AdvancedGraphics cardBackTarget;
-    private static PVector tracers[];
+    private static PVector[] tracers;
 
     public static final int CARD_SCALE = 24;
     public static final int CARD_WIDTH = CARD_SCALE *20;
@@ -87,7 +91,7 @@ public class CardDefinition extends VersionedSerializable {
         this.type = type;
         this.desc = desc;
         this.flavor = flavor;
-        this.imageFileName = imageFileName;
+        this.localSourceImageFilename = imageFileName;
 
         u1=0;
         v1=0;
@@ -149,6 +153,25 @@ public class CardDefinition extends VersionedSerializable {
             }
             //renderTarget.noSmooth();
         }
+    }
+
+    public PImage getSourceImage(){
+        if(!localSourceLoaded && GlobalEnvironment.imageLoader.isCardImageValid(localSourceImageFilename)){
+            sourceImage = GlobalEnvironment.imageLoader.getCardImage(localSourceImageFilename);
+            localSourceLoaded=true;
+            invalidateBase();
+            refreshCrop();
+        } else if(sourceImage==null) {
+            sourceImage = GlobalEnvironment.imageLoader.nullimg;
+            refreshCrop();
+        }
+        return sourceImage;
+    }
+
+    public CardDefinition setLocalImageSource(String s){
+        localSourceImageFilename=s;
+        localSourceLoaded=false;
+        return this;
     }
 
     private CardDefinition refreshDisplay(AdvancedApplet a){
@@ -389,21 +412,22 @@ public class CardDefinition extends VersionedSerializable {
         // background
         p.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE /2f);
 
+
+        getSourceImage();
         // image
-        PImage cardImage = GlobalEnvironment.imageLoader.getCardImage(imageFileName);
-        p.texture(cardImage);
+        p.texture(sourceImage);
         if (imageDisplayMode == IMAGE_SHOW_FULL) {
-            p.image(cardImage, 0, 0, CARD_WIDTH, CARD_HEIGHT,
-                    (int) (u1 * cardImage.width), (int) (v1 * cardImage.height),
-                    (int) (u2 * cardImage.width), (int) (v2 * cardImage.height));
+            p.image(sourceImage, 0, 0, CARD_WIDTH, CARD_HEIGHT,
+                    (int) (u1 * sourceImage.width), (int) (v1 * sourceImage.height),
+                    (int) (u2 * sourceImage.width), (int) (v2 * sourceImage.height));
         } else if (imageDisplayMode == IMAGE_SHOW_SQUARE) {
-            p.image(cardImage, 0, 0, CARD_WIDTH, m(18),
-                    (int) (u1 * cardImage.width), (int) (v1 * cardImage.height),
-                    (int) (u2 * cardImage.width), (int) (v2 * cardImage.height));
+            p.image(sourceImage, 0, 0, CARD_WIDTH, m(18),
+                    (int) (u1 * sourceImage.width), (int) (v1 * sourceImage.height),
+                    (int) (u2 * sourceImage.width), (int) (v2 * sourceImage.height));
         } else {
-            p.image(cardImage, 0, m(3), CARD_WIDTH, m(13),
-                    (int) (u1 * cardImage.width), (int) (v1 * cardImage.height),
-                    (int) (u2 * cardImage.width), (int) (v2 * cardImage.height));
+            p.image(sourceImage, 0, m(3), CARD_WIDTH, m(13),
+                    (int) (u1 * sourceImage.width), (int) (v1 * sourceImage.height),
+                    (int) (u2 * sourceImage.width), (int) (v2 * sourceImage.height));
         }
         // panels
         p.fill(0,150);
@@ -485,6 +509,16 @@ public class CardDefinition extends VersionedSerializable {
         return this;
     }
 
+    public CardDefinition refreshCrop(){
+        if(imageDisplayMode==IMAGE_SHOW_FULL)
+            setCropCenteredFull();
+        else if(imageDisplayMode==IMAGE_SHOW_SMALL)
+            setCropCenteredSmall();
+        else
+            setCropCenteredSquare();
+        return this;
+    }
+
     public CardDefinition setCropCenteredFull(){
         setCropForHeight(CARD_HEIGHT);
         if(imageDisplayMode!=IMAGE_SHOW_FULL)
@@ -510,33 +544,33 @@ public class CardDefinition extends VersionedSerializable {
     }
 
     private void setCropForHeight(int height){
-        PImage cardImage = GlobalEnvironment.imageLoader.getCardImage(imageFileName);
+        getSourceImage();
         final float cardAspect = CARD_WIDTH / (float)height;
-        final float sourceAspect = cardImage.width/ (float)cardImage.height;
+        final float sourceAspect = sourceImage.width/ (float)sourceImage.height;
         //System.out.printf("Card aspect ratio %.3f%n", cardAspect);
         //System.out.printf("Source aspect ratio %.3f%n", sourceAspect);
         if (sourceAspect>cardAspect) {
             // vertically bound
             v1 = 0;
             v2 = 1;
-            final float scale = cardImage.height / (float) height;
+            final float scale = sourceImage.height / (float) height;
             float imageWidth = scale * CARD_WIDTH;
-            imageWidth /= cardImage.width; // to [0,1]
+            imageWidth /= sourceImage.width; // to [0,1]
             imageWidth*=.5f;
 
-            assert imageWidth < cardImage.width;
+            assert imageWidth < sourceImage.width;
             u1 = 0.5f - imageWidth;
             u2 = 0.5f + imageWidth;
         } else {
             // horizontally bound
             u1 = 0;
             u2 = 1;
-            final float scale = cardImage.width / (float) CARD_WIDTH;
+            final float scale = sourceImage.width / (float) CARD_WIDTH;
             float imageHeight = scale * height;
-            imageHeight /= cardImage.height; // to [0,1]
+            imageHeight /= sourceImage.height; // to [0,1]
             imageHeight*=.5f;
 
-            assert imageHeight < cardImage.height;
+            assert imageHeight < sourceImage.height;
             v1 = 0.5f - imageHeight;
             v2 = 0.5f + imageHeight;
         }
@@ -559,7 +593,7 @@ public class CardDefinition extends VersionedSerializable {
         dos.writeBoolean(hasCounter);
         dos.writeInt(counterDefaultValue);
 
-        dos.writeUTF(imageFileName);
+        NetSerializerUtils.serializeImage(sourceImage, dos);
         dos.writeInt(imageDisplayMode);
         dos.writeFloat(u1);
         dos.writeFloat(v1);
@@ -589,7 +623,7 @@ public class CardDefinition extends VersionedSerializable {
         hasCounter = dis.readBoolean();
         counterDefaultValue = dis.readInt();
 
-        imageFileName = dis.readUTF();
+        sourceImage = NetSerializerUtils.deserializeImage(dis);
         imageDisplayMode = dis.readInt();
         u1 = dis.readFloat();
         v1 = dis.readFloat();
@@ -610,12 +644,13 @@ public class CardDefinition extends VersionedSerializable {
                 ", archetype=" + archetype +
                 ", hasCounter=" + hasCounter +
                 ", counterDefaultValue=" + counterDefaultValue +
-                ", imageFileName='" + imageFileName + '\'' +
+                ", sourceImage=" + sourceImage +
                 ", imageDisplayMode=" + imageDisplayMode +
                 ", u1=" + u1 +
                 ", v1=" + v1 +
                 ", u2=" + u2 +
                 ", v2=" + v2 +
+                ", localSourceImageFilename='" + localSourceImageFilename + '\'' +
                 '}';
     }
 

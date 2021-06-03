@@ -10,7 +10,9 @@ import core.ImageLoader;
 import network.event.GrantCardIDNetEvent;
 import network.event.ImageNetEvent;
 import network.event.RequestCardIDNetEvent;
+import network.event.UpdateCardDefinitionNetEvent;
 import processing.core.PConstants;
+import processing.core.PImage;
 
 import java.awt.*;
 
@@ -26,6 +28,8 @@ public class UICardEditor extends UIPanel{
     private UITextBox tbID;
 
     private UIModal waitingModal;
+
+    private boolean serverImageIsStale;
 
     abstract class ValNotify implements UIUpdateNotify<UITextBox>{
         @Override
@@ -90,13 +94,13 @@ public class UICardEditor extends UIPanel{
                 .setTextUpdatedCallback(new ValNotify() {
                     @Override
                     public void updateVal(String s) {
-                        definition.imageFileName=s;
                         // force reload
                         GlobalEnvironment.imageLoader.uncacheCardImage(s);
                         definition.invalidateBase();
+                        definition.setLocalImageSource(s);
 
                         imgStatus.setText(GlobalEnvironment.imageLoader.isCardImageValid(s) ?
-                                AdvancedApplet.hyperText("/]"):AdvancedApplet.hyperText("/["));
+                                AdvancedApplet.hyperText("/["):AdvancedApplet.hyperText("/]"));
                     }
                 }));
         imgStatus = editPanel.addChild(
@@ -203,10 +207,11 @@ public class UICardEditor extends UIPanel{
             modal(UIModal.MODAL_CONTINUE,"Not connected");
         } else if(definition.uid==-1){
             modal(UIModal.MODAL_CONTINUE, "Card was created offline,\nand cannot be saved.");
+        } else if(!GlobalEnvironment.imageLoader.isCardImageValid(definition.localSourceImageFilename)){
+            modal(UIModal.MODAL_CONTINUE, "Image must be valid to save.");
         } else {
-            //netClient.sendEvent();
+            netClient.sendEvent(new UpdateCardDefinitionNetEvent(definition));
         }
-
     }
 
     protected void requestNewCard(){
@@ -221,6 +226,7 @@ public class UICardEditor extends UIPanel{
 
     public void createNewCard(int cardUID){
         definition=new CardDefinition(cardUID);
+        serverImageIsStale = true;
         refreshEditor();
     }
 

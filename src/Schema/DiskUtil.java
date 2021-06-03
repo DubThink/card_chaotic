@@ -27,7 +27,9 @@ public class DiskUtil {
     public static <T extends VersionedSerializable> T tryToLoadFromFileTyped(Class<T> token, String fname){
         try {
             return loadFromFileTyped(token,fname);
-        }  catch (VersionMismatchException | FileNotFoundException vme){
+        } catch (VersionMismatchException | FileNotFoundException vme){
+            System.err.println("Error while loading '"+fname+"':");
+            System.err.println(vme);
             return null;
         }
     }
@@ -41,6 +43,8 @@ public class DiskUtil {
         try {
             return loadFromFile(fname);
         } catch (VersionMismatchException | FileNotFoundException vme){
+            System.err.println("Error while loading '"+fname+"':");
+            System.err.println(vme);
             return null;
         }
     }

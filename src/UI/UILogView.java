@@ -28,7 +28,8 @@ public class UILogView extends UIBase {
         g.translate(cx+Style.textMargin,cy+Style.textMargin);
         p.fill(Style.textColor);
         p.noStroke();
-        Style.getFont(fontFamily, Style.FONT_SMALL).apply(p);
+        //Style.getFont(fontFamily, Style.FONT_SMALL).apply(p);
+        Style.getFont(Style.F_CODE, Style.FONT_12).apply(p);
         int maxLines = Util.min((int)Math.floor(ch/g.textLeading),lines.size());
 
         for(int i=0;i<maxLines;i++){
