@@ -1,10 +1,8 @@
-import Client.ClBiddingPhase;
-import Client.ClientDebugPanel;
-import Client.ClientEnvironment;
-import Client.ClientGameStateManager;
+import Client.*;
 import Gamestate.CardDefinition;
 import Gamestate.ClientGamestate;
 import Globals.Style;
+import Schema.DiskUtil;
 import UI.*;
 import core.*;
 import network.event.ChatMessageNetEvent;
@@ -14,6 +12,8 @@ import network.event.DefineCardNetEvent;
 import network.event.GrantCardIDNetEvent;
 import network.event.ImageNetEvent;
 import processing.opengl.PGraphicsOpenGL;
+
+import java.util.Arrays;
 
 import static Client.ClientEnvironment.*;
 import static Globals.GlobalEnvironment.*;
@@ -42,6 +42,15 @@ public class GameClient extends GameBase {
     @Override
     public void setup() {
         super.setup();
+
+        // ---- LOAD PLAYER PREFS ---- //
+        String prefsFilename = findArg("prefs","localplayer");
+
+        localPlayerPrefs = DiskUtil.tryToLoadFromFileTyped(LocalPlayerPrefs.class, prefsFilename+".prefs");
+        if(localPlayerPrefs == null)
+            localPlayerPrefs = new LocalPlayerPrefs();
+        localPlayerPrefs.fname = prefsFilename;
+
         UIPanel testEditor = uiRoot.addChild(new UIPanel(700,10,-10,-10),UILayer.OVERLAY);
         testEditor.setEnabled(false);
         UITextBox editBox = testEditor.addChild(new UITextBox(10, 10, -10, -600, false));
@@ -178,6 +187,7 @@ public class GameClient extends GameBase {
     }
 
     public static void main(String... args) {
+        System.out.println("Args:"+ Arrays.toString(args));
         run(GameClient.class.getSimpleName(),args);
     }
 }

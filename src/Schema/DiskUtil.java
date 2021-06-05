@@ -1,11 +1,15 @@
 package Schema;
 
+import Client.LocalPlayerPrefs;
 import Gamestate.CardDefinition;
 import Gamestate.PersistentPlayer;
+import Globals.Debug;
 import Server.CardLibraryMetadata;
 import Server.CardSource;
 
 import java.io.*;
+
+import static Globals.Debug.perfTimeMS;
 
 public class DiskUtil {
 
@@ -59,6 +63,7 @@ public class DiskUtil {
                 case SchemaTypeID.CARD_SOURCE -> new CardSource(dis);
                 case SchemaTypeID.PERSISTENT_PLAYER -> new PersistentPlayer(dis);
                 case SchemaTypeID.CARD_LIBRARY_METADATA -> new CardLibraryMetadata(dis);
+                case SchemaTypeID.LOCAL_PLAYER_PREFS -> new LocalPlayerPrefs(dis);
                 default -> throw new RuntimeException("Invalid schema type:"+schemaType);
             };
             dis.close();
@@ -79,7 +84,11 @@ public class DiskUtil {
                 "Otherwise, loose X VP for the difference\nbetween your /P and /D.", "Power always comes with a cost","gato.jpg"));
         event.submitWinningBid(10);
         event.hasBeenIntroed=true;
-        saveToFile(event,"test.txt");
+        //saveToFile(event,"test.txt");
+        float startTime = perfTimeMS();
+        LocalPlayerPrefs prefs = new LocalPlayerPrefs();
+        saveToFile(prefs,"test.txt");
+        System.out.println(Debug.perfTimeMS() - startTime);
 
         CardSource out= tryToLoadFromFileTyped(CardSource.class,"test.txt");
         System.out.println("done");

@@ -13,6 +13,8 @@ public class ClientEnvironment {
     public static NetworkClient netClient;
     public static ClientGameStateManager gameStateManager;
 
+    public static LocalPlayerPrefs localPlayerPrefs;
+
     public static UILogView chatView;
     public static UICardView cardPreview;
 

@@ -25,6 +25,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static Client.ClientEnvironment.netClient;
 import static com.jogamp.newt.event.KeyEvent.VK_F12;

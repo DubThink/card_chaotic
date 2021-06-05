@@ -3,9 +3,12 @@ import Globals.Config;
 import Globals.Debug;
 import Globals.GlobalEnvironment;
 import Globals.Style;
+import Schema.AsyncIOHandler;
 import UI.*;
 import core.*;
 import processing.core.PApplet;
+
+import java.util.Arrays;
 
 import static Globals.GlobalEnvironment.*;
 import static com.jogamp.newt.event.KeyEvent.*; // use this for p2d-based graphics (not KeyEvent)
@@ -21,6 +24,9 @@ public abstract class GameBase extends AdvancedApplet {
 
     @Override
     public void setup() {
+        asyncIOHandler = new AsyncIOHandler();
+        asyncIOHandler.start();
+
         UIBase.app = this;
         imageLoader = new ImageLoader(this);
         Style.loadFonts(this);
@@ -146,14 +152,42 @@ public abstract class GameBase extends AdvancedApplet {
         // even though any args after the sketch name are ignored
         // ...
         if(args.length>0) {
-            String name_tm = args[0];
-            for (int i = 0;i<args.length-1;i++){
-                args[i]=args[i+1];
+            String[] newargs = new String[args.length];
+            int newargidx=0;
+
+            String name_tm=null;
+
+            for (String arg : args) {
+                if (arg.startsWith("--"))
+                    if(name_tm==null)
+                        name_tm=arg;
+                    else
+                        newargs[newargidx++] = arg;
             }
-            args[args.length-1]= className;
-            PApplet.main(name_tm,args);
+
+            if(name_tm==null)
+                name_tm=className;
+            else
+                newargs[newargidx++] = className;
+
+            for (String arg : args) {
+                if (!arg.startsWith("--"))
+                    newargs[newargidx++] = arg;
+            }
+
+
+            PApplet.main(name_tm, newargs);
         } else {
             PApplet.main(className);
         }
+    }
+
+    public String findArg(String key, String defaultVal){
+        key+="=";
+        for (String arg : args) {
+            if (arg.startsWith(key))
+                return arg.substring(key.length());
+        }
+        return defaultVal;
     }
 }

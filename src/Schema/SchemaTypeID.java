@@ -8,6 +8,7 @@ public interface SchemaTypeID {
     int CARD_SOURCE = 2;
     int PERSISTENT_PLAYER = 3;
     int CARD_LIBRARY_METADATA = 4;
+    int LOCAL_PLAYER_PREFS = 5;
 
     /**
      * GO PUT THE RIGHT LINE IN {@link DiskUtil}

@@ -1,11 +1,13 @@
 package Globals;
 
+import Schema.AsyncIOHandler;
 import UI.UIBase;
 import core.AdvancedApplet;
 import core.ImageLoader;
 
 public class GlobalEnvironment {
     public static ImageLoader imageLoader;
+    public static AsyncIOHandler asyncIOHandler;
 
     public static UIBase uiRoot;
 

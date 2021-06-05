@@ -1,6 +1,7 @@
 package Server;
 
 import Gamestate.CardDefinition;
+import Globals.Debug;
 import Schema.DiskUtil;
 import UI.*;
 import network.NetworkClientHandler;
@@ -10,6 +11,8 @@ import processing.core.PImage;
 import java.util.ArrayList;
 import java.util.Random;
 
+import static Globals.Debug.perfTimeMS;
+import static Globals.GlobalEnvironment.asyncIOHandler;
 import static Server.ServerEnvironment.svErr;
 
 public class CardSourceManager {
@@ -116,6 +119,15 @@ public class CardSourceManager {
         }
     }
 
+    public void saveTest() {
+        //CardLibraryMetadata metadata = new CardLibraryMetadata();
+        //metadata.maxCardID=nextCardID-1;
+        //DiskUtil.saveToFile(metadata, cardPath+"cardLibraryMetadata.bs");
+        for (int i = 0; i < 10; i++) {
+            asyncIOHandler.requestSave(cardSources.get(0), cardPath+"testcard_" + i + ".card");
+        }
+    }
+
     public void loadCardLibraryFromDisk(){
         if(!cardSources.isEmpty()){
             svErr("should not be loading library when there are already cards loaded, canceling");
@@ -165,6 +177,7 @@ public class CardSourceManager {
         rootPanel=panel;
         panel.addChild(new UIButton(10, m(0), 150, 30, "Load Library", this::loadCardLibraryFromDisk));
         panel.addChild(new UIButton(10, m(1), 150, 30, "Save Library", this::saveCardLibraryToDisk));
+//        panel.addChild(new UIButton(10, m(3), 150, 30, "Save Test", this::saveTest));
         panel.addChild(new UIButton(10, m(2), 150, 30, "Clear Library", this::uiActionClearLibrary));
         uiCardSmallView = panel.addChild(new UICardView(10,-220,.3125f, UILayer.INTERFACE));
         uiCardSmallView.setCardBackView();
