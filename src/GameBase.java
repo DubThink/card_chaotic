@@ -183,6 +183,8 @@ public abstract class GameBase extends AdvancedApplet {
     }
 
     public String findArg(String key, String defaultVal){
+        if(args==null)
+            return defaultVal;
         key+="=";
         for (String arg : args) {
             if (arg.startsWith(key))

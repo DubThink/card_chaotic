@@ -123,9 +123,9 @@ public class CardSourceManager {
         //CardLibraryMetadata metadata = new CardLibraryMetadata();
         //metadata.maxCardID=nextCardID-1;
         //DiskUtil.saveToFile(metadata, cardPath+"cardLibraryMetadata.bs");
-        for (int i = 0; i < 10; i++) {
-            asyncIOHandler.requestSave(cardSources.get(0), cardPath+"testcard_" + i + ".card");
-        }
+//        for (int i = 0; i < 10; i++) {
+            asyncIOHandler.requestSave(cardSources.get(0), cardPath+"testcard_" + 0 + ".card");
+//        }
     }
 
     public void loadCardLibraryFromDisk(){
@@ -177,8 +177,8 @@ public class CardSourceManager {
         rootPanel=panel;
         panel.addChild(new UIButton(10, m(0), 150, 30, "Load Library", this::loadCardLibraryFromDisk));
         panel.addChild(new UIButton(10, m(1), 150, 30, "Save Library", this::saveCardLibraryToDisk));
-//        panel.addChild(new UIButton(10, m(3), 150, 30, "Save Test", this::saveTest));
         panel.addChild(new UIButton(10, m(2), 150, 30, "Clear Library", this::uiActionClearLibrary));
+        panel.addChild(new UIButton(10, m(3), 150, 30, "Save Test", this::saveTest));
         uiCardSmallView = panel.addChild(new UICardView(10,-220,.3125f, UILayer.INTERFACE));
         uiCardSmallView.setCardBackView();
 

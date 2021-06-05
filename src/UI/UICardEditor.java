@@ -209,6 +209,8 @@ public class UICardEditor extends UIPanel{
             modal(UIModal.MODAL_CONTINUE, "Card was created offline,\nand cannot be saved.");
         } else if(!GlobalEnvironment.imageLoader.isCardImageValid(definition.localSourceImageFilename)){
             modal(UIModal.MODAL_CONTINUE, "Image must be valid to save.");
+        } else if (definition.validateDefinition()!=null){
+            modal(UIModal.MODAL_CONTINUE, "Cannot save:\n"+definition.validateDefinition());
         } else {
             netClient.sendEvent(new UpdateCardDefinitionNetEvent(definition));
         }

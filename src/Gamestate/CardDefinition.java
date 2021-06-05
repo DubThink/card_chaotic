@@ -578,6 +578,20 @@ public class CardDefinition extends VersionedSerializable {
         //System.out.printf("Setting uv values to (%.3f, %.3f) (%.3f, %.3f)%n",u1,v1,u2,v2);
     }
 
+    public String validateDefinition(){
+        if(sourceImage==null)
+            return "Source image not found";
+        if(sourceImage.width>3000 ||sourceImage.height>3000)
+            return "Source image too big (max 3000x3000)";
+        if(name.length()==0)
+            return "Name must be filled out";
+        if(type.length()==0)
+            return "Type must be filled out";
+        if(flavor.length()==0)
+            return "Flavor must be filled out";
+        return null;
+    }
+
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         super.serialize(dos);
