@@ -97,9 +97,7 @@ public class GameClient extends GameBase {
 
 
         cardPreview = uiRoot.addChild(new UICardView(50,10,.5f,UILayer.INTERFACE));
-        cardPreview.setCardDefinitionView(new CardDefinition(-1, "The Golden Judgement", "Exotic Warrior Behemoth", "At the beginning of your turn:\n" +
-                "If your /P equals your /D, gain a VP for\neach /P.\n" +
-                "Otherwise, loose X VP for the difference\nbetween your /P and /D.", "Power always comes with a cost","gato.jpg"));
+        cardPreview.setCardBackView();
         uiRoot.addChild(new UICardView(400,10,1f, UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
         cardPreview.card.definition.setBeingValues(3,10);
         //uiRoot.addChild(new UICardView(1070,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
@@ -130,14 +128,16 @@ public class GameClient extends GameBase {
 
     @Override
     public void _draw(int dt) {
-        handleReceivedNetEvents();
+        if(netClient!=null && netClient.isAlive())
+            netClient.updateTimeouts(dt);
+        handleReceivedNetEvents(dt);
 
         gameStateManager.updateStep(dt);
 
         if(testIMG!=null)image(testIMG.image,1200,0);
     }
 
-    public void handleReceivedNetEvents(){
+    public void handleReceivedNetEvents(int dt){
         if(netClient == null || !netClient.isAlive())return;
         while (netClient.hasReceivedEvents()) {
             NetEvent event = netClient.pollEvent();

@@ -1,7 +1,8 @@
 package Server;
 
+import Gamestate.Account;
 import Gamestate.Player;
-import UI.UIBase;
+import Schema.AccountManager;
 import UI.UILogView;
 import UI.UIPanel;
 import core.AdvancedApplet;
@@ -14,8 +15,10 @@ public class ServerEnvironment {
     public static ArrayList<NetworkClientHandler> jipHandlers;
     public static ArrayList<SvPlayer> svPlayers;
     public static CardSourceManager cardSourceManager;
+    public static AccountManager accountManager;
 
-    private static int nextPlayerUID=1;
+    // server is index 0
+    private static int nextPlayerIndex = 1;
 
     public static UIPanel phasePanel;
     public static UILogView serverlog;
@@ -37,46 +40,77 @@ public class ServerEnvironment {
         return ct;
     }
 
+    public static SvPlayer getPlayerByIndex(int index){
+        return svPlayers.get(index-1);
+    }
 
-    public static int getPlayerUIDByUsername(String s){
+    public static int getPlayerIndexByAccountUID(int accountUID){
         for(SvPlayer svPlayer: svPlayers){
-            if(svPlayer.player!=null && svPlayer.player.displayName.equals(s))
-                return svPlayer.player.uid;
+            if(svPlayer.player!=null && svPlayer.player.account.accountUID == accountUID)
+                return svPlayer.player.playerIndex;
         }
         return -1;
     }
 
-    public static SvPlayer getPlayerByUsername(String s){
-        int uid = getPlayerUIDByUsername(s);
+    public static int getPlayerIndexByDisplayName(String s){
+        for(SvPlayer svPlayer: svPlayers){
+            if(svPlayer.player!=null && svPlayer.player.displayName.equals(s))
+                return svPlayer.player.playerIndex;
+        }
+        return -1;
+    }
+
+    public static int getPlayerIndexByAccountName(String s){
+        Account a = accountManager.getAccountByName(s);
+        if(a==null)
+            return -1;
+        for(SvPlayer svPlayer: svPlayers){
+            if(svPlayer.player!=null && svPlayer.player.account == a)
+                return svPlayer.player.playerIndex;
+        }
+        return -1;
+    }
+
+    public static SvPlayer getPlayerByDisplayName(String s){
+        int uid = getPlayerIndexByDisplayName(s);
         if(uid==-1)
             return null;
-        return getPlayerByUID(uid);
+        return getPlayerByIndex(uid);
+    }
+
+    public static SvPlayer getPlayerByAccountName(String s){
+        int uid = getPlayerIndexByAccountName(s);
+        if(uid==-1)
+            return null;
+        return getPlayerByIndex(uid);
     }
 
     public static void clientConnect(NetworkClientHandler handler){
         jipHandlers.add(handler);
     }
 
-    public static SvPlayer playerConnect(String name, NetworkClientHandler handler){
+    public static SvPlayer playerConnect(Account account, String displayName, NetworkClientHandler handler){
         jipHandlers.remove(handler);
-        int existingPlayerIndex = getPlayerUIDByUsername(name);
+
+        int existingPlayerIndex = getPlayerIndexByAccountUID(account.accountUID);
+
         if(existingPlayerIndex==-1){
-            SvPlayer newPlayer = new SvPlayer(new Player(nextPlayerUID++,name), handler);
+            // first time this account is connecting
+            SvPlayer newPlayer = new SvPlayer(new Player(nextPlayerIndex++, account, displayName), handler);
             svPlayers.add(newPlayer);
             return newPlayer;
         } else {
-            // TODO check that the previous handler isn't still connected
-            getPlayerByUID(existingPlayerIndex).handler.interrupt();
-            getPlayerByUID(existingPlayerIndex).handler = handler;
-            return getPlayerByUID(existingPlayerIndex);
+            // account was previously connected, reestablish
+            SvPlayer existingPlayer = getPlayerByIndex(existingPlayerIndex);
+            if(existingPlayer.active || existingPlayer.handler.isReady())
+                throw new RuntimeException("Attempting to connect a connected player");
+            existingPlayer.handler.interrupt();
+            existingPlayer.handler = handler;
+            return existingPlayer;
         }
 
 
     };
-
-    public static SvPlayer getPlayerByUID(int uid){
-        return svPlayers.get(uid-1);
-    }
 
     public static void broadcast(NetEvent event, boolean reflect){
         for (SvPlayer player: svPlayers){

@@ -21,6 +21,16 @@ public class TemplateSchemaClass extends VersionedSerializable{
     }
 
     @Override
+    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
+        throw new VersionMismatchException(dataVersion,getVersionNumber(),getSchemaType());
+    }
+
+    @Override
+    protected void deserialize(DataInputStream dis) throws IOException {
+
+    }
+
+    @Override
     public int getVersionNumber() {
         return SCHEMA_VERSION_NUMBER;
     }
@@ -28,15 +38,5 @@ public class TemplateSchemaClass extends VersionedSerializable{
     @Override
     public int getSchemaType() {
         return SchemaTypeID.RESERVED_INVALID_SCHEMA;
-    }
-
-    @Override
-    protected void deserializeFromVersion(DataInputStream dis, int i) throws VersionMismatchException, IOException {
-        throw new VersionMismatchException(i,getVersionNumber(),getSchemaType());
-    }
-
-    @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
-
     }
 }

@@ -49,8 +49,8 @@ public class LocalPlayerPrefs extends VersionedSerializable {
     }
 
     @Override
-    protected void deserializeFromVersion(DataInputStream dis, int i) throws VersionMismatchException, IOException {
-        throw new VersionMismatchException(i,getVersionNumber(),getSchemaType());
+    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
+        throw new VersionMismatchException(dataVersion,getVersionNumber(),getSchemaType());
     }
 
     @Override

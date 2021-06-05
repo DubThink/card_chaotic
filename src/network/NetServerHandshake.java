@@ -10,6 +10,8 @@ public class NetServerHandshake extends NetSerializable {
     public boolean success;
     public String message;
     public int clientID;
+    public int accountUID;
+
 
     public NetServerHandshake() {
         this.success = false;
@@ -25,6 +27,7 @@ public class NetServerHandshake extends NetSerializable {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeBoolean(success);
         dos.writeInt(clientID);
+        dos.writeInt(accountUID);
         dos.writeUTF(message);
     }
 
@@ -32,6 +35,7 @@ public class NetServerHandshake extends NetSerializable {
     protected void deserialize(DataInputStream dis) throws IOException {
         success = dis.readBoolean();
         clientID = dis.readInt();
+        accountUID = dis.readInt();
         message = dis.readUTF();
     }
 
@@ -41,6 +45,7 @@ public class NetServerHandshake extends NetSerializable {
                 "success=" + success +
                 ", message='" + message + '\'' +
                 ", clientID=" + clientID +
+                ", accountUID=" + accountUID +
                 '}';
     }
 }

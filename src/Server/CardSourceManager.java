@@ -1,17 +1,15 @@
 package Server;
 
 import Gamestate.CardDefinition;
-import Globals.Debug;
+import Globals.Style;
 import Schema.DiskUtil;
 import UI.*;
 import network.NetworkClientHandler;
 import network.event.DefineCardNetEvent;
-import processing.core.PImage;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import static Globals.Debug.perfTimeMS;
 import static Globals.GlobalEnvironment.asyncIOHandler;
 import static Server.ServerEnvironment.svErr;
 
@@ -80,20 +78,35 @@ public class CardSourceManager {
             throw new RuntimeException("Can't create a card in a range that already exists");
         cardSources.add(source);
         if(uiCardList!=null){
-            uiCardList.addOption(uiCardStringFromDefinition(source.definition));
+            uiCardList.refreshIndex(source.definition.uid);
             if(cardSources.size()==1){
                 // first card loaded, gotta update
-                uiCardList.selectionChangedAction.notify(uiCardList);
+                uiCardList.listSelectionChangedAction.notify(uiCardList);
             }
         }
     }
 
-    private static String uiCardStringFromDefinition(CardDefinition definition){
-        return String.format("%1$3d", definition.uid)+" | "+String.format("%1$60s",definition.name);
+    private static final String HEADER = String.format("%4s | %3s | %3s | %-30s | %-6s |  b/p  ",
+            "id",
+            "@",
+            "rev",
+            "name",
+            "type"
+            /*b/p*/);
+
+    private static String uiCardString(CardSource source){
+        CardDefinition definition = source.definition;
+        return String.format("%4d | %3d | %3d | %-30s | %-6s | %2d/%-2d ",
+                definition.uid,
+                definition.authorAccountUID,
+                source.rev,
+                definition.name,
+                CardDefinition.getArchetypeName(definition.archetype),
+                source.timesBanned, source.timesBanned+source.timesAllowed);
     }
 
-    public CardSource allocateNextCardSource() {
-        CardSource newCard = new CardSource(new CardDefinition(nextCardID++));
+    public CardSource allocateNextCardSource(int authorAccountID) {
+        CardSource newCard = new CardSource(new CardDefinition(nextCardID++, authorAccountID));
         putCardSource(newCard);
         return newCard;
     }
@@ -104,10 +117,10 @@ public class CardSourceManager {
         if (definition.uid >= cardSources.size())
             throw new RuntimeException("Not in range");
         cardSources.get(definition.uid).updateDefinition(definition);
-        uiCardList.setOption(definition.uid, uiCardStringFromDefinition(definition));
+        uiCardList.refreshIndex(definition.uid);
         if(definition.uid == uiCardList.getSelectionIndex())
             // card updated, gotta update
-            uiCardList.selectionChangedAction.notify(uiCardList);
+            uiCardList.listSelectionChangedAction.notify(uiCardList);
     }
 
     public void saveCardLibraryToDisk() {
@@ -146,7 +159,7 @@ public class CardSourceManager {
                 } else {
                     // insert placeholder card
                     System.out.println("unable to load card #"+i);
-                    allocateNextCardSource();
+                    allocateNextCardSource(-1);
                 }
             }
             if(nextCardID != metadata.maxCardID+1)
@@ -162,12 +175,12 @@ public class CardSourceManager {
         cardSources.clear();
         nextCardID=0;
         goodCardCount=0;
-        uiCardList.clearOptions();
+        uiCardList.refreshList();
     }
 
     // ==== UI ==== //
 
-    UIMultibox uiCardList;
+    UIListMultibox<CardSource> uiCardList;
     UICardView uiCardSmallView;
     UIPanel uiBigViewPanel;
     UICardView uiCardBigView;
@@ -182,15 +195,18 @@ public class CardSourceManager {
         uiCardSmallView = panel.addChild(new UICardView(10,-220,.3125f, UILayer.INTERFACE));
         uiCardSmallView.setCardBackView();
 
-        uiCardList = panel.addChild(new UIMultibox(170,10,-10,-10));
-        uiCardList.selectionChangedAction = source -> {
-            int cardid = source.getSelectionIndex();
-            System.out.println(cardid+" selected");
-            if(cardid>=0 && cardid<cardSources.size()){
-                uiCardSmallView.setCardDefinitionView(cardSources.get(cardid).definition);
-            } else {
+        uiCardList = panel.addChild(new UIListMultibox<CardSource>(170,10,-10,-10,
+                cardSources, CardSourceManager::uiCardString));
+
+        uiCardList.setRowHeight(22).setHeader(HEADER).setFontFamily(Style.F_CODE);
+
+        uiCardList.listSelectionChangedAction = uilist -> {
+            System.out.println("awf90wioaefjiopef");
+            CardSource source = uilist.getSelectedObject();
+            if(source!=null)
+                uiCardSmallView.setCardDefinitionView(source.definition);
+            else
                 uiCardSmallView.setCardBackView();
-            }
         };
 
         uiBigViewPanel = panel.addChild(new UIPanel(170,10,-10,-10));

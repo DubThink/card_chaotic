@@ -43,6 +43,7 @@ public class Style {
     public static int fillColor = Util.pColor(new Color(49, 50, 52));
     //public static int fillColorHover = Util.pColor(new Color(127,127,127,200));
     public static int fillColorActive = Util.pColor(new Color(87, 87, 90));
+    public static int fillColorHeader = Util.pColor(new Color(129, 129, 132));
     //public static int fillColorActiveHover = Util.pColor(new Color(65, 65, 65,200));
     public static int fillColorInputField = Util.pColor(new Color(75, 77, 82));
     public static int fillColorPanel = Util.pColor(new Color(28, 29, 33));
@@ -66,21 +67,18 @@ public class Style {
 
     // font wowe
 
-    public static final int FONT_16 = 0;
-    public static final int FONT_14 = 6;
-    public static final int FONT_12 = 7;
+    public static final int FONT_16 = 2;
+    public static final int FONT_14 = 1;
+    public static final int FONT_12 = 0;
 
-    public static final int FONT_33 = 8;
-    public static final int FONT_27 = 9;
-    public static final int FONT_24 = 10;
+    public static final int FONT_33 = 10;
+    public static final int FONT_27 = 6;
+    public static final int FONT_24 = 5;
 
-    public static final int FONT_SMALL = 0;
-    public static final int FONT_MEDIUM = 1;
-    public static final int FONT_MEDLARGE = 2;
-    public static final int FONT_LARGE = 3;
-    public static final int FONT_XLARGE = 4;
-    public static final int FONT_HUGE = 5;
-    static final int[] FONT_SIZES = {16, 18, 22, 32, 36, 48, 14, 12, 33, 27, 24};
+    public static final int FONT_SMALL = 2;
+    public static final int FONT_MEDIUM = 3;
+    public static final int FONT_HUGE = 9;
+    static final int[] FONT_SIZES = {12, 14, 16, 18, 22, 24, 27, 32, 36, 48, /*odd sizes*/ 33};
 
     public static final int F_STANDARD = 0;
     public static final int F_FLAVOR = 1;

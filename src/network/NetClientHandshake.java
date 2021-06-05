@@ -9,10 +9,12 @@ import java.io.IOException;
 public class NetClientHandshake extends NetSerializable {
     public int clientNetVersion;
     public int clientVersion;
-    public String username;
+    public String accountName;
+    public String displayName;
 
-    public NetClientHandshake(String username) {
-        this.username = username;
+    public NetClientHandshake(String accountName, String displayName) {
+        this.accountName = accountName;
+        this.displayName = displayName;
         clientNetVersion = Config.NET_VERSION;
         clientVersion = Config.GAME_VERSION;
     }
@@ -25,14 +27,16 @@ public class NetClientHandshake extends NetSerializable {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeInt(clientNetVersion);
         dos.writeInt(clientVersion);
-        dos.writeUTF(username);
+        dos.writeUTF(accountName);
+        dos.writeUTF(displayName);
     }
 
     @Override
     protected void deserialize(DataInputStream dis) throws IOException {
         clientNetVersion = dis.readInt();
         clientVersion = dis.readInt();
-        username = dis.readUTF();
+        accountName = dis.readUTF();
+        displayName = dis.readUTF();
     }
 
     @Override
@@ -40,7 +44,8 @@ public class NetClientHandshake extends NetSerializable {
         return "NetClientHandshake{" +
                 "clientNetVersion=" + clientNetVersion +
                 ", clientVersion=" + clientVersion +
-                ", username='" + username + '\'' +
+                ", accountName='" + accountName + '\'' +
+                ", displayName='" + displayName + '\'' +
                 '}';
     }
 }

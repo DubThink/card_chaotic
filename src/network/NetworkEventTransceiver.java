@@ -5,14 +5,24 @@ import network.event.*;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class NetworkEventTransceiver extends Thread {
+    public static final int MILLIS_BETWEEN_KEEPALIVES = 3000;
+    public static final int KEEPALIVE_TIMEOUT_MILLIS = 15000;
+
+    public int millisSinceLastSend;
+    public int millisSinceLastReceive;
+
     BlockingQueue<NetEvent> outgoingEvents;
     BlockingQueue<NetEvent> incomingEvents;
+
+    Socket socket;
 
     boolean ready;
     public boolean connectionDropped;
@@ -33,15 +43,19 @@ public class NetworkEventTransceiver extends Thread {
                     NetEvent event = outgoingEvents.poll(5, TimeUnit.MILLISECONDS);
                     if (event == null) continue;
                     if (preprocessTxEvent(event)) {
-                        System.out.println("--> Sending:  " + event.toString());
+                        if(event instanceof KeepaliveNetEvent)
+                            ;//System.out.println(" --> KA update "+rcvd.toString());
+                        else
+                            System.out.println("--> Sending:  " + event.toString());
                         dos.writeInt(event.eventTypeIdentifier());
                         event.serialize(dos);
+                        millisSinceLastSend = 0;
                     }
                 }
 
                 if (dis.available() > 0) {
                     int id = dis.readInt();
-                    System.out.println("rcvid " + id);
+                    //System.out.println("rcvid " + id);
                     NetEvent rcvd = switch (id) {
                         case NetEventTypeID.CHAT_MESSAGE -> new ChatMessageNetEvent(dis);
                         case NetEventTypeID.DEFINE_CARD -> new DefineCardNetEvent(dis);
@@ -54,12 +68,16 @@ public class NetworkEventTransceiver extends Thread {
                         case NetEventTypeID.GRANT_CARD_ID -> new GrantCardIDNetEvent(dis);
                         case NetEventTypeID.UPDATE_CARD_DEFINITION -> new UpdateCardDefinitionNetEvent(dis);
                         case NetEventTypeID.SYNC_COMPLETE -> new SyncCompleteNetEvent(dis);
+                        case NetEventTypeID.KEEPALIVE -> new KeepaliveNetEvent(dis);
                         default -> throw new RuntimeException("NetEvent with ID " + id + " is unhandled.");
                     };
-                    if (preprocessRxEvent(rcvd)) {
+                    if(rcvd instanceof KeepaliveNetEvent){
+                        //System.out.println(" <-- KA update "+rcvd.toString());
+                    } else if (preprocessRxEvent(rcvd)) {
                         System.out.println("<-- Received: " + rcvd.toString());
                         incomingEvents.add(rcvd);
                     }
+                    millisSinceLastReceive = 0;
                 }
             }
         } catch (SocketException se){
@@ -74,8 +92,18 @@ public class NetworkEventTransceiver extends Thread {
         outgoingEvents.clear();
         incomingEvents.clear();
         connectionDropped=true;
-        System.err.println("Connection '"+this+"' dropped for reason: '"+reason+"'");
+        printErrorMessage("Connection '"+this+"' dropped for reason: '"+reason+"'");
 
+    }
+
+    public void forciblyDisconnect(){
+        try {
+            socket.close();
+        } catch (IOException ioException) {
+            printErrorMessage("while forcibly disconnecting: '"+ioException.getLocalizedMessage()+"'");
+        }
+        ready=false;
+        connectionDropped=true;
     }
 
 
@@ -112,5 +140,25 @@ public class NetworkEventTransceiver extends Thread {
 
     public boolean isReady() {
         return ready;
+    }
+
+    protected void printErrorMessage(String s) {
+        System.err.println(s);
+    }
+
+    protected void printMessage(String s) {
+        System.out.println(s);
+    }
+
+    public void updateTimeouts(int dt){
+        millisSinceLastReceive+=dt;
+        millisSinceLastSend+=dt;
+        if(millisSinceLastSend > MILLIS_BETWEEN_KEEPALIVES){
+            sendEvent(new KeepaliveNetEvent());
+            millisSinceLastSend=0;
+        }
+        if(millisSinceLastReceive > KEEPALIVE_TIMEOUT_MILLIS){
+            printErrorMessage("ping timeout reached, forcibly disconnecting "+this.toString());
+        }
     }
 }

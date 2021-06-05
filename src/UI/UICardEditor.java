@@ -1,7 +1,9 @@
 package UI;
 
+import Client.ClientEnvironment;
 import Gamestate.Card;
 import Gamestate.CardDefinition;
+import Gamestate.ClientGamestate;
 import Globals.Assert;
 import Globals.GlobalEnvironment;
 import Globals.Style;
@@ -217,7 +219,7 @@ public class UICardEditor extends UIPanel{
     }
 
     protected void requestNewCard(){
-        if(!netClient.isReady()){
+        if(netClient == null || !netClient.isReady()){
             modal(UIModal.MODAL_CONTINUE, "You are offline. New cards\ncreated offline cannot be saved,\neven once connected.",()->createNewCard(-1));
             createNewCard(-1);
             return;
@@ -227,7 +229,7 @@ public class UICardEditor extends UIPanel{
     }
 
     public void createNewCard(int cardUID){
-        definition=new CardDefinition(cardUID);
+        definition=new CardDefinition(cardUID, ClientGamestate.accountUID);
         serverImageIsStale = true;
         refreshEditor();
     }

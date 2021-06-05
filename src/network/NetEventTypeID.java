@@ -13,6 +13,7 @@ public interface NetEventTypeID {
     int GRANT_CARD_ID = 9;
     int UPDATE_CARD_DEFINITION = 10;
     int SYNC_COMPLETE = 11;
+    int KEEPALIVE = 12;
 
     /**
     * GO PUT THE RIGHT LINE IN {@link NetworkEventTransceiver}

@@ -16,7 +16,6 @@ import static network.NetEvent.LOCAL_USER;
 public class NetworkClient extends NetworkEventTransceiver {
 
     int clientUID;
-    Socket socket;
 
     String targetIP;
 
@@ -38,7 +37,7 @@ public class NetworkClient extends NetworkEventTransceiver {
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
-            NetClientHandshake clientHandshake = new NetClientHandshake(ClientGamestate.displayName);
+            NetClientHandshake clientHandshake = new NetClientHandshake(ClientGamestate.accountName, ClientGamestate.displayName);
             clientHandshake.serialize(dos);
 
             System.out.println("Sending handshake "+clientHandshake);
@@ -59,6 +58,7 @@ public class NetworkClient extends NetworkEventTransceiver {
 
             if(serverHandshake.success) {
                 clientUID = serverHandshake.clientID;
+                ClientGamestate.accountUID = serverHandshake.accountUID;
                 System.out.println("Connected");
                 if(notifyConnected !=null)
                     notifyConnected.fire();

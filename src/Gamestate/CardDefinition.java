@@ -27,7 +27,7 @@ import static processing.core.PApplet.*;
  * Defines the invariable portions of a card (used to generate cards)
  */
 public class CardDefinition extends VersionedSerializable {
-    private static final int SCHEMA_VERSION_NUMBER = 2;
+    private static final int SCHEMA_VERSION_NUMBER = 3;
 
     public static final int ARCHETYPE_OBJECT=0;
     public static final int ARCHETYPE_BEING=1;
@@ -55,6 +55,8 @@ public class CardDefinition extends VersionedSerializable {
     int imageDisplayMode = IMAGE_SHOW_FULL;
     float u1,v1,u2,v2;
 
+    public int authorAccountUID;
+
     // LOCAL ONLY
     public String localSourceImageFilename;
     private boolean localSourceLoaded;
@@ -81,12 +83,13 @@ public class CardDefinition extends VersionedSerializable {
     private static final int IMAGE_SHOW_SMALL = 1;
     private static final int IMAGE_SHOW_SQUARE = 2;
 
-    public CardDefinition(int uid) {
-        this(uid, "","","","","");
+    public CardDefinition(int uid, int authorAccountUID) {
+        this(uid,authorAccountUID,"","","","","");
     }
 
-    public CardDefinition(int uid, String name, String type, String desc, String flavor, String imageFileName) {
+    public CardDefinition(int uid, int authorAccountUID, String name, String type, String desc, String flavor, String imageFileName) {
         this.uid = uid;
+        this.authorAccountUID = authorAccountUID;
         this.name = name;
         this.type = type;
         this.desc = desc;
@@ -614,17 +617,17 @@ public class CardDefinition extends VersionedSerializable {
         dos.writeFloat(u2);
         dos.writeFloat(v2);
 
+        dos.writeInt(authorAccountUID);
+
         // FINAL VALUES BELOW
         dos.writeInt(uid);
     }
 
     @Override
-    protected void deserializeFromVersion(DataInputStream dis, int i) throws IOException {
-        throw new VersionMismatchException(i, getVersionNumber(), getSchemaType());
-    }
+    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws IOException {
+        if(dataVersion<2)
+            throw new VersionMismatchException(dataVersion, getVersionNumber(), getSchemaType());
 
-    @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
         name = dis.readUTF();
         type = dis.readUTF();
         desc = dis.readUTF();
@@ -643,6 +646,18 @@ public class CardDefinition extends VersionedSerializable {
         v1 = dis.readFloat();
         u2 = dis.readFloat();
         v2 = dis.readFloat();
+
+        if(dataVersion>2)
+            authorAccountUID = dis.readInt();
+        else {
+            System.out.println("Versioning for V2");
+            authorAccountUID = 0;
+        }
+    }
+
+    @Override
+    protected void deserialize(DataInputStream dis) throws IOException {
+        deserializeFromVersion(dis, getVersionNumber());
     }
 
     @Override

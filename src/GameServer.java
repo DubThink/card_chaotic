@@ -1,32 +1,22 @@
-import Client.ClientDebugPanel;
+import Gamestate.Account;
 import Globals.Config;
-import Globals.Debug;
 import Globals.Style;
+import Schema.AccountManager;
+import Schema.DiskUtil;
 import Server.*;
 import UI.*;
-import core.AdvancedApplet;
 import core.AdvancedGraphics;
-import core.Symbol;
-import core.SymbolInjector;
 import network.NetClientHandshake;
 import network.NetEvent;
 import network.NetServerHandshake;
 import network.NetworkClientHandler;
 import network.event.*;
-import processing.core.PApplet;
-import processing.core.PConstants;
-import processing.core.PImage;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.Arrays;
-
-import static Client.ClientEnvironment.netClient;
-import static com.jogamp.newt.event.KeyEvent.VK_F12;
-import static com.jogamp.newt.event.KeyEvent.VK_F3;
 
 import static Server.ServerEnvironment.*;
 import static Globals.GlobalEnvironment.*;
@@ -55,10 +45,20 @@ public class GameServer extends GameBase {
     UITabWell tabWell;
 
     UIPanel cardControlPanel;
+    UIPanel accountControlPanel;
 
     @Override
     public void setup() {
         super.setup();
+
+        serverlog = uiRoot.addChild(new UILogView(810, 10, -10, -40));
+
+        accountManager = DiskUtil.tryToLoadFromFileTyped(AccountManager.class, AccountManager.FILE_NAME);
+        if(accountManager==null){
+            svErr("WARNING: NO ACCOUNT DB FOUND");
+            accountManager = new AccountManager();
+        }
+
 
         chatBox = uiRoot.addChild(new UITextBox(100, -25, 400, 25, true));
         chatBox.setFontFamily(Style.F_CODE);
@@ -69,7 +69,6 @@ public class GameServer extends GameBase {
             source.clearText();
         };
 
-        serverlog = uiRoot.addChild(new UILogView(810, 10, -10, -40));
 //        uiRoot.addChild(new UIButton(10, 10, 100, 100, "add", new Action() {
 //            @Override
 //            public void action() {
@@ -80,6 +79,7 @@ public class GameServer extends GameBase {
         tabWell = uiRoot.addChild(new UITabWell(10,45,790,-40));
         phasePanel = tabWell.addTab("Phase Control");
         cardControlPanel = tabWell.addTab("Card Library");
+        accountControlPanel = tabWell.addTab("Accounts");
 
         //Style.font32.font.initInjection();
         ((AdvancedGraphics) g).initializeInjector();
@@ -104,6 +104,7 @@ public class GameServer extends GameBase {
 
         // ==== SET UP CARD CONTROL ==== //
         cardSourceManager.setupControlPanel(cardControlPanel);
+        accountManager.setupControlPanel(accountControlPanel);
 
         super.finalizeSetup();
     }
@@ -121,7 +122,7 @@ public class GameServer extends GameBase {
 
         fill(255, 0, 0);
         if (ss != null) {
-            networkUpdateStep();
+            networkUpdateStep(dt);
         } else {
             Style.getFont(Style.F_STANDARD, Style.FONT_HUGE).apply(this);
             text("UNABLE TO START SOCKET RIP", 100, 100);
@@ -142,7 +143,7 @@ public class GameServer extends GameBase {
                 // player already has a new card allocated
                 send(player, new GrantCardIDNetEvent(player.currentNewCardID));
             } else {
-                CardSource newSource = cardSourceManager.allocateNextCardSource();
+                CardSource newSource = cardSourceManager.allocateNextCardSource(player.player.account.accountUID);
                 player.currentNewCardID = newSource.definition.uid;
                 send(player, new GrantCardIDNetEvent(newSource.definition.uid));
             }
@@ -158,7 +159,7 @@ public class GameServer extends GameBase {
         return false;
     }
 
-    protected void networkUpdateStep() {
+    protected void networkUpdateStep(int dt) {
         try {
             Socket socket = ss.accept();
             svLog("Client connected: " + socket);
@@ -180,22 +181,30 @@ public class GameServer extends GameBase {
                     reply.message = "Net versions do not match (Client = "+clientHandshake.clientNetVersion+", Server = "+Config.NET_VERSION+")";
                 } else if(clientHandshake.clientVersion != Config.GAME_VERSION){
                     reply.message = "Game versions do not match (Client = "+clientHandshake.clientVersion+", Server = "+Config.GAME_VERSION+")";
-                } else if(getPlayerUIDByUsername(clientHandshake.username)==-1){
-                    SvPlayer player = playerConnect(clientHandshake.username, handler);
+                } else if(getPlayerIndexByAccountName(clientHandshake.accountName)==-1){
+                    // account is not connected (or does not exist)
+                    Account account = accountManager.getAccountByName(clientHandshake.accountName);
+                    if(account==null)
+                        account = accountManager.createAccount(clientHandshake.accountName);
+
+                    SvPlayer player = playerConnect(account, clientHandshake.displayName, handler);
                     reply.success = true;
-                    reply.clientID = player.player.uid;
-                } else if(getPlayerByUsername(clientHandshake.username).handler.connectionDropped){
-                    SvPlayer player = playerConnect(clientHandshake.username, handler);
+                    reply.clientID = player.player.playerIndex;
+                    reply.accountUID = account.accountUID;
+                } else if(getPlayerByAccountName(clientHandshake.accountName).handler.connectionDropped){
+                    // account previously connected but dropped
+                    SvPlayer player = playerConnect(accountManager.getAccountByName(clientHandshake.accountName), clientHandshake.displayName, handler);
                     reply.success = true;
-                    reply.clientID = player.player.uid;
+                    reply.clientID = player.player.playerIndex;
+                    reply.accountUID = player.player.account.accountUID;
                 } else {
-                    reply.message = "User already exists with that name";
+                    reply.message = "That account is already connected";
                 }
                 svLog("Handshake with client '"+handler.describeSocket()+"' "+(reply.success?"succeeded":"failed"));
+                svLog("    display name='"+clientHandshake.displayName +"'");
+                svLog("    account name='"+clientHandshake.accountName +"'");
                 if(!reply.success)
                     svErr("    "+reply.message);
-                else
-                    svLog("    username='"+clientHandshake.username+"'");
                 handler.replyServerHandshake(reply);
             }
         }
@@ -218,7 +227,7 @@ public class GameServer extends GameBase {
                     // on player finish connecting
                     player.active = true;
                     //todo broadcast playerConnected event
-                    svLog("Player connected:"+player.player.displayName);
+                    svLog("Player connected:"+player.player);
                 }
                 while (handler.hasReceivedEvents()) {
                     NetEvent event = handler.pollEvent();
@@ -227,10 +236,13 @@ public class GameServer extends GameBase {
                         broadcast(event, true); // Echo server, essentially
                     }
                 }
+
+                handler.updateTimeouts(dt);
+
             } else {
                 if(player.wasReady){
                     player.active=false;
-                    svLog("Player disconnected:"+player.player.displayName);
+                    svLog("Player disconnected:"+player.player);
                     //todo broadcast playerDisconnected
                 }
             }

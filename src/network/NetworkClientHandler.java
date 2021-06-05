@@ -5,8 +5,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+import static Server.ServerEnvironment.svErr;
+import static Server.ServerEnvironment.svLog;
+
 public class NetworkClientHandler extends NetworkEventTransceiver{
-    Socket socket;
+
     NetClientHandshake clientHandshake;
     NetServerHandshake serverHandshake;
 
@@ -117,6 +120,16 @@ public class NetworkClientHandler extends NetworkEventTransceiver{
     @Override
     public String toString() {
         return "NetworkClientHandler{uid="+clientUID+"}";
+    }
+
+    @Override
+    protected void printErrorMessage(String s) {
+        svErr(s);
+    }
+
+    @Override
+    protected void printMessage(String s) {
+        svLog(s);
     }
 
     public String describeSocket(){

@@ -44,6 +44,8 @@ public class CardSource extends VersionedSerializable {
     public void updateDefinition(CardDefinition definition){
         if(definition.uid!=this.definition.uid)
             throw new RuntimeException("cannot update definition with different card");
+        if(definition.authorAccountUID!=this.definition.authorAccountUID)
+            throw new RuntimeException("account id mismatch while updating definition");
         this.definition=definition;
         this.matchesFile=false;
         rev++;
@@ -72,8 +74,8 @@ public class CardSource extends VersionedSerializable {
     }
 
     @Override
-    protected void deserializeFromVersion(DataInputStream dis, int i) throws VersionMismatchException, IOException {
-        throw new VersionMismatchException(i, getVersionNumber(), getSchemaType());
+    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
+        throw new VersionMismatchException(dataVersion, getVersionNumber(), getSchemaType());
     }
 
     @Override

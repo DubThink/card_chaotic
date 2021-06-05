@@ -25,6 +25,6 @@ public abstract class VersionedSerializable extends NetSerializable {
         dos.writeInt(getVersionNumber());
     }
 
-    protected abstract void deserializeFromVersion(DataInputStream dis, int i) throws VersionMismatchException, IOException;
+    protected abstract void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException;
 
 }
