@@ -13,12 +13,17 @@ public class LocalPlayerPrefs extends VersionedSerializable {
 
     public String accountName;
 
+    public String lastDisplayName;
+    public String lastSuccessfulIP;
+
     // local only
     public String fname;
 
     public LocalPlayerPrefs() {
         super();
         accountName="";
+        lastDisplayName="";
+        lastSuccessfulIP="";//todo make localhost or something
     }
 
     public LocalPlayerPrefs(DataInputStream dis) throws VersionMismatchException, IOException {
@@ -29,6 +34,8 @@ public class LocalPlayerPrefs extends VersionedSerializable {
     public void serialize(DataOutputStream dos) throws IOException {
         super.serialize(dos);
         dos.writeUTF(accountName);
+        dos.writeUTF(lastDisplayName);
+        dos.writeUTF(lastSuccessfulIP);
     }
 
     @Override
@@ -49,5 +56,7 @@ public class LocalPlayerPrefs extends VersionedSerializable {
     @Override
     protected void deserialize(DataInputStream dis) throws IOException {
         accountName = dis.readUTF();
+        lastDisplayName = dis.readUTF();
+        lastSuccessfulIP = dis.readUTF();
     }
 }

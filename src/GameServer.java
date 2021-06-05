@@ -12,10 +12,7 @@ import network.NetClientHandshake;
 import network.NetEvent;
 import network.NetServerHandshake;
 import network.NetworkClientHandler;
-import network.event.ChatMessageNetEvent;
-import network.event.GrantCardIDNetEvent;
-import network.event.RequestCardIDNetEvent;
-import network.event.UpdateCardDefinitionNetEvent;
+import network.event.*;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
@@ -67,7 +64,7 @@ public class GameServer extends GameBase {
         chatBox.setFontFamily(Style.F_CODE);
 
         chatBox.textSubmitted = source -> {
-//            System.out.println("Sending message");
+            System.out.println("Sending message");
             broadcast(new ChatMessageNetEvent(source.getText()), false);
             source.clearText();
         };
@@ -194,6 +191,11 @@ public class GameServer extends GameBase {
                 } else {
                     reply.message = "User already exists with that name";
                 }
+                svLog("Handshake with client '"+handler.describeSocket()+"' "+(reply.success?"succeeded":"failed"));
+                if(!reply.success)
+                    svErr("    "+reply.message);
+                else
+                    svLog("    username='"+clientHandshake.username+"'");
                 handler.replyServerHandshake(reply);
             }
         }
@@ -208,6 +210,7 @@ public class GameServer extends GameBase {
                 // TODO finish sync code
                 svLog("Synced");
                 handler.setSynced(true);
+                handler.sendSyncingEvent(new SyncCompleteNetEvent());
             }
 
             if(handler.isReady()) {
@@ -215,6 +218,7 @@ public class GameServer extends GameBase {
                     // on player finish connecting
                     player.active = true;
                     //todo broadcast playerConnected event
+                    svLog("Player connected:"+player.player.displayName);
                 }
                 while (handler.hasReceivedEvents()) {
                     NetEvent event = handler.pollEvent();
@@ -226,9 +230,11 @@ public class GameServer extends GameBase {
             } else {
                 if(player.wasReady){
                     player.active=false;
+                    svLog("Player disconnected:"+player.player.displayName);
                     //todo broadcast playerDisconnected
                 }
             }
+            player.wasReady = handler.isReady();
         }
     }
 

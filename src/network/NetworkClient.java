@@ -1,13 +1,14 @@
 package network;
 
 import Gamestate.ClientGamestate;
+import core.ExceptionNotify;
+import core.Notify;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketException;
 
 import static Client.ClientEnvironment.sysMessage;
 import static network.NetEvent.LOCAL_USER;
@@ -17,18 +18,27 @@ public class NetworkClient extends NetworkEventTransceiver {
     int clientUID;
     Socket socket;
 
+    String targetIP;
+
+    public Notify notifyConnected;
+    public Notify notifyDisconnected;
+
+    public NetworkClient(String targetIP) {
+        this.targetIP = targetIP;
+    }
+
     @Override
     public void run() {
         try {
-            InetAddress ip = InetAddress.getByName("localhost");
+            InetAddress ip = InetAddress.getByName(targetIP);
 
-            sysMessage("Connecting to "+ip.getHostAddress()+"...");
+            //sysMessage("Connecting to "+ip.getHostAddress()+"...");
 
             socket = new Socket(ip, 5056);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
-            NetClientHandshake clientHandshake = new NetClientHandshake(ClientGamestate.username);
+            NetClientHandshake clientHandshake = new NetClientHandshake(ClientGamestate.displayName);
             clientHandshake.serialize(dos);
 
             System.out.println("Sending handshake "+clientHandshake);
@@ -39,6 +49,8 @@ public class NetworkClient extends NetworkEventTransceiver {
             }
             if(connectionEstablishTimeout>=2000){
                 System.out.println("Timed out waiting for server handshake");
+                if(notifyConnectionFailed !=null)
+                    notifyConnectionFailed.fire(new Exception("Timed out waiting for server handshake"));
                 return;
             }
             System.out.println("beat");
@@ -47,11 +59,15 @@ public class NetworkClient extends NetworkEventTransceiver {
 
             if(serverHandshake.success) {
                 clientUID = serverHandshake.clientID;
-                sysMessage("Connected");
+                System.out.println("Connected");
+                if(notifyConnected !=null)
+                    notifyConnected.fire();
                 transceiverLoop(dis, dos);
             } else {
                 System.out.println(serverHandshake.message);
-                sysMessage("Error: "+serverHandshake.message);
+                //sysMessage("Error: "+serverHandshake.message);
+                if(notifyConnectionFailed !=null)
+                    notifyConnectionFailed.fire(new Exception("Server: "+serverHandshake.message));
             }
 
             //dis.close();
@@ -63,14 +79,19 @@ public class NetworkClient extends NetworkEventTransceiver {
         } catch (Exception e){
             System.err.println(e.toString());
             e.printStackTrace();
+            if(notifyConnectionFailed !=null)
+                notifyConnectionFailed.fire(e);
             interrupt();
         } finally {
             try {
-                socket.close();
+                if(socket!=null)
+                    socket.close();
             } catch (IOException ioException){
                 System.err.println("While handling error, :"+ioException);
             }
         }
+        if(notifyDisconnected !=null)
+            notifyDisconnected.fire();
     }
 
     @Override

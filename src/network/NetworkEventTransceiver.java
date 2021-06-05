@@ -1,5 +1,6 @@
 package network;
 
+import core.ExceptionNotify;
 import network.event.*;
 
 import java.io.DataInputStream;
@@ -15,6 +16,8 @@ public class NetworkEventTransceiver extends Thread {
 
     boolean ready;
     public boolean connectionDropped;
+
+    public ExceptionNotify notifyConnectionFailed;
 
     public NetworkEventTransceiver() {
         outgoingEvents=new LinkedBlockingQueue<>();
@@ -50,6 +53,7 @@ public class NetworkEventTransceiver extends Thread {
                         case NetEventTypeID.REQUEST_CARD_ID -> new RequestCardIDNetEvent(dis);
                         case NetEventTypeID.GRANT_CARD_ID -> new GrantCardIDNetEvent(dis);
                         case NetEventTypeID.UPDATE_CARD_DEFINITION -> new UpdateCardDefinitionNetEvent(dis);
+                        case NetEventTypeID.SYNC_COMPLETE -> new SyncCompleteNetEvent(dis);
                         default -> throw new RuntimeException("NetEvent with ID " + id + " is unhandled.");
                     };
                     if (preprocessRxEvent(rcvd)) {
@@ -60,6 +64,8 @@ public class NetworkEventTransceiver extends Thread {
             }
         } catch (SocketException se){
             shutdown(se.getLocalizedMessage());
+            if(notifyConnectionFailed!=null)
+                notifyConnectionFailed.fire(se);
         }
     }
 

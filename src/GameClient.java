@@ -5,13 +5,9 @@ import Globals.Style;
 import Schema.DiskUtil;
 import UI.*;
 import core.*;
-import network.event.ChatMessageNetEvent;
+import network.event.*;
 import network.NetEvent;
 import network.NetworkClient;
-import network.event.DefineCardNetEvent;
-import network.event.GrantCardIDNetEvent;
-import network.event.ImageNetEvent;
-import processing.opengl.PGraphicsOpenGL;
 
 import java.util.Arrays;
 
@@ -33,6 +29,8 @@ public class GameClient extends GameBase {
     UITextBox chatBox;
     UICardEditor cardEditor;
 
+    ConnectScreen connectScreen;
+
     ImageNetEvent testIMG;
 
     static {
@@ -44,12 +42,17 @@ public class GameClient extends GameBase {
         super.setup();
 
         // ---- LOAD PLAYER PREFS ---- //
-        String prefsFilename = findArg("prefs","localplayer");
+        String prefsFilename = getArgParameter("prefs","localplayer");
+
+        DEV_MODE = checkArg("dev");
 
         localPlayerPrefs = DiskUtil.tryToLoadFromFileTyped(LocalPlayerPrefs.class, prefsFilename+".prefs");
         if(localPlayerPrefs == null)
             localPlayerPrefs = new LocalPlayerPrefs();
         localPlayerPrefs.fname = prefsFilename;
+
+        // ---- Title/Connect Screen ---- //
+        connectScreen = new ConnectScreen(uiRoot.addChild(new UIPanel(0,0,0,0), UILayer.OVERLAY),width,height);
 
         UIPanel testEditor = uiRoot.addChild(new UIPanel(700,10,-10,-10),UILayer.OVERLAY);
         testEditor.setEnabled(false);
@@ -72,8 +75,6 @@ public class GameClient extends GameBase {
         netPanel = uiRoot.addChild(new UIPanel(0,-400,400,-25),UILayer.POPUP);
         netPanel.setEnabled(false);
         netPanel.addChild(new UILabel(10, 10 ,-10, 25,hyperText("^Net status^: not implemented lol")));//.setFontFamily(Style.F_FLAVOR);
-
-        netPanel.addChild(new UIButton(10, 80, -10, 25, "Connect", this::actionConnect));
 
         netMenuButton = uiRoot.addChild(new UIButton(0, -25, 100, 25, "Disconnected"));
         netMenuButton.onAction = new Action() {
@@ -124,21 +125,7 @@ public class GameClient extends GameBase {
 
         //uiRoot.addChild(new UIImage(10,10,1,1,imageLoader.getUserImage("test16.png"))).setScaling(false);
 
-        netClient = new NetworkClient();
-
-
         super.finalizeSetup();
-    }
-
-
-    void actionConnect(){
-        if(!netClient.isAlive()){
-            if(netClient.connectionDropped){
-                netClient = new NetworkClient();
-            }
-            ClientGamestate.username = "test";
-            netClient.start();
-        }
     }
 
     @Override
@@ -151,7 +138,7 @@ public class GameClient extends GameBase {
     }
 
     public void handleReceivedNetEvents(){
-        if(!netClient.isAlive())return;
+        if(netClient == null || !netClient.isAlive())return;
         while (netClient.hasReceivedEvents()) {
             NetEvent event = netClient.pollEvent();
             if (event instanceof ChatMessageNetEvent) {
@@ -162,6 +149,11 @@ public class GameClient extends GameBase {
                 testIMG = (ImageNetEvent) event;
             } else if(event instanceof GrantCardIDNetEvent){
                 cardEditor.handleNetEvent((GrantCardIDNetEvent) event);
+            } else if (event instanceof SyncCompleteNetEvent){
+                if(syncModal!=null) {
+                    syncModal.closePositive();
+                    syncModal = null;
+                }
             } else if(gameStateManager.handleNetEvent(event)){
                 // pass
             } else {
@@ -174,9 +166,21 @@ public class GameClient extends GameBase {
     public void keyPressed() {
         super.keyPressed();
 
-        if (keyCode == VK_F2) {
-            cardEditor.setEnabled(!cardEditor.isEnabled());
-            //cardPreview.card.definition.setCropCenteredSmall().refreshDisplay(this);
+        if(DEV_MODE) {
+            if (keyCode == VK_F2) {
+                cardEditor.setEnabled(!cardEditor.isEnabled());
+            }
+            if (keyCode == VK_F4) {
+                connectScreen.toggle();
+            }
+        }
+
+        if(keyCode == VK_F11){
+            // toggle dev
+            if(DEV_MODE)
+                DEV_MODE=false;
+            else
+                DEV_MODE=checkArg("dev");
         }
 
     }

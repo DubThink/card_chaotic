@@ -37,7 +37,7 @@ public class ClBiddingPhase implements ClientGamePhase {
         if(event instanceof AddFlightNetEvent){
             AddFlightNetEvent tevent = (AddFlightNetEvent)event;
             flight.add(tevent.cardDefinition);
-            sysMessage("Added card "+tevent.cardDefinition+" to flight.");
+            //sysMessage("Added card "+tevent.cardDefinition+" to flight.");
         }
         return false;
     }

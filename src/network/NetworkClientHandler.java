@@ -38,7 +38,7 @@ public class NetworkClientHandler extends NetworkEventTransceiver{
                 Thread.sleep(10);
             }
             if(connectionEstablishTimeout>=2000){
-                System.out.println("Timed out waiting for client handshake");
+                System.err.println("Timed out waiting for client handshake");
                 return;
             }
             System.out.println("beat");
@@ -117,5 +117,9 @@ public class NetworkClientHandler extends NetworkEventTransceiver{
     @Override
     public String toString() {
         return "NetworkClientHandler{uid="+clientUID+"}";
+    }
+
+    public String describeSocket(){
+        return socket.toString();
     }
 }

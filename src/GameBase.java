@@ -182,7 +182,7 @@ public abstract class GameBase extends AdvancedApplet {
         }
     }
 
-    public String findArg(String key, String defaultVal){
+    public String getArgParameter(String key, String defaultVal){
         if(args==null)
             return defaultVal;
         key+="=";
@@ -191,5 +191,15 @@ public abstract class GameBase extends AdvancedApplet {
                 return arg.substring(key.length());
         }
         return defaultVal;
+    }
+
+    public boolean checkArg(String key){
+        if(args==null)
+            return false;
+        for (String arg : args) {
+            if (arg.equals(key))
+                return true;
+        }
+        return false;
     }
 }

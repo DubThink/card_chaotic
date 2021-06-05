@@ -39,6 +39,8 @@ public class UITextBox extends UIBase {
         super(x, y, w, h);
         this.lines = new ArrayList<>();
         this.fieldBox = fieldBox;
+        if(fieldBox)
+            textSize=Style.FONT_MEDIUM;
         lines.add("");
     }
 
@@ -73,15 +75,22 @@ public class UITextBox extends UIBase {
         p.fill(editable?Style.fillColorInputField:Style.fillColor);
         p.rect(0, 0, cw, ch,Style.borderRadius);
 
-        g.translate(Style.textMargin, Style.textMargin);
         applyTextSettings();
         g.noStroke();
         g.fill(textFocus&&editable?Style.textColorHover:Style.textColor);
 
-        for(int i=0;i<lines.size();i++){
+        if(fieldBox) {
+            g.translate(Style.textMargin, 0);
+            p.textAlign(LEFT, CENTER);
+            p.text(lines.get(0), 0,ch/2f);
+            g.translate(0, Style.textMargin);
+        } else {
+            g.translate(Style.textMargin, Style.textMargin);
+            for (int i = 0; i < lines.size(); i++) {
 
-            //p.textAlign(PConstants.LEFT, PConstants.TOP);
-            p.text(lines.get(i),0,p.textAscent()+i*g.textLeading);
+                //p.textAlign(PConstants.LEFT, PConstants.TOP);
+                p.text(lines.get(i), 0, p.textAscent() + i * g.textLeading);
+            }
         }
         // draw cursor
         int deltaMillis=p.millis()-lastInputMillis;

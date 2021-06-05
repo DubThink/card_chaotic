@@ -29,7 +29,7 @@ public class CardDefinitionManager {
             return;
         cards.ensureCapacity(event.cardDefinition.uid+1);
         cards.add(event.cardDefinition.uid, event.cardDefinition);
-        sysMessage("Defined card "+event.cardDefinition);
+        //sysMessage("Defined card "+event.cardDefinition);
         cardPreview.setCardDefinitionView(event.cardDefinition);
     }
 }

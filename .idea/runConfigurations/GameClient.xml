@@ -2,7 +2,7 @@
   <configuration default="false" name="GameClient" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="GameClient" />
     <module name="Nec" />
-    <option name="PROGRAM_PARAMETERS" value="--display=1" />
+    <option name="PROGRAM_PARAMETERS" value="--display=1 dev" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

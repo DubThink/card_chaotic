@@ -1,5 +1,6 @@
 package Gamestate;
 
 public class ClientGamestate {
-    public static String username="";
+    public static String accountName = "";
+    public static String displayName = "";
 }
