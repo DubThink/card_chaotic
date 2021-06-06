@@ -104,6 +104,8 @@ public class CardDefinition extends VersionedSerializable {
 
 
 
+
+
     public CardDefinition(DataInputStream dis) throws IOException {
         super(dis);
         uid = dis.readInt();
@@ -610,7 +612,7 @@ public class CardDefinition extends VersionedSerializable {
         dos.writeBoolean(hasCounter);
         dos.writeInt(counterDefaultValue);
 
-        NetSerializerUtils.serializeImage(sourceImage, dos);
+        NetSerializerUtils.serializeImage(getSourceImage(), dos);
         dos.writeInt(imageDisplayMode);
         dos.writeFloat(u1);
         dos.writeFloat(v1);

@@ -48,8 +48,12 @@ public class CardSource extends VersionedSerializable {
             throw new RuntimeException("account id mismatch while updating definition");
         this.definition=definition;
         this.matchesFile=false;
+        anyCardMismatchFile=true;
         rev++;
     }
+
+    static public boolean anyCardMismatchFile;
+
 
     @Override
     public int getVersionNumber() {

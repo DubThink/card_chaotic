@@ -104,6 +104,7 @@ public class GameServer extends GameBase {
 
         // ==== SET UP CARD CONTROL ==== //
         cardSourceManager.setupControlPanel(cardControlPanel);
+        cardSourceManager.loadCardLibraryFromDisk();
         accountManager.setupControlPanel(accountControlPanel);
 
         super.finalizeSetup();
@@ -134,6 +135,8 @@ public class GameServer extends GameBase {
             text(lastE.toString(), 100, 200);
 
         currentPhase.updateStep(dt);
+
+        cardSourceManager.cardSaveUpdate(dt);
 
     }
 

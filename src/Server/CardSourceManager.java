@@ -1,6 +1,7 @@
 package Server;
 
 import Gamestate.CardDefinition;
+import Globals.GlobalEnvironment;
 import Globals.Style;
 import Schema.DiskUtil;
 import UI.*;
@@ -12,6 +13,7 @@ import java.util.Random;
 
 import static Globals.GlobalEnvironment.asyncIOHandler;
 import static Server.ServerEnvironment.svErr;
+import static Server.ServerEnvironment.svLog;
 
 public class CardSourceManager {
     ArrayList<CardSource> cardSources;
@@ -123,13 +125,46 @@ public class CardSourceManager {
             uiCardList.listSelectionChangedAction.notify(uiCardList);
     }
 
-    public void saveCardLibraryToDisk() {
+    private int millisSinceLastSave;
+    public static final int MILLIS_BETWEEN_SAVE_CHECKS = 15000;
+
+    public void cardSaveUpdate(int dt){
+        if(cardSources.isEmpty()){
+            millisSinceLastSave=0;
+            return;
+        }
+        millisSinceLastSave+=dt;
+        if(millisSinceLastSave>MILLIS_BETWEEN_SAVE_CHECKS){
+            svLog("Running card save check");
+            if(CardSource.anyCardMismatchFile){
+                svLog("Cards to save found, running save");
+                CardSource.anyCardMismatchFile=false;
+                deferredSaveCardLibraryToDisk();
+            }
+            millisSinceLastSave=0;
+        }
+    }
+
+    public void saveAllCardLibraryToDisk() {
+        for (int i = 0; i < cardSources.size(); i++) {
+            if(cardSources.get(i).rev>-1)
+                DiskUtil.saveToFile(cardSources.get(i), cardPath+"card_" + i + ".card");
+        }
         CardLibraryMetadata metadata = new CardLibraryMetadata();
         metadata.maxCardID=nextCardID-1;
         DiskUtil.saveToFile(metadata, cardPath+"cardLibraryMetadata.bs");
+    }
+
+    public void deferredSaveCardLibraryToDisk() {
         for (int i = 0; i < cardSources.size(); i++) {
-            DiskUtil.saveToFile(cardSources.get(i), cardPath+"card_" + i + ".card");
+            if(!cardSources.get(i).matchesFile && cardSources.get(i).rev>-1) {
+                GlobalEnvironment.asyncIOHandler.requestSave(cardSources.get(i), cardPath + "card_" + i + ".card");
+                cardSources.get(i).matchesFile=true;
+            }
         }
+        CardLibraryMetadata metadata = new CardLibraryMetadata();
+        metadata.maxCardID=nextCardID-1;
+        DiskUtil.saveToFile(metadata, cardPath+"cardLibraryMetadata.bs");
     }
 
     public void saveTest() {
@@ -137,8 +172,14 @@ public class CardSourceManager {
         //metadata.maxCardID=nextCardID-1;
         //DiskUtil.saveToFile(metadata, cardPath+"cardLibraryMetadata.bs");
 //        for (int i = 0; i < 10; i++) {
-            asyncIOHandler.requestSave(cardSources.get(0), cardPath+"testcard_" + 0 + ".card");
 //        }
+        for(int i=0;i<100;i++) {
+            putCardSource(new CardSource(new CardDefinition(nextCardID++, -1)));
+            cardSources.get(cardSources.size()-1).definition.name="Test card "+i;
+            cardSources.get(cardSources.size()-1).definition.setLocalImageSource("b02.jpg");
+            cardSources.get(cardSources.size()-1).rev++;
+        }
+        saveAllCardLibraryToDisk();
     }
 
     public void loadCardLibraryFromDisk(){
@@ -189,7 +230,7 @@ public class CardSourceManager {
     public void setupControlPanel(UIPanel panel){
         rootPanel=panel;
         panel.addChild(new UIButton(10, m(0), 150, 30, "Load Library", this::loadCardLibraryFromDisk));
-        panel.addChild(new UIButton(10, m(1), 150, 30, "Save Library", this::saveCardLibraryToDisk));
+        panel.addChild(new UIButton(10, m(1), 150, 30, "Save Library", this::saveAllCardLibraryToDisk));
         panel.addChild(new UIButton(10, m(2), 150, 30, "Clear Library", this::uiActionClearLibrary));
         panel.addChild(new UIButton(10, m(3), 150, 30, "Save Test", this::saveTest));
         uiCardSmallView = panel.addChild(new UICardView(10,-220,.3125f, UILayer.INTERFACE));
@@ -201,7 +242,6 @@ public class CardSourceManager {
         uiCardList.setRowHeight(22).setHeader(HEADER).setFontFamily(Style.F_CODE);
 
         uiCardList.listSelectionChangedAction = uilist -> {
-            System.out.println("awf90wioaefjiopef");
             CardSource source = uilist.getSelectedObject();
             if(source!=null)
                 uiCardSmallView.setCardDefinitionView(source.definition);

@@ -1,7 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="ClientServer" type="CompoundRunConfigurationType">
+  <configuration default="false" name="ClientServer2" type="CompoundRunConfigurationType">
     <toRun name="GameServer" type="Application" />
     <toRun name="GameClient" type="Application" />
+    <toRun name="GameClient2" type="Application" />
     <method v="2" />
   </configuration>
 </component>
