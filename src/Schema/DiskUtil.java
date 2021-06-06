@@ -15,7 +15,16 @@ public class DiskUtil {
 
     public static void saveToFile(VersionedSerializable serializable, String fname){
         try {
-            FileOutputStream fout = new FileOutputStream(fname);
+            File file = new File(fname);
+            File folder = file.getParentFile();
+
+            if(!folder.exists())
+                if(!folder.mkdirs()){
+                    System.err.println("Unable to create directory");
+                    throw new IOException("Unable to create directory");
+                }
+
+            FileOutputStream fout = new FileOutputStream(file);
             DataOutputStream dos = new DataOutputStream(fout);
             dos.writeInt(serializable.getSchemaType());
             serializable.serialize(dos);
@@ -26,6 +35,15 @@ public class DiskUtil {
         } catch (IOException f){
             throw new RuntimeException(f);
         }
+    }
+
+    public static void ensureDirectoryExists(String path){
+        File folder = new File(path);
+
+        if(!folder.exists())
+            if(!folder.mkdirs()){
+                System.err.println("Unable to create directory");
+            }
     }
 
     public static <T extends VersionedSerializable> T tryToLoadFromFileTyped(Class<T> token, String fname){
@@ -88,10 +106,10 @@ public class DiskUtil {
         //saveToFile(event,"test.txt");
         float startTime = perfTimeMS();
         LocalPlayerPrefs prefs = new LocalPlayerPrefs();
-        saveToFile(prefs,"test.txt");
+        saveToFile(prefs,"babab/test.txt");
         System.out.println(Debug.perfTimeMS() - startTime);
 
-        CardSource out= tryToLoadFromFileTyped(CardSource.class,"test.txt");
+        CardSource out= tryToLoadFromFileTyped(CardSource.class,"boabo/test.txt");
         System.out.println("done");
     }
 }

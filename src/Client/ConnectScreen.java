@@ -70,6 +70,11 @@ public class ConnectScreen {
             connectingStatusModal=null;
         }
 
+        localPlayerPrefs.lastDisplayName = displayNameBox.getText();
+        localPlayerPrefs.lastSuccessfulIP = ipBox.getText();
+        localPlayerPrefs.accountName = accountNameBox.getText();
+        savePlayerPrefs();
+
         root.setEnabled(false);
         if(syncModal!=null)
             syncModal.closePositive();

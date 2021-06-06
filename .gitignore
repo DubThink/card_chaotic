@@ -50,6 +50,8 @@ fabric.properties
 
 data/user/
 data/server/
+data/client/
+
 art_source/
 !art_source/.placeholder
 test.txt

@@ -1,6 +1,7 @@
 package core;
 
 import Globals.Debug;
+import Schema.DiskUtil;
 import core.AdvancedApplet;
 import network.event.CacheImageNetEvent;
 import processing.core.PImage;
@@ -74,6 +75,7 @@ public class ImageLoader {
     }
 
     public void launchCardFolder(){
+        DiskUtil.ensureDirectoryExists("data/"+userCardPath);
         try {
             Desktop.getDesktop().open(appletHandle.dataFile(userCardPath));
         }

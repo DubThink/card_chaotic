@@ -29,8 +29,9 @@ public class ClientEnvironment {
     }
 
     public static void savePlayerPrefs(){
+        System.out.println("Saving player prefs");
         if(asyncIOHandler!=null && localPlayerPrefs!=null)
-            asyncIOHandler.requestSave(localPlayerPrefs, localPlayerPrefs.fname);
+            asyncIOHandler.requestSave(localPlayerPrefs, localPlayerPrefs.fname+".prefs");
     }
 
     public static void sysMessage(String s){
