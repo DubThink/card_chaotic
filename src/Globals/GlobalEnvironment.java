@@ -9,6 +9,8 @@ public class GlobalEnvironment {
     public static ImageLoader imageLoader;
     public static AsyncIOHandler asyncIOHandler;
 
+    public static boolean DEV_MODE;
+
     public static UIBase uiRoot;
 
     public static boolean modifierShift;

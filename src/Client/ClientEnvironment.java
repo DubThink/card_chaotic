@@ -18,8 +18,6 @@ public class ClientEnvironment {
 
     public static LocalPlayerPrefs localPlayerPrefs;
 
-    public static boolean DEV_MODE;
-
     public static UILogView chatView;
     public static UICardView cardPreview;
     public static UIModal syncModal;

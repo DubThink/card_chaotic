@@ -44,8 +44,6 @@ public class GameClient extends GameBase {
         // ---- LOAD PLAYER PREFS ---- //
         String prefsFilename = getArgParameter("prefs","localplayer");
 
-        DEV_MODE = checkArg("dev");
-
         localPlayerPrefs = DiskUtil.tryToLoadFromFileTyped(LocalPlayerPrefs.class, prefsFilename+".prefs");
         if(localPlayerPrefs == null)
             localPlayerPrefs = new LocalPlayerPrefs();
@@ -174,15 +172,6 @@ public class GameClient extends GameBase {
                 connectScreen.toggle();
             }
         }
-
-        if(keyCode == VK_F11){
-            // toggle dev
-            if(DEV_MODE)
-                DEV_MODE=false;
-            else
-                DEV_MODE=checkArg("dev");
-        }
-
     }
 
     @Override

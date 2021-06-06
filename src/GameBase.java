@@ -24,6 +24,8 @@ public abstract class GameBase extends AdvancedApplet {
 
     @Override
     public void setup() {
+        DEV_MODE = checkArg("dev");
+
         asyncIOHandler = new AsyncIOHandler();
         asyncIOHandler.start();
 
@@ -82,7 +84,10 @@ public abstract class GameBase extends AdvancedApplet {
         Style.getFont(Style.F_CODE, Style.FONT_12).apply(this);
         textAlign(RIGHT,TOP);
         fill(Style.textColor);
-        text("Shift+F12 to exit. ver="+ Config.GAME_VERSION+" net="+Config.NET_VERSION,width-3,3);
+        if(DEV_MODE)
+            text("DEV MODE Shift+F12 to exit. ver="+ Config.GAME_VERSION+" net="+Config.NET_VERSION, width-3, 3);
+        else
+            text("Shift+F12 to exit. ver="+ Config.GAME_VERSION+" net="+Config.NET_VERSION,width-3,3);
         popStyle();
 
         if(Debug.renderUIDebug){
@@ -119,11 +124,21 @@ public abstract class GameBase extends AdvancedApplet {
             Debug.renderPerfView = !Debug.renderPerfView;
         if (keyCode == VK_F8)
             Debug.renderStateDebug = !Debug.renderStateDebug;
+
 //        else if (keyCode == VK_F4)
 //            DebugConstants.printUIDebug = !DebugConstants.renderUIDebug;
-        else if (keyCode == VK_F12)
+        if (keyCode == VK_F12)
             Debug.debugBreakpoint = !Debug.debugBreakpoint;
-        else uiRoot.handleKeyPress(true, key, keyCode);
+
+        if(keyCode == VK_F11){
+            // toggle dev
+            if(DEV_MODE)
+                DEV_MODE=false;
+            else
+                DEV_MODE=checkArg("dev");
+        }
+
+        uiRoot.handleKeyPress(true, key, keyCode);
     }
 
     @Override
