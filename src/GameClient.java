@@ -96,7 +96,7 @@ public class GameClient extends GameBase {
 
         cardPreview = uiRoot.addChild(new UICardView(50,10,.5f,UILayer.INTERFACE));
         cardPreview.setCardBackView();
-        uiRoot.addChild(new UICardView(400,10,1f, UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
+        uiRoot.addChild(new UICardView(400,10,1f, UILayer.INTERFACE)).setCardBackView();//.setCardDefinitionView(cardPreview.card.definition);
         cardPreview.card.definition.setBeingValues(3,10);
         //uiRoot.addChild(new UICardView(1070,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
 

@@ -11,4 +11,5 @@ card validity check?
 
 # long-term
 line wrapping
+refactor UI to not have _xyz functions by calling super instead
 refactor versionedserializable to redirect deserialize() to deserializeFromVersion()

@@ -7,6 +7,7 @@ import Schema.AsyncIOHandler;
 import UI.*;
 import core.*;
 import processing.core.PApplet;
+import processing.event.MouseEvent;
 
 import java.util.Arrays;
 
@@ -159,6 +160,12 @@ public abstract class GameBase extends AdvancedApplet {
     @Override
     public void mouseReleased() {
         uiRoot.handleMouseInput(false, mouseButton, mouseX, mouseY);
+    }
+
+    @Override
+    public void mouseWheel(MouseEvent event) {
+        int ct = event.getCount();
+        uiRoot.handleMouseWheel(ct, mouseX, mouseY);
     }
 
     public static void run(String className, String... args) {

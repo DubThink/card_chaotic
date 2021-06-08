@@ -47,6 +47,7 @@ public class AccountManager extends VersionedSerializable{
             throw new RuntimeException("Account already exists with name '"+accountName+"'");
         accounts.add(new Account(accounts.size(), accountName));
         saveOut();
+        uiAccountList.refreshList();
         return accounts.get(accounts.size()-1);
     }
 

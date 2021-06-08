@@ -8,7 +8,7 @@ import processing.core.PConstants;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class UIMultibox extends UIBase {
+public class UIMultibox extends UIScrollable {
     ArrayList<String> options;
     String header;
     public UIUpdateNotify<UIMultibox> selectionChangedAction;
@@ -46,6 +46,7 @@ public class UIMultibox extends UIBase {
         focusSelection = y/rowH; // floor
         if(header!=null)
             focusSelection-=1;
+        focusSelection+=getScrollPosition();
         focusSelection = Util.clamp(focusSelection,0, options.size()-1);
     }
 
@@ -67,19 +68,23 @@ public class UIMultibox extends UIBase {
             p.text(header, cx + Style.textMargin, cy + rowH/2);
         }
 
-        for(int i = 0; i< options.size(); i++) {
+        for(int i = 0; i< Util.min(options.size(),getScreenCapacity()); i++) {
             int renderrow = header==null?i:i+1;
-            if(i==selection){
+            int lineIndex = i+getScrollPosition();
+
+            if(i+getScrollPosition()==selection){
                 p.fill(Style.fillColorActive);
                 p.rect(cx, renderrow*rowH + cy, cw, rowH, Style.borderRadius);
                 p.fill(Style.textColorHover);
-            } else if(i==focusSelection) {
+            } else if(lineIndex==focusSelection) {
                 p.fill(Style.textColorHover);
             } else {
                 p.fill(Style.textColor);
             }
-            p.text(options.get(i), cx + Style.textMargin, renderrow*rowH + cy + rowH/2);
+            p.text(options.get(lineIndex), cx + Style.textMargin, renderrow*rowH + cy + rowH/2);
         }
+
+        renderScrollable(p);
     }
 
     @Override
@@ -89,7 +94,12 @@ public class UIMultibox extends UIBase {
         if(!down)
             return true;
         updateFocusSelection(y-cy);
+
+        // check if we're clicking on a non-render
+        if(focusSelection>getScrollPosition()+getScreenCapacity()-1)
+            return true;
         boolean updated = selection != focusSelection;
+
         selection=focusSelection;
         if(updated && selectionChangedAction!=null)
             selectionChangedAction.notify(this);
@@ -131,5 +141,21 @@ public class UIMultibox extends UIBase {
     public UIMultibox setHeader(String s){
         header=s;
         return this;
+    }
+
+    @Override
+    protected int getUnscrollableLineCount() {
+        return header==null?0:1;
+    }
+
+
+    @Override
+    protected int getScrollableLineCount() {
+        return options.size();
+    }
+
+    @Override
+    protected int getScrollableLineHeight() {
+        return rowH;
     }
 }

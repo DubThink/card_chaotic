@@ -213,6 +213,20 @@ public class UIBase {
         return isPointOver(x,y);
     }
 
+    public boolean handleMouseWheel(int ct, int x, int y) {
+        if (!enabled || !interactable)
+            return false;
+
+        for (int i = children.size() - 1; i >= 0; i--) {
+            if (children.get(i).handleMouseWheel(ct, x, y))
+                return true;
+        }
+        return _handleMouseWheel(ct, x, y);
+
+    }
+
+    protected boolean _handleMouseWheel(int ct, int x, int y){return false;};
+
     public boolean handleKeyPress(boolean down, char key, int keyCode) {
         if (!enabled || !interactable)
             return false;
@@ -240,6 +254,10 @@ public class UIBase {
                 result = true;
         }
         return result;
+    }
+
+    protected boolean _handleKeyPress(boolean down, char key, int keyCode) {
+        return false;
     }
 
     public void navigateNext(){
@@ -321,11 +339,6 @@ public class UIBase {
             return this;
 
         return null;
-    }
-
-
-    protected boolean _handleKeyPress(boolean down, char key, int keyCode) {
-        return false;
     }
 
     public int getCalculatedX() {

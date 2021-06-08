@@ -135,7 +135,7 @@ public class CardSourceManager {
         }
         millisSinceLastSave+=dt;
         if(millisSinceLastSave>MILLIS_BETWEEN_SAVE_CHECKS){
-            svLog("Running card save check");
+//            svLog("Running card save check");
             if(CardSource.anyCardMismatchFile){
                 svLog("Cards to save found, running save");
                 CardSource.anyCardMismatchFile=false;
