@@ -434,4 +434,20 @@ public class Util {
         return s.substring(0,idx) + s.substring(idx+1);
     }
 
+    public static int findIndexOfNext(char[] buffer, int start, char c){
+        for(int i=start; i<buffer.length;i++){
+            if(buffer[i]==c)
+                return i;
+        }
+        return -1;
+    }
+
+    public static int findIndexOfNextWhitespace(char[] buffer, int start){
+        for(int i=start; i<buffer.length;i++){
+            if(isWhitespaceChar(buffer[i]))
+                return i;
+        }
+        return -1;
+    }
+
 }

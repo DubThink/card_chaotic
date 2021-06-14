@@ -63,11 +63,6 @@ public class UITextBox extends UIScrollable {
     protected void _debugDraw(AdvancedApplet p) {
         super._debugDraw(p);
         p.text(lines.get(0).length(),cx+10,cy+10);
-        p.noFill();
-        p.stroke(255,127,0);
-        p.rect(cx,cy,80, getScrollableLineHeight());
-        p.rect(cx,cy,80, 2*getScrollableLineHeight());
-        p.rect(cx,cy,80, 3*getScrollableLineHeight());
     }
 
     @Override
@@ -93,10 +88,10 @@ public class UITextBox extends UIScrollable {
             g.translate(0, Style.textMargin);
         } else {
             g.translate(Style.textMargin, Style.textMargin);
-            for (int drawline = 0; drawline < screenCapacity; drawline++) {
+            for (int drawline = 0; drawline < Util.min(screenCapacity,lines.size()); drawline++) {
                 int line = drawline+offset;
                 //p.textAlign(PConstants.LEFT, PConstants.TOP);
-                p.text(lines.get(line), 0, p.textAscent() + drawline * g.textLeading);
+                g.textLineClipped(lines.get(line), 0, p.textAscent() + drawline * g.textLeading, cw-2*Style.textMargin);
             }
         }
         // draw cursor
@@ -280,12 +275,14 @@ public class UITextBox extends UIScrollable {
                 if (keyCode=='x' || keyCode=='X') {
                     ClipboardUtil.setClipboardContents(getText());
                     clearText();
+                    refreshScrollPos();
                     if(textUpdated!=null)
                         textUpdated.notify(this);
                     return true;
                 }
                 if (keyCode=='v' || keyCode=='V') {
                     String s = ClipboardUtil.getClipboardContents();
+                    refreshScrollPos();
                     if(s!=null){
                         setText(s);
                         if(textUpdated!=null)
@@ -293,10 +290,9 @@ public class UITextBox extends UIScrollable {
                     }
                     return true;
                 }
-                return false;
             }
             // processing can't render tabs, and besides we use them for navigation
-            if (key!='\t' && Util.isTextChar(key)) {
+            if (key!='\t' && Util.isTextChar(key) && !app.keyControlDown) {
                 lines.set(currentLine, Util.insertChar(lines.get(currentLine), key, cursorPos));
                 cursorPos++;
                 return true;
@@ -391,6 +387,7 @@ public class UITextBox extends UIScrollable {
     protected void _actionBackspace(){
         if (cursorPos == 0) {
             if (currentLine > 0) {
+
                 currentLine--;
                 int newCursor = lineLength(currentLine);
                 lines.set(currentLine, lines.get(currentLine) + lines.get(currentLine + 1));

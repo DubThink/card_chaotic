@@ -1,5 +1,6 @@
 package core;
 
+import bpw.Util;
 import processing.core.PFont;
 import processing.opengl.PGL;
 import processing.opengl.PGraphics2D;
@@ -47,8 +48,10 @@ public class AdvancedGraphics extends PGraphics2D {
 
     @Override
     public void text(String str, float x, float y) {
-        HyperFont hfont = getHyperFont();
         float saveLeading = textLeading;
+
+        HyperFont hfont = getHyperFont();
+
         y-=hfont.baseline*textSize;
         textLeading*=hfont.leading;
 
@@ -57,9 +60,91 @@ public class AdvancedGraphics extends PGraphics2D {
         while(!symbolsToRender.isEmpty()){
             symbolsToRender.poll().draw();
         }
-        textLeading = saveLeading;
+
         hfont.bold=false;
         hfont.italic=false;
+
+        textLeading = saveLeading;
+    }
+
+
+    public int textLineClipped(String s, float x, float y, float maxWidth){
+        return textLineClipped(s,0, x, y, maxWidth);
+    }
+
+    public int textLineClipped(String s, int start, float x, float y, float maxWidth) {
+        int length = s.length();
+        if (length > textWidthBuffer.length) {
+            textWidthBuffer = new char[length + 10];
+        }
+
+        s.getChars(0, length, textWidthBuffer, 0);
+
+        float renderedTextWidth = 0;
+        int renderedTextEnd = start;
+
+        boolean saveBold = getHyperFont().bold;
+        boolean saveItalic = getHyperFont().italic;
+
+        // figure out safe width
+        int nextSpace = Util.findIndexOfNext(textWidthBuffer, start, ' ');
+        if (nextSpace == -1 || nextSpace>length)
+            nextSpace = length;
+        if (textWidthImpl(textWidthBuffer, start, nextSpace)>maxWidth) {
+            // first word is too long
+            int endIdx = start;
+            float totalWidth = 0;
+            float lastTotalWidth = 0;
+            while (totalWidth < maxWidth && endIdx<length){
+                lastTotalWidth = totalWidth;
+                totalWidth += textWidthUnsafe(textWidthBuffer, endIdx, endIdx+1);
+                endIdx++;
+            }
+            renderedTextWidth = lastTotalWidth;
+            renderedTextEnd = endIdx;
+        } else {
+            // rendering words
+            int endIdx = start;
+            int lastIdx = start;
+            float totalWidth = 0;
+            float lastTotalWidth = 0;
+
+            while (totalWidth < maxWidth && endIdx<length){
+                lastTotalWidth = totalWidth;
+                lastIdx = endIdx;
+
+                nextSpace = Util.findIndexOfNext(textWidthBuffer, lastIdx+1, ' ');
+
+                if (nextSpace == -1 || nextSpace>length)
+                    nextSpace = length;
+
+                totalWidth += textWidthUnsafe(textWidthBuffer, endIdx, nextSpace);
+                endIdx=nextSpace;
+            }
+            if(endIdx == length && totalWidth < maxWidth) {
+                renderedTextWidth = totalWidth;
+                renderedTextEnd = endIdx;
+            } else {
+                renderedTextWidth = lastTotalWidth;
+                renderedTextEnd = lastIdx;
+            }
+
+        }
+
+        getHyperFont().bold = saveBold;
+        getHyperFont().italic = saveItalic;
+
+        // actually render
+
+        if (this.textAlign == CENTER) {
+            x -= renderedTextWidth / 2.0f;
+        } else if (this.textAlign == RIGHT) {
+            x -= renderedTextWidth;
+        }
+
+        textLineImpl(textWidthBuffer, start, renderedTextEnd, x, y);
+
+        return renderedTextEnd;
     }
 
     @Override
@@ -81,9 +166,16 @@ public class AdvancedGraphics extends PGraphics2D {
 
     @Override
     protected float textWidthImpl(char[] buffer, int start, int stop) {
-        // TODO optimization for stop-start==1 case
         boolean saveBold = getHyperFont().bold;
         boolean saveItalic = getHyperFont().italic;
+        float wide = textWidthUnsafe(buffer, start, stop);
+        getHyperFont().bold = saveBold;
+        getHyperFont().italic = saveItalic;
+        return wide;
+    }
+
+    protected float textWidthUnsafe(char[] buffer, int start, int stop) {
+        // TODO optimization for stop-start==1 case
         float wide = 0;
         int beginning = start;
         Object font = getHyperFont().getActiveFont().getNative();
@@ -113,8 +205,6 @@ public class AdvancedGraphics extends PGraphics2D {
         if(beginning<stop) {
             wide += getAdvPGL().getTextWidth(font, buffer, beginning, stop);
         }
-        getHyperFont().bold = saveBold;
-        getHyperFont().italic = saveItalic;
         return wide;
     }
 
