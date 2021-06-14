@@ -55,3 +55,4 @@ data/client/
 art_source/
 !art_source/.placeholder
 test.txt
+*.prefs

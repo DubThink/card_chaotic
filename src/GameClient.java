@@ -44,7 +44,7 @@ public class GameClient extends GameBase {
         // ---- LOAD PLAYER PREFS ---- //
         String prefsFilename = getArgParameter("prefs","localplayer");
 
-        localPlayerPrefs = DiskUtil.tryToLoadFromFileTyped(LocalPlayerPrefs.class, prefsFilename+".prefs");
+        localPlayerPrefs = DiskUtil.tryToLoadFromFileTyped(LocalPlayerPrefs.class, "data/client/"+prefsFilename+".prefs");
         if(localPlayerPrefs == null)
             localPlayerPrefs = new LocalPlayerPrefs();
         localPlayerPrefs.fname = prefsFilename;
