@@ -30,11 +30,12 @@ public abstract class UIScrollable extends UIBase {
         }
     }
 
+    /* Lines that take up space on the screen but won't be scrolled (ex: header row) */
     protected int getUnscrollableLineCount() {return 0;}
 
     protected abstract int getScrollableLineCount();
 
-    protected abstract int getScrollableLineHeight();
+    protected abstract float getScrollableLineHeight();
 
     @Override
     protected boolean _handleMouseWheel(int ct, int x, int y) {
@@ -46,14 +47,10 @@ public abstract class UIScrollable extends UIBase {
     }
 
     protected void refreshScrollPos(){
-        if(position<0){
+        if(position<0)
             position = 0;
-            return;
-        }
-        // calc max scroll pos
-        // how many lines/screen
-        position = Util.min(getMaxScrollPos(), position);
-
+        else
+            position = Util.min(getMaxScrollPos(), position);
     }
 
     protected int getMaxScrollPos(){
@@ -66,5 +63,10 @@ public abstract class UIScrollable extends UIBase {
 
     public int getScrollPosition(){
         return position;
+    }
+
+    protected void setScrollPosition(int pos){
+     position = pos;
+     refreshScrollPos();
     }
 }

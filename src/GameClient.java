@@ -121,6 +121,9 @@ public class GameClient extends GameBase {
 
         //uiRoot.addChild(new UIImage(10,10,1,1,imageLoader.getUserImage("test16.png"))).setScaling(false);
 
+//        uiRoot.addChild(new UITextBox(200,200,300,200, false),UILayer.OVERLAY)
+//                .setText("Line1\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10\nLine11\nLine12\nLine13\nLine14");
+
         super.finalizeSetup();
     }
 

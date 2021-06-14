@@ -155,7 +155,7 @@ public class UIMultibox extends UIScrollable {
     }
 
     @Override
-    protected int getScrollableLineHeight() {
+    protected float getScrollableLineHeight() {
         return rowH;
     }
 }

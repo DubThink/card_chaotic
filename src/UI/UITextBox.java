@@ -13,7 +13,7 @@ import static  processing.core.PConstants.*;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class UITextBox extends UIBase {
+public class UITextBox extends UIScrollable {
     ArrayList<String> lines;
     int cursorPos=0;
     int currentLine=0;// TODO CHANGE
@@ -63,6 +63,11 @@ public class UITextBox extends UIBase {
     protected void _debugDraw(AdvancedApplet p) {
         super._debugDraw(p);
         p.text(lines.get(0).length(),cx+10,cy+10);
+        p.noFill();
+        p.stroke(255,127,0);
+        p.rect(cx,cy,80, getScrollableLineHeight());
+        p.rect(cx,cy,80, 2*getScrollableLineHeight());
+        p.rect(cx,cy,80, 3*getScrollableLineHeight());
     }
 
     @Override
@@ -79,6 +84,8 @@ public class UITextBox extends UIBase {
         g.noStroke();
         g.fill(textFocus&&editable?Style.textColorHover:Style.textColor);
 
+        int offset = getScrollPosition();
+        int screenCapacity = getScreenCapacity();
         if(fieldBox) {
             g.translate(Style.textMargin, 0);
             p.textAlign(LEFT, CENTER);
@@ -86,23 +93,28 @@ public class UITextBox extends UIBase {
             g.translate(0, Style.textMargin);
         } else {
             g.translate(Style.textMargin, Style.textMargin);
-            for (int i = 0; i < lines.size(); i++) {
-
+            for (int drawline = 0; drawline < screenCapacity; drawline++) {
+                int line = drawline+offset;
                 //p.textAlign(PConstants.LEFT, PConstants.TOP);
-                p.text(lines.get(i), 0, p.textAscent() + i * g.textLeading);
+                p.text(lines.get(line), 0, p.textAscent() + drawline * g.textLeading);
             }
         }
         // draw cursor
         int deltaMillis=p.millis()-lastInputMillis;
-        if(textFocus&&editable && deltaMillis%(Config.CURSOR_BLINK_RATE*2)<Config.CURSOR_BLINK_RATE){
+        if(textFocus &&
+                editable &&
+                currentLine>=offset && currentLine<offset+screenCapacity &&
+                deltaMillis%(Config.CURSOR_BLINK_RATE*2)<Config.CURSOR_BLINK_RATE){
             float over = p.textWidth(lines.get(currentLine).substring(0,cursorPos));//g.simpleTextWidthImpl(lines.get(currentLine),0,cursorPos);
             g.strokeWeight(2);
             g.stroke(Style.textColorHover);
-            p.line(over,currentLine*g.textLeading,over,p.textAscent()+p.textDescent()+currentLine*g.textLeading);
+            int renderLine = currentLine-offset;
+            p.line(over,renderLine*g.textLeading,over,p.textAscent()+p.textDescent()+renderLine*g.textLeading);
         }
         lastLeading = g.textLeading;
 
         g.popMatrix();
+        renderScrollable(p);
     }
 
     protected void applyTextSettings(){
@@ -148,6 +160,7 @@ public class UITextBox extends UIBase {
         x -= Style.textMargin;
 
         currentLine = Util.clamp((int)Math.floor(y/lastLeading), 0, lines.size()-1);
+        currentLine+=getScrollPosition();
         applyTextSettings();
         char[] current = lines.get(currentLine).toCharArray();
         float lastw = -100000;
@@ -231,6 +244,7 @@ public class UITextBox extends UIBase {
     }
     protected boolean _textBoxHandleKeyAndUpdate(char key, int keyCode) {
         boolean ret = _textBoxHandleKey(key, keyCode);
+        ensureCursorOnScreen();
         if(textUpdated != null && ret)
             textUpdated.notify(this);
         if(ret)
@@ -257,6 +271,30 @@ public class UITextBox extends UIBase {
     protected boolean _textBoxHandleKey(char key, int keyCode) {
         if (key != PConstants.CODED) {
 //            System.out.println("Uncoded = '" + (int) key + "'(" + key + ")");
+
+            if (app.keyControlDown){
+                if (keyCode=='c' || keyCode=='C') {
+                    ClipboardUtil.setClipboardContents(getText());
+                    return true;
+                }
+                if (keyCode=='x' || keyCode=='X') {
+                    ClipboardUtil.setClipboardContents(getText());
+                    clearText();
+                    if(textUpdated!=null)
+                        textUpdated.notify(this);
+                    return true;
+                }
+                if (keyCode=='v' || keyCode=='V') {
+                    String s = ClipboardUtil.getClipboardContents();
+                    if(s!=null){
+                        setText(s);
+                        if(textUpdated!=null)
+                            textUpdated.notify(this);
+                    }
+                    return true;
+                }
+                return false;
+            }
             // processing can't render tabs, and besides we use them for navigation
             if (key!='\t' && Util.isTextChar(key)) {
                 lines.set(currentLine, Util.insertChar(lines.get(currentLine), key, cursorPos));
@@ -398,6 +436,7 @@ public class UITextBox extends UIBase {
         lines.add("");
         cursorPos=0;
         currentLine=0;
+        setScrollPosition(0);
         return this;
     }
 
@@ -409,6 +448,25 @@ public class UITextBox extends UIBase {
             lines.clear();
             Collections.addAll(lines, newLines);
         }
+        ensureCursorOnScreen();
         return this;
+    }
+
+    @Override
+    protected int getScrollableLineCount() {
+        return lines.size();
+    }
+
+    @Override
+    protected float getScrollableLineHeight() {
+        applyTextSettings();
+        return app.getAdvGraphics().textLeading;
+    }
+
+    protected void ensureCursorOnScreen() {
+        if(currentLine<getScrollPosition())
+            setScrollPosition(currentLine);
+        else if(currentLine>=getScrollPosition()+getScreenCapacity())
+            setScrollPosition(currentLine+getScreenCapacity()-1);
     }
 }
