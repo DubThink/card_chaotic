@@ -210,6 +210,7 @@ public class CardSourceManager {
             svErr("no library metadata file found; not loading cards");
         }
         isLoaded=true;
+        uiCardList.refreshList();
     }
 
     public void clearLibrary(){

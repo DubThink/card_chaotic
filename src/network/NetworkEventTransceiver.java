@@ -151,6 +151,8 @@ public class NetworkEventTransceiver extends Thread {
     }
 
     public void updateTimeouts(int dt){
+        if(!isReady())
+            return;
         millisSinceLastReceive+=dt;
         millisSinceLastSend+=dt;
         if(millisSinceLastSend > MILLIS_BETWEEN_KEEPALIVES){
