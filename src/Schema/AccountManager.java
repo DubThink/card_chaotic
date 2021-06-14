@@ -28,6 +28,7 @@ public class AccountManager extends VersionedSerializable{
 
     public AccountManager(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
+        deserialize(dis);
     }
 
     public Account getAccountByID(int id){
@@ -82,11 +83,8 @@ public class AccountManager extends VersionedSerializable{
 
     @Override
     protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
-        throw new VersionMismatchException(dataVersion,getVersionNumber(),getSchemaType());
-    }
-
-    @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
+        if(dataVersion != getVersionNumber())
+            throw new VersionMismatchException(dataVersion,getVersionNumber(),getSchemaType());
         accounts = new ArrayList<>();
         NetSerializerUtils.deserializeArrayList(accounts, dis, Account::new);
     }

@@ -20,7 +20,7 @@ public class NetServerHandshake extends NetSerializable {
     }
 
     public NetServerHandshake(DataInputStream dis) throws IOException {
-        super(dis);
+        deserialize(dis);
     }
 
     @Override

@@ -30,6 +30,7 @@ public class CardSource extends VersionedSerializable {
 
     public CardSource(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
+        deserialize(dis);
     }
 
     // per-game
@@ -79,11 +80,8 @@ public class CardSource extends VersionedSerializable {
 
     @Override
     protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
-        throw new VersionMismatchException(dataVersion, getVersionNumber(), getSchemaType());
-    }
-
-    @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
+        if(dataVersion != getVersionNumber())
+            throw new VersionMismatchException(dataVersion, getVersionNumber(), getSchemaType());
         definition = new CardDefinition(dis);
         timesAllowed = dis.readInt();
         timesBanned = dis.readInt();

@@ -24,6 +24,7 @@ public class Player extends NetSerializable {
 
     public Player(DataInputStream dis) throws IOException {
         super(dis);
+        deserialize(dis);
         playerIndex = dis.readInt();
     }
 

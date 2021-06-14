@@ -10,6 +10,6 @@ public abstract class NetOwnedObject extends NetSerializable {
     }
 
     public NetOwnedObject(DataInputStream dis) throws IOException {
-        super(dis);
+        deserialize(dis);
     }
 }

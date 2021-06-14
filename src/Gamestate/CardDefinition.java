@@ -102,15 +102,11 @@ public class CardDefinition extends VersionedSerializable {
         v2=1;
     }
 
-
-
-
-
     public CardDefinition(DataInputStream dis) throws IOException {
         super(dis);
+        deserialize(dis);
         uid = dis.readInt();
     }
-
 
     @Override
     public int getVersionNumber() {
@@ -655,11 +651,6 @@ public class CardDefinition extends VersionedSerializable {
             System.out.println("Versioning for V2");
             authorAccountUID = 0;
         }
-    }
-
-    @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
-        deserializeFromVersion(dis, getVersionNumber());
     }
 
     @Override

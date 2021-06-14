@@ -8,11 +8,11 @@ import java.io.IOException;
 
 public abstract class VersionedSerializable extends NetSerializable {
     public VersionedSerializable(){}
-    public VersionedSerializable(DataInputStream dis) throws VersionMismatchException, IOException {
+    public VersionedSerializable(DataInputStream dis)  throws VersionMismatchException, IOException {}
+
+    protected void deserialize(DataInputStream dis)  throws VersionMismatchException, IOException {
         int vnum = dis.readInt();
-        if(vnum==getVersionNumber())
-            deserialize(dis);
-        else if(vnum<getVersionNumber())
+        if(vnum<=getVersionNumber())
             deserializeFromVersion(dis,vnum);
         else
             throw new IOException("Version number from stream exceeds current version.");
@@ -24,6 +24,8 @@ public abstract class VersionedSerializable extends NetSerializable {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeInt(getVersionNumber());
     }
+
+
 
     protected abstract void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException;
 

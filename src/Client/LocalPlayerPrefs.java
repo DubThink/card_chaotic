@@ -28,14 +28,7 @@ public class LocalPlayerPrefs extends VersionedSerializable {
 
     public LocalPlayerPrefs(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
-    }
-
-    @Override
-    public void serialize(DataOutputStream dos) throws IOException {
-        super.serialize(dos);
-        dos.writeUTF(accountName);
-        dos.writeUTF(lastDisplayName);
-        dos.writeUTF(lastSuccessfulIP);
+        deserialize(dis);
     }
 
     @Override
@@ -49,12 +42,17 @@ public class LocalPlayerPrefs extends VersionedSerializable {
     }
 
     @Override
-    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
-        throw new VersionMismatchException(dataVersion,getVersionNumber(),getSchemaType());
+    public void serialize(DataOutputStream dos) throws IOException {
+        super.serialize(dos);
+        dos.writeUTF(accountName);
+        dos.writeUTF(lastDisplayName);
+        dos.writeUTF(lastSuccessfulIP);
     }
 
     @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
+    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
+        if(dataVersion != getVersionNumber())
+            throw new VersionMismatchException(dataVersion,getVersionNumber(),getSchemaType());
         accountName = dis.readUTF();
         lastDisplayName = dis.readUTF();
         lastSuccessfulIP = dis.readUTF();

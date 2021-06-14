@@ -20,7 +20,7 @@ public class Card extends NetSerializable {
 
     public Card(DataInputStream dis) throws IOException {
         super(dis);
-        System.out.println("deserialize");
+        deserialize(dis);
     }
 
     public void setTapped(boolean tapped) {

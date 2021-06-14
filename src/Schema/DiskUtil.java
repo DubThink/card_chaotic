@@ -18,7 +18,7 @@ public class DiskUtil {
             File file = new File(fname);
             File folder = file.getParentFile();
 
-            if(!folder.exists())
+            if(folder != null && !folder.exists())
                 if(!folder.mkdirs()){
                     System.err.println("Unable to create directory");
                     throw new IOException("Unable to create directory");

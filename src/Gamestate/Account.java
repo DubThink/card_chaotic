@@ -22,6 +22,7 @@ public class Account extends VersionedSerializable {
 
     public Account(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
+        deserialize(dis);
         accountUID = dis.readInt();
     }
 
@@ -35,11 +36,6 @@ public class Account extends VersionedSerializable {
         return SchemaTypeID.ACCOUNT;
     }
 
-    @Override
-    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
-        throw new VersionMismatchException(dataVersion, getVersionNumber(), getSchemaType());
-    }
-
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
@@ -51,7 +47,9 @@ public class Account extends VersionedSerializable {
     }
 
     @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
+    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
+        if(dataVersion!=getVersionNumber())
+            throw new VersionMismatchException(dataVersion, getVersionNumber(), getSchemaType());
         accountName = dis.readUTF();
     }
 }

@@ -13,21 +13,7 @@ public class TemplateSchemaClass extends VersionedSerializable{
 
     public TemplateSchemaClass(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
-    }
-
-    @Override
-    public void serialize(DataOutputStream dos) throws IOException {
-        super.serialize(dos);
-    }
-
-    @Override
-    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
-        throw new VersionMismatchException(dataVersion,getVersionNumber(),getSchemaType());
-    }
-
-    @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
-
+        deserialize(dis);
     }
 
     @Override
@@ -38,5 +24,16 @@ public class TemplateSchemaClass extends VersionedSerializable{
     @Override
     public int getSchemaType() {
         return SchemaTypeID.RESERVED_INVALID_SCHEMA;
+    }
+
+    @Override
+    public void serialize(DataOutputStream dos) throws IOException {
+        super.serialize(dos);
+    }
+
+    @Override
+    protected void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException {
+        if(dataVersion != getVersionNumber())
+            throw new VersionMismatchException(dataVersion,getVersionNumber(),getSchemaType());
     }
 }
