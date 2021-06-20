@@ -1,13 +1,11 @@
 import Client.*;
-import Gamestate.CardDefinition;
-import Gamestate.ClientGamestate;
 import Globals.Style;
 import Schema.DiskUtil;
+import Server.CardSource;
 import UI.*;
 import core.*;
 import network.event.*;
 import network.NetEvent;
-import network.NetworkClient;
 
 import java.util.Arrays;
 
@@ -121,9 +119,13 @@ public class GameClient extends GameBase {
 
         //uiRoot.addChild(new UIImage(10,10,1,1,imageLoader.getUserImage("test16.png"))).setScaling(false);
 
-        uiRoot.addChild(new UITextBox(200,200,300,200, false),UILayer.OVERLAY)
-                .setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.\nSuspendisse consectetur pulvinar ligula quis vestibulum.\nPhasellus non volutpat dolor. Aliquam leo tortor, pretium nec facilisis sit amet, hendrerit at turpis. Suspendisse ultrices consectetur volutpat. Nulla iaculis efficitur euismod. Etiam nec convallis arcu, eget aliquet leo. Nam id risus ligula. Cras id eleifend urna, et blandit risus.");
+//        uiRoot.addChild(new UITextBox(200,200,300,200, false),UILayer.OVERLAY)
+//                .setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.\nSuspendisse consectetur pulvinar ligula quis vestibulum.\nPhasellus non volutpat dolor. Aliquam leo tortor, pretium nec facilisis sit amet, hendrerit at turpis. Suspendisse ultrices consectetur volutpat. Nulla iaculis efficitur euismod. Etiam nec convallis arcu, eget aliquet leo. Nam id risus ligula. Cras id eleifend urna, et blandit risus.");
 
+
+//        CardSource s = DiskUtil.tryToLoadFromFileTyped(CardSource.class, "C:\\devspace\\doxo\\data\\server\\cards/card_0.card");
+        //AccountManager s = DiskUtil.tryToLoadFromFileTyped(AccountManager.class, "C:\\devspace\\doxo\\data\\server/accountdb.bs");
+        
         super.finalizeSetup();
     }
 

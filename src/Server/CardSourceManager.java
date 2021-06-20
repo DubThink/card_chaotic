@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import static Globals.GlobalEnvironment.asyncIOHandler;
+import static Globals.GlobalEnvironment.openSchema;
 import static Server.ServerEnvironment.svErr;
 import static Server.ServerEnvironment.svLog;
 
@@ -145,15 +146,15 @@ public class CardSourceManager {
         }
     }
 
-    public void saveAllCardLibraryToDisk() {
-        for (int i = 0; i < cardSources.size(); i++) {
-            if(cardSources.get(i).rev>-1)
-                DiskUtil.saveToFile(cardSources.get(i), cardPath+"card_" + i + ".card");
-        }
-        CardLibraryMetadata metadata = new CardLibraryMetadata();
-        metadata.maxCardID=nextCardID-1;
-        DiskUtil.saveToFile(metadata, cardPath+"cardLibraryMetadata.bs");
-    }
+//    public void saveAllCardLibraryToDisk() {
+//        for (int i = 0; i < cardSources.size(); i++) {
+//            if(cardSources.get(i).rev>-1)
+//                DiskUtil.saveToFile(cardSources.get(i), cardPath+"card_" + i + ".card");
+//        }
+//        CardLibraryMetadata metadata = new CardLibraryMetadata();
+//        metadata.maxCardID=nextCardID-1;
+//        DiskUtil.saveToFile(metadata, cardPath+"cardLibraryMetadata.bs");
+//    }
 
     public void deferredSaveCardLibraryToDisk() {
         for (int i = 0; i < cardSources.size(); i++) {
@@ -179,7 +180,7 @@ public class CardSourceManager {
             cardSources.get(cardSources.size()-1).definition.setLocalImageSource("b02.jpg");
             cardSources.get(cardSources.size()-1).rev++;
         }
-        saveAllCardLibraryToDisk();
+        deferredSaveCardLibraryToDisk();
     }
 
     public void loadCardLibraryFromDisk(){
@@ -231,9 +232,11 @@ public class CardSourceManager {
     public void setupControlPanel(UIPanel panel){
         rootPanel=panel;
         panel.addChild(new UIButton(10, m(0), 150, 30, "Load Library", this::loadCardLibraryFromDisk));
-        panel.addChild(new UIButton(10, m(1), 150, 30, "Save Library", this::saveAllCardLibraryToDisk));
+        panel.addChild(new UIButton(10, m(1), 150, 30, "Save Library", this::deferredSaveCardLibraryToDisk));
         panel.addChild(new UIButton(10, m(2), 150, 30, "Clear Library", this::uiActionClearLibrary));
-        panel.addChild(new UIButton(10, m(3), 150, 30, "Save Test", this::saveTest));
+        panel.addChild(new UIButton(10, m(3), 150, 30, "Edit Card", this::uiActionOpenCardInEditor));
+        panel.addChild(new UIButton(10, m(4), 150, 30, "Edit Source", this::uiActionOpenCardInSchemaEditor));
+        panel.addChild(new UIButton(10, m(5), 150, 30, "Save Test", this::saveTest));
         uiCardSmallView = panel.addChild(new UICardView(10,-220,.3125f, UILayer.INTERFACE));
         uiCardSmallView.setCardBackView();
 
@@ -265,6 +268,15 @@ public class CardSourceManager {
 
     public void uiActionClearLibrary(){
         rootPanel.addChild(new UIModal(UIModal.MODAL_YES_NO, "Clearing the library will discard any unsaved data\nand fuck anyone currently using the editor.\nContinue?",this::clearLibrary));
+    }
+
+    private void uiActionOpenCardInEditor(){
+
+    }
+
+    private void uiActionOpenCardInSchemaEditor(){
+        if(uiCardList.getSelectedObject()!=null)
+            openSchema(uiCardList.getSelectedObject(),false);
     }
 
     private int m(int i){

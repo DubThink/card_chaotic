@@ -1,15 +1,12 @@
 import Gamestate.CardDefinition;
 import Globals.Config;
 import Globals.Debug;
-import Globals.GlobalEnvironment;
 import Globals.Style;
 import Schema.AsyncIOHandler;
 import UI.*;
 import core.*;
 import processing.core.PApplet;
 import processing.event.MouseEvent;
-
-import java.util.Arrays;
 
 import static Globals.GlobalEnvironment.*;
 import static com.jogamp.newt.event.KeyEvent.*; // use this for p2d-based graphics (not KeyEvent)
@@ -50,13 +47,19 @@ public abstract class GameBase extends AdvancedApplet {
 
         uiRoot = new UIBase(0, 0, width, height);
 
+        openSchemaHandler = (schema, readonly, openSchema1) -> {
+            if(schema==null)return;
+            new SchemaEditDefinition(schema,
+                    uiRoot.addChild(new UIWindowPanel(300,10,600,-10,schema.toString()),UILayer.POPUP).getInnerPanel(),
+                    readonly,
+                    openSchema1);
+        };
     }
 
     protected void finalizeSetup() {
         lastMillis = millis();
 
     }
-
 
     public abstract void _draw(int dt);
 
@@ -80,6 +83,7 @@ public abstract class GameBase extends AdvancedApplet {
         uiRoot.updateLogic(dt);
         textAlign(LEFT);
         uiRoot.render(this);
+        UITooltip.renderTooltips(this);
 
         pushStyle();
         Style.getFont(Style.F_CODE, Style.FONT_12).apply(this);
@@ -159,6 +163,7 @@ public abstract class GameBase extends AdvancedApplet {
 
     @Override
     public void mouseReleased() {
+        MouseInputHandler.mouseReleased(mouseButton);
         uiRoot.handleMouseInput(false, mouseButton, mouseX, mouseY);
     }
 

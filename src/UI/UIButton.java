@@ -66,7 +66,7 @@ public class UIButton extends UIBase {
 
     @Override
     protected boolean _handleMouseInput(boolean down, int button, int x, int y) {
-        if(!isPointOver(x,y))
+        if(!isPointOver(x,y) || !interactable)
             return false;
         if(toggle){
             if(down) {

@@ -81,7 +81,7 @@ public class UIMultibox extends UIScrollable {
             } else {
                 p.fill(Style.textColor);
             }
-            p.text(options.get(lineIndex), cx + Style.textMargin, renderrow*rowH + cy + rowH/2);
+            p.getAdvGraphics().textLineClipped(options.get(lineIndex), cx + Style.textMargin, renderrow*rowH + cy + rowH/2, cw-Style.textMargin*2,true);
         }
 
         renderScrollable(p);

@@ -35,6 +35,7 @@ public class Style {
     }
 
     public static int borderColorHover = Util.pColor(new Color(135, 135, 135));
+    public static int borderColorPanel = Util.pColor(new Color(111, 111, 111));
     public static int borderColor = Util.pColor(new Color(0, 0, 0));
 
     public static int textColor = Util.pColor(new Color(212, 212, 212));
@@ -46,8 +47,9 @@ public class Style {
     public static int fillColorHeader = Util.pColor(new Color(129, 129, 132));
 
     public static int fillColorInputField = Util.pColor(new Color(75, 77, 82));
-    public static int fillColorPanel = Util.pColor(new Color(28, 29, 33));
+    public static int fillColorPanel = Util.pColor(new Color(49, 49, 56));
     public static int fillColorModalBG = Util.pColor(new Color(0, 0, 0, 65));
+
 
     public static int scrollBarColor = Util.pColor(new Color(212, 212, 212, 154));
 

@@ -72,7 +72,22 @@ public class AdvancedGraphics extends PGraphics2D {
         return textLineClipped(s,0, x, y, maxWidth);
     }
 
+    public int textLineClipped(String s, float x, float y, float maxWidth, boolean charClipping){
+        return textLineClipped(s,0, x, y, maxWidth,charClipping);
+    }
     public int textLineClipped(String s, int start, float x, float y, float maxWidth) {
+        return textLineClipped(s,start,x,y,maxWidth,false);
+    }
+    public int textLineClipped(String s, int start, float x, float y, float maxWidth, boolean charClipping) {
+
+        if (this.textAlignY == 3) {
+            y += this.textAscent() / 2.0F;
+        } else if (this.textAlignY == 101) {
+            y += this.textAscent();
+        } else if (this.textAlignY == 102) {
+            y -= this.textDescent();
+        }
+
         int length = s.length();
         if (length > textWidthBuffer.length) {
             textWidthBuffer = new char[length + 10];
@@ -90,7 +105,7 @@ public class AdvancedGraphics extends PGraphics2D {
         int nextSpace = Util.findIndexOfNext(textWidthBuffer, start, ' ');
         if (nextSpace == -1 || nextSpace>length)
             nextSpace = length;
-        if (textWidthImpl(textWidthBuffer, start, nextSpace)>maxWidth) {
+        if (charClipping||textWidthImpl(textWidthBuffer, start, nextSpace)>maxWidth) {
             // first word is too long
             int endIdx = start;
             float totalWidth = 0;
@@ -101,7 +116,7 @@ public class AdvancedGraphics extends PGraphics2D {
                 endIdx++;
             }
             renderedTextWidth = lastTotalWidth;
-            renderedTextEnd = endIdx;
+            renderedTextEnd = totalWidth>maxWidth?endIdx-1:endIdx;
         } else {
             // rendering words
             int endIdx = start;
@@ -143,7 +158,6 @@ public class AdvancedGraphics extends PGraphics2D {
         }
 
         textLineImpl(textWidthBuffer, start, renderedTextEnd, x, y);
-
         return renderedTextEnd;
     }
 

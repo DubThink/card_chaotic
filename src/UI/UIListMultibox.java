@@ -1,6 +1,7 @@
 package UI;
 
 import bpw.Util;
+import core.AdvancedApplet;
 
 import java.util.ArrayList;
 
@@ -22,8 +23,15 @@ public class UIListMultibox<T> extends UIMultibox{
         listSelectionChangedAction = action;
     }
 
+    @Override
+    protected void _draw(AdvancedApplet p) {
+        refreshIndex(selection);
+        super._draw(p);
+    }
+
     private static <T> void notifySelectionChanged(UIMultibox e){
         UIListMultibox<T> lmb = (UIListMultibox<T>)e;
+        //lmb.refreshIndex(e.getSelectionIndex());
         if(lmb.listSelectionChangedAction!=null)
             lmb.listSelectionChangedAction.notify(lmb);
     }
@@ -44,6 +52,8 @@ public class UIListMultibox<T> extends UIMultibox{
     }
 
     public void refreshIndex(int i){
+        if(i>=list.size())
+            return;
         if(options.size()<=i)
             options.add(i,builder.build(list.get(i)));
         else

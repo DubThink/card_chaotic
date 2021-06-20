@@ -52,4 +52,12 @@ public class Account extends VersionedSerializable {
             throw new VersionMismatchException(dataVersion, getVersionNumber(), getSchemaType());
         accountName = dis.readUTF();
     }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "accountUID=" + accountUID +
+                ", accountName='" + accountName + '\'' +
+                '}';
+    }
 }

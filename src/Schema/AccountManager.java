@@ -1,10 +1,13 @@
 package Schema;
 
 import Gamestate.Account;
+import Globals.GlobalEnvironment;
 import Globals.Style;
+import UI.UIButton;
 import UI.UIListMultibox;
 import UI.UIMultibox;
 import UI.UIPanel;
+import core.SchemaEditable;
 import network.NetSerializerUtils;
 
 import java.io.DataInputStream;
@@ -17,6 +20,7 @@ import static Globals.GlobalEnvironment.asyncIOHandler;
 public class AccountManager extends VersionedSerializable{
     private static final int SCHEMA_VERSION_NUMBER = 1;
 
+    @SchemaEditable
     private ArrayList<Account> accounts;
 
     public static final String FILE_NAME = "data/server/accountdb.bs";
@@ -69,9 +73,16 @@ public class AccountManager extends VersionedSerializable{
             return String.format("%4d|%-15s",a.accountUID, a.accountName);
         }));
         uiAccountList.setRowHeight(25).setFontFamily(Style.F_CODE);
+        panel.addChild(new UIButton(10, m(0), 150, 30, "Save Account DB", this::saveOut));
+        panel.addChild(new UIButton(10, m(1), 150, 30, "Edit Account", this::uiActionEditSelectedAccount));
+
     }
 
-        @Override
+    private int m(int i){
+        return 10+40*i;
+    }
+
+    @Override
     public int getVersionNumber() {
         return SCHEMA_VERSION_NUMBER;
     }
@@ -93,4 +104,8 @@ public class AccountManager extends VersionedSerializable{
         asyncIOHandler.requestSave(this, FILE_NAME);
     }
 
+    public void uiActionEditSelectedAccount(){
+        if(uiAccountList.getSelectedObject()!=null)
+            GlobalEnvironment.openSchema(uiAccountList.getSelectedObject(),false);
+    }
 }

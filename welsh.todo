@@ -2,14 +2,13 @@
 card background fades
 
 # soon
-copy/paste for text boxes (with validate?)
-ping clients every x amount of time to keep network state from going stale
+validate copy/paste for text boxes?
+line wrapping - text box caches lines+start offsets during render, used for cursor placement.
 
 # checks
 image size check
-card validity check?
+card validity check? - wip
 
 # long-term
-line wrapping
+text selection
 refactor UI to not have _xyz functions by calling super instead
-refactor versionedserializable to redirect deserialize() to deserializeFromVersion()

@@ -4,6 +4,7 @@ import Gamestate.CardDefinition;
 import Schema.SchemaTypeID;
 import Schema.VersionMismatchException;
 import Schema.VersionedSerializable;
+import core.SchemaEditViewOnly;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,7 +20,16 @@ public class CardSource extends VersionedSerializable {
 
     public int sumWinningBids;
     public int countWinningBids;
+    @SchemaEditViewOnly
     public int rev=-1;
+
+    private int testv;
+
+    // per-game
+    @SchemaEditViewOnly
+    public boolean hasBeenIntroed = false;
+    public boolean hasBeenBanned = false;
+
 
     // runtime
     boolean matchesFile=false;
@@ -32,10 +42,6 @@ public class CardSource extends VersionedSerializable {
         super(dis);
         deserialize(dis);
     }
-
-    // per-game
-    public boolean hasBeenIntroed = false;
-    public boolean hasBeenBanned = false;
 
     public void submitWinningBid(int bid){
         sumWinningBids+=bid;
@@ -89,5 +95,14 @@ public class CardSource extends VersionedSerializable {
         sumWinningBids = dis.readInt();
         countWinningBids = dis.readInt();
         rev = dis.readInt();
+    }
+
+    @Override
+    public String toString() {
+        return "CardSource{" +
+                "id=" + definition.uid +
+                ", rev=" + rev +
+                ", name=\"" + definition.name +
+                "\"}";
     }
 }

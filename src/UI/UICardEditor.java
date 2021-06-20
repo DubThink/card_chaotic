@@ -7,8 +7,7 @@ import Gamestate.ClientGamestate;
 import Globals.Assert;
 import Globals.GlobalEnvironment;
 import Globals.Style;
-import core.AdvancedApplet;
-import core.ImageLoader;
+import core.*;
 import network.event.GrantCardIDNetEvent;
 import network.event.ImageNetEvent;
 import network.event.RequestCardIDNetEvent;
@@ -20,10 +19,12 @@ import java.awt.*;
 
 import static Client.ClientEnvironment.netClient;
 
+@SchemaEditOptIn
 public class UICardEditor extends UIPanel{
     private UICardView cardView;
     private UIBase editPanel;
     private UIBase filePanel;
+    @SchemaEditable
     private CardDefinition definition;
     private UILabel imgStatus;
 

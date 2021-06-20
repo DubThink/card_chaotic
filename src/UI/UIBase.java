@@ -5,6 +5,8 @@ import Globals.Style;
 import bpw.Util;
 import core.AdvancedApplet;
 import Globals.Debug;
+import core.SchemaAllowProtectedEdit;
+import core.SchemaEditable;
 import processing.core.PConstants;
 
 import static Globals.GlobalEnvironment.modifierShift;
@@ -12,6 +14,8 @@ import static Globals.GlobalEnvironment.modifierShift;
 
 import java.util.ArrayList;
 
+@SchemaEditable
+@SchemaAllowProtectedEdit
 public class UIBase {
     int x, y; // relative (to parent)
     int w, h;
@@ -20,7 +24,7 @@ public class UIBase {
     int cw, ch;
     int fontFamily = Style.F_STANDARD;
     boolean focus;
-    boolean textFocus = false;
+    public boolean textFocus = false;
     UIBase textFocusTarget = null;
     UILayer layer;
 
@@ -195,8 +199,11 @@ public class UIBase {
     }
 
     public void removeChild(UIBase child){
+        child.cleanup();
         children.remove(child);
     }
+
+    protected void cleanup(){};
 
     public boolean handleMouseInput(boolean down, int button, int x, int y) {
         if (!enabled || !interactable)
@@ -463,6 +470,16 @@ public class UIBase {
             }
             this.textFocusTarget = textFocusTarget;
         }
+    }
+
+    protected UITooltip toolTip;
+
+    public UIBase addTooltip(String s) {
+        if(toolTip!=null){
+            removeChild(toolTip);
+        }
+        toolTip = addChild(new UITooltip(s));
+        return this;
     }
 
     public String debugName() {

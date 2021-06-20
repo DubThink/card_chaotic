@@ -113,6 +113,9 @@ public class ServerEnvironment {
     };
 
     public static void broadcast(NetEvent event, boolean reflect){
+        if(event.authorID==NetEvent.LOCAL_USER){
+            svLog("SV --E "+event);
+        }
         for (SvPlayer player: svPlayers){
             if(!player.handler.isReady())
                 continue;

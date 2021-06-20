@@ -64,7 +64,7 @@ public class GameServer extends GameBase {
         chatBox.setFontFamily(Style.F_CODE);
 
         chatBox.textSubmitted = source -> {
-            System.out.println("Sending message");
+            svLog("Sending message");
             broadcast(new ChatMessageNetEvent(source.getText()), false);
             source.clearText();
         };

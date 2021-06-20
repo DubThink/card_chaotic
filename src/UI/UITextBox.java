@@ -84,7 +84,7 @@ public class UITextBox extends UIScrollable {
         if(fieldBox) {
             g.translate(Style.textMargin, 0);
             p.textAlign(LEFT, CENTER);
-            p.text(lines.get(0), 0,ch/2f);
+            g.textLineClipped(lines.get(0), 0,ch/2f, cw-2*Style.textMargin,true);
             g.translate(0, Style.textMargin);
         } else {
             g.translate(Style.textMargin, Style.textMargin);
