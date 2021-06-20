@@ -1,6 +1,6 @@
 package Globals;
 
-import bpw.Util;
+import aew.Util;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
 import core.HyperFont;

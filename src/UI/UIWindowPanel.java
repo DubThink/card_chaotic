@@ -1,8 +1,7 @@
 package UI;
 
 import Globals.Style;
-import UI.UIPanel;
-import bpw.Util;
+import aew.Util;
 import core.AdvancedApplet;
 import core.MouseInputHandler;
 import processing.core.PConstants;

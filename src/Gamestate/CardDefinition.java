@@ -6,7 +6,7 @@ import Schema.VersionedSerializable;
 import Globals.Debug;
 import Globals.GlobalEnvironment;
 import Globals.Style;
-import bpw.Util;
+import aew.Util;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
 import network.NetSerializerUtils;

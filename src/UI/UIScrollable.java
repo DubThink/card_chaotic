@@ -1,7 +1,7 @@
 package UI;
 
 import Globals.Style;
-import bpw.Util;
+import aew.Util;
 import core.AdvancedApplet;
 
 public abstract class UIScrollable extends UIBase {

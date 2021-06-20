@@ -1,12 +1,11 @@
 package UI;
 
-import Globals.Assert;
 import Globals.Style;
-import bpw.Util;
+import aew.Util;
 import core.AdvancedApplet;
 import Globals.Debug;
-import core.SchemaAllowProtectedEdit;
-import core.SchemaEditable;
+import Schema.SchemaAllowProtectedEdit;
+import Schema.SchemaEditable;
 import processing.core.PConstants;
 
 import static Globals.GlobalEnvironment.modifierShift;

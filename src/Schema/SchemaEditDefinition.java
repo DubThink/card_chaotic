@@ -1,6 +1,5 @@
-package core;
+package Schema;
 
-import Schema.DiskUtil;
 import Server.CardSource;
 import UI.*;
 import network.NetSerializable;

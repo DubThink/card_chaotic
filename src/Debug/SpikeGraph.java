@@ -1,9 +1,7 @@
 package Debug;
 
-import bpw.Util;
+import aew.Util;
 import core.AdvancedGraphics;
-
-import java.util.LinkedList;
 
 public class SpikeGraph {
     private static final int MAX_SIZE = 300;

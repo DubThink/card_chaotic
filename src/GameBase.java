@@ -3,6 +3,7 @@ import Globals.Config;
 import Globals.Debug;
 import Globals.Style;
 import Schema.AsyncIOHandler;
+import Schema.SchemaEditDefinition;
 import UI.*;
 import core.*;
 import processing.core.PApplet;

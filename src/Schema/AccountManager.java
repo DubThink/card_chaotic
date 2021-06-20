@@ -5,9 +5,7 @@ import Globals.GlobalEnvironment;
 import Globals.Style;
 import UI.UIButton;
 import UI.UIListMultibox;
-import UI.UIMultibox;
 import UI.UIPanel;
-import core.SchemaEditable;
 import network.NetSerializerUtils;
 
 import java.io.DataInputStream;

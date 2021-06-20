@@ -2,9 +2,8 @@ package Globals;
 
 import Schema.AsyncIOHandler;
 import UI.UIBase;
-import core.AdvancedApplet;
 import core.ImageLoader;
-import core.SchemaEditDefinition;
+import Schema.SchemaEditDefinition;
 
 public class GlobalEnvironment {
     public static ImageLoader imageLoader;

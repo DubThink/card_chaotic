@@ -1,6 +1,6 @@
 package UI;
 
-import bpw.Util;
+import aew.Util;
 import core.AdvancedApplet;
 
 public class UICircle extends  UIBase {

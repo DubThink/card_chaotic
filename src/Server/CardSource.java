@@ -4,7 +4,7 @@ import Gamestate.CardDefinition;
 import Schema.SchemaTypeID;
 import Schema.VersionMismatchException;
 import Schema.VersionedSerializable;
-import core.SchemaEditViewOnly;
+import Schema.SchemaEditViewOnly;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

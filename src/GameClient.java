@@ -125,7 +125,7 @@ public class GameClient extends GameBase {
 
 //        CardSource s = DiskUtil.tryToLoadFromFileTyped(CardSource.class, "C:\\devspace\\doxo\\data\\server\\cards/card_0.card");
         //AccountManager s = DiskUtil.tryToLoadFromFileTyped(AccountManager.class, "C:\\devspace\\doxo\\data\\server/accountdb.bs");
-        
+
         super.finalizeSetup();
     }
 
