@@ -13,22 +13,32 @@ import network.event.RequestCardIDNetEvent;
 import network.event.UpdateCardDefinitionNetEvent;
 import processing.core.PConstants;
 
+import static Client.ClientEnvironment.cardDefinitionManager;
 import static Client.ClientEnvironment.netClient;
+import static Globals.GlobalEnvironment.DEV_MODE;
 
 @SchemaEditOptIn
 public class UICardEditor extends UIPanel{
-    private UICardView cardView;
-    private UIBase editPanel;
-    private UIBase filePanel;
+    private final UICardView cardView;
+    private final UIBase editPanel;
+    private final UIBase filePanel;
     @SchemaEditable
     private CardDefinition definition;
-    private UILabel imgStatus;
+    private final UILabel imgStatus;
 
-    private UITextBox tbID;
+    private final UITextBox tbID;
+    private final UITextBox tbName;
+    private final UITextBox tbType;
+    private final UITextBox tbImageName;
+    private final UITextBox tbDescription;
+    private final UITextBox tbFlavor;
+    private final UITextBox tbAttack;
+    private final UITextBox tbHealth;
+    private final UIMultibox mbArchetypeBox;
+
+    UIListMultibox<CardDefinition> cardDefinitions;
 
     private UIModal waitingModal;
-
-    private boolean serverImageIsStale;
 
     abstract class ValNotify implements UIUpdateNotify<UITextBox>{
         @Override
@@ -61,12 +71,12 @@ public class UICardEditor extends UIPanel{
         // edit panel
         int pos=3;
         editPanel.addChild(new UILabel(10,m(pos),colw,30,"ID #").setBigLabel(true));
-        tbID=editPanel.addChild(new UITextBox(col1,m(pos),60,30,true)
+        tbID = editPanel.addChild(new UITextBox(col1,m(pos),60,30,true)
                 .setFontSize(Style.FONT_MEDIUM)
                 .setEditable(false));
         pos++;
         editPanel.addChild(new UILabel(10,m(pos),colw,30,"Name").setBigLabel(true));
-        editPanel.addChild(new UITextBox(col1,m(pos),-80,30,true)
+        tbName = editPanel.addChild(new UITextBox(col1,m(pos),-80,30,true)
                 .setFontSize(Style.FONT_MEDIUM)
                 .setTextUpdatedCallback(new ValNotify() {
                     @Override
@@ -77,7 +87,7 @@ public class UICardEditor extends UIPanel{
 
         pos++;
         editPanel.addChild(new UILabel(10,m(pos),colw,30,"Type").setBigLabel(true));
-        editPanel.addChild(new UITextBox(col1,m(pos),-80,30,true)
+        tbType = editPanel.addChild(new UITextBox(col1,m(pos),-80,30,true)
                 .setFontSize(Style.FONT_MEDIUM)
                 .setTextUpdatedCallback(new ValNotify() {
                     @Override
@@ -88,7 +98,7 @@ public class UICardEditor extends UIPanel{
 
         pos++;
         editPanel.addChild(new UILabel(10,m(pos),colw,30,"Image name").setBigLabel(true));
-        editPanel.addChild(new UITextBox(col1,m(pos),-110,30,true)
+        tbImageName = editPanel.addChild(new UITextBox(col1,m(pos),-110,30,true)
                 .setFontSize(Style.FONT_MEDIUM)
                 .setTextUpdatedCallback(new ValNotify() {
                     @Override
@@ -116,7 +126,7 @@ public class UICardEditor extends UIPanel{
 
         pos++;
         editPanel.addChild(new UILabel(10,m(pos),colw,30,"Description").setBigLabel(true));
-        editPanel.addChild(new UITextBox(col1,m(pos),-80,150, false)
+        tbDescription = editPanel.addChild(new UITextBox(col1,m(pos),-80,150, false)
                 .setFontSize(Style.FONT_MEDIUM)
                 .setTextUpdatedCallback(new ValNotify() {
                     @Override
@@ -127,7 +137,7 @@ public class UICardEditor extends UIPanel{
 
         pos+=4;
         editPanel.addChild(new UILabel(10,m(pos),colw,30,"Flavor").setBigLabel(true));
-        editPanel.addChild(new UITextBox(col1,m(pos),-80,30,true)
+        tbFlavor = editPanel.addChild(new UITextBox(col1,m(pos),-80,30,true)
                 .setFontSize(Style.FONT_MEDIUM)
                 .setTextUpdatedCallback(new ValNotify() {
                     @Override
@@ -142,7 +152,7 @@ public class UICardEditor extends UIPanel{
         // right col ----------
         int pos2=pos;
         editPanel.addChild(new UILabel(col3,m(pos2),colw,30,"Attack").setBigLabel(true));
-        UITextBox fieldAttack = editPanel.addChild(new UITextBox(col4,m(pos2),colw,30,true)
+        tbAttack = editPanel.addChild(new UITextBox(col4,m(pos2),colw,30,true)
                 .setFontSize(Style.FONT_MEDIUM)
                 .setEditable(false)
                 .setText("0")
@@ -156,7 +166,7 @@ public class UICardEditor extends UIPanel{
 
         pos2++;
         editPanel.addChild(new UILabel(col3,m(pos2),colw,30,"Health").setBigLabel(true));
-        UITextBox fieldHealth = editPanel.addChild(new UITextBox(col4,m(pos2),colw,30,true)
+        tbHealth = editPanel.addChild(new UITextBox(col4,m(pos2),colw,30,true)
                 .setFontSize(Style.FONT_MEDIUM)
                 .setEditable(false)
                 .setText("0")
@@ -173,17 +183,17 @@ public class UICardEditor extends UIPanel{
 
 
         //editPanel.addChild(new UIButton(col1,m(pos),colw,30,"Is Being", () -> definition.isBeing=true,() -> definition.isBeing=false,true));
-        UIMultibox archetypeBox = editPanel.addChild(new UIMultibox(col1, m(pos), colw, 30 * 4,
+        mbArchetypeBox = editPanel.addChild(new UIMultibox(col1, m(pos), colw, 30 * 4,
                 source -> {
                     int idx = source.getSelectionIndex();
                     definition.archetype = idx;
-                    fieldHealth.setEditable(idx == CardDefinition.ARCHETYPE_BEING);
-                    fieldAttack.setEditable(idx == CardDefinition.ARCHETYPE_BEING);
+                    tbHealth.setEditable(idx == CardDefinition.ARCHETYPE_BEING);
+                    tbAttack.setEditable(idx == CardDefinition.ARCHETYPE_BEING);
                 }));
         Assert.equals(CardDefinition._ARCHETYPE_COUNT,4);
 
         for (int i = 0; i < CardDefinition._ARCHETYPE_COUNT; i++) {
-            archetypeBox.addOption(CardDefinition.getArchetypeName(i));
+            mbArchetypeBox.addOption(CardDefinition.getArchetypeName(i));
         }
 
         // file panel
@@ -192,9 +202,33 @@ public class UICardEditor extends UIPanel{
         pos++;
         filePanel.addChild(new UIButton(10,m(pos),colw*2,30,"Save Card", this::actionSaveCard));
         pos++;
+        filePanel.addChild(new UIButton(10,m(pos),colw*2,30,"Edit Card", this::actionStartEditCard));
+        pos++;
 //        filePanel.addChild(new UIButton(10,m(pos),colw*2,30,"Reload Card", () -> netClient.sendEvent(new ImageNetEvent(GlobalEnvironment.imageLoader.getCardImage(definition.imageFileName)))));
 
-        modal(UIModal.MODAL_CONTINUE, "Create new card", this::requestNewCard);
+        //modal(UIModal.MODAL_CONTINUE, "Create new card", this::requestNewCard);
+        pos=0;
+        cardDefinitions = filePanel.addChild(new UIListMultibox<CardDefinition>(240,m(pos),300,150,cardDefinitionManager.getCardList(),data -> data.name));
+    }
+
+    protected void actionStartEditCard(){
+        CardDefinition definition = cardDefinitions.getSelectedObject();
+        if(definition!=null){
+            if(definition.authorAccountUID != ClientGamestate.accountUID && !DEV_MODE) {
+                modal(UIModal.MODAL_CONTINUE,"You do not have edit permission on this card.");
+            } else {
+                modal(UIModal.MODAL_YES_NO, "This will destroy all your\ncurrent progress. Continue?",this::completeEditCard);
+
+            }
+        }
+    }
+
+    protected void completeEditCard(){
+        CardDefinition definition = cardDefinitions.getSelectedObject();
+        if(definition!=null && (definition.authorAccountUID == ClientGamestate.accountUID || DEV_MODE)) {
+            this.definition = definition;
+            refreshEditor();
+        }
     }
 
     protected void actionNewCard(){
@@ -206,7 +240,7 @@ public class UICardEditor extends UIPanel{
             modal(UIModal.MODAL_CONTINUE,"Not connected");
         } else if(definition.uid==-1){
             modal(UIModal.MODAL_CONTINUE, "Card was created offline,\nand cannot be saved.");
-        } else if(!GlobalEnvironment.imageLoader.isCardImageValid(definition.localSourceImageFilename)){
+        } else if(definition.getSourceImage()==GlobalEnvironment.imageLoader.nullimg){ // !GlobalEnvironment.imageLoader.isCardImageValid(definition.localSourceImageFilename)
             modal(UIModal.MODAL_CONTINUE, "Image must be valid to save.");
         } else if (definition.validateDefinition()!=null){
             modal(UIModal.MODAL_CONTINUE, "Cannot save:\n"+definition.validateDefinition());
@@ -227,7 +261,6 @@ public class UICardEditor extends UIPanel{
 
     public void createNewCard(int cardUID){
         definition=new CardDefinition(cardUID, ClientGamestate.accountUID);
-        serverImageIsStale = true;
         refreshEditor();
     }
 
@@ -238,6 +271,15 @@ public class UICardEditor extends UIPanel{
 
     private void refreshEditor(){
         tbID.setText(""+definition.uid);
+        tbName.setText(definition.name);
+        tbType.setText(definition.type);
+        if(definition.localSourceImageFilename!=null)
+            tbImageName.setText(definition.localSourceImageFilename);
+        tbDescription.setText(definition.desc);
+        tbFlavor.setText(definition.flavor);
+        tbAttack.setText(""+definition.attackDefaultValue);
+        tbHealth.setText(""+definition.healthDefaultValue);
+        mbArchetypeBox.selection=definition.archetype;
         cardView.setCardDefinitionView(definition);
     }
 

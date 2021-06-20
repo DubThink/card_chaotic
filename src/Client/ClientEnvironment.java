@@ -19,7 +19,6 @@ public class ClientEnvironment {
     public static LocalPlayerPrefs localPlayerPrefs;
 
     public static UILogView chatView;
-    public static UICardView cardPreview;
     public static UIModal syncModal;
 
     static {

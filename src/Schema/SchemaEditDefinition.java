@@ -19,16 +19,22 @@ public class SchemaEditDefinition {
         void open(Object schema, boolean readonly, OpenSchema openSchema);
     }
 
+    private boolean isClassEditable(Object ob){
+        if(ob==null)
+            return false;
+        var c = ob.getClass();
+        return c.getAnnotation(SchemaEditOptIn.class)!=null ||
+                c.getAnnotation(SchemaEditable.class)!=null ||
+                ob instanceof NetSerializable;
+    }
+
     public SchemaEditDefinition(Object data, UIPanel root, boolean dataReadOnly, OpenSchema openSchema) {
         this.data = data;
         this.root = root;
         boolean schemaOptIn = data.getClass().getAnnotation(SchemaEditOptIn.class)!=null;
 
-        boolean validData = data instanceof NetSerializable ||
-                data.getClass().getAnnotation(SchemaEditable.class)!=null ||
-                schemaOptIn;
 
-        if(!validData){
+        if(!isClassEditable(data)){
             System.err.println("Invalid data "+data+" for Schema Edit");
             return;
         }
@@ -67,8 +73,6 @@ public class SchemaEditDefinition {
                 }
                 boolean readOnly = dataReadOnly || Modifier.isFinal(mods) || f.getAnnotation(SchemaEditViewOnly.class)!=null;
 
-                boolean editableSchema = ob instanceof NetSerializable|| f.getAnnotation(SchemaEditable.class)!=null;
-
                 if(ob instanceof ArrayList) {
                     // do list shit here
                     UIListMultibox<Object> lmb=root.addChild(new UIListMultibox<Object>(270,m(pos),-10,150,(ArrayList<Object>)ob,data1 -> data1==null?"null":data1.toString()));
@@ -80,7 +84,7 @@ public class SchemaEditDefinition {
                             .setNotify(source -> safeSet(f,source.get()))
                             .setInteractable(!readOnly);
                     pos++;
-                } else if(editableSchema && openSchema != null) {
+                } else if(isClassEditable(ob) && openSchema != null) {
                     UITextBox field = root.addChild(new UITextBox(270, m(pos), -140, 30, true))
                             .setEditable(false)
                             .setText(ob==null?"null":ob.toString());

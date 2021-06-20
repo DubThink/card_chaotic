@@ -50,11 +50,11 @@ public abstract class UIScrollable extends UIBase {
         if(position<0)
             position = 0;
         else
-            position = Util.min(getMaxScrollPos(), position);
+            position = Util.min( getMaxScrollPos(), position);
     }
 
     protected int getMaxScrollPos(){
-        return getScrollableLineCount()-getScreenCapacity();
+        return Util.max(0,getScrollableLineCount()-getScreenCapacity());
     }
 
     protected int getScreenCapacity(){

@@ -1,4 +1,6 @@
 import Client.*;
+import Gamestate.Card;
+import Gamestate.CardDefinition;
 import Globals.Style;
 import Schema.DiskUtil;
 import Server.CardSource;
@@ -46,6 +48,8 @@ public class GameClient extends GameBase {
 
         // ---- Title/Connect Screen ---- //
         connectScreen = new ConnectScreen(uiRoot.addChild(new UIPanel(0,0,0,0), UILayer.OVERLAY),width,height);
+        if(checkArg("nonet"))
+            connectScreen.toggle();
 
         UIPanel testEditor = uiRoot.addChild(new UIPanel(700,10,-10,-10),UILayer.OVERLAY);
         testEditor.setEnabled(false);
@@ -63,11 +67,6 @@ public class GameClient extends GameBase {
             }
         };
 
-        cardPreview = uiRoot.addChild(new UICardView(50,10,.5f,UILayer.INTERFACE));
-        cardPreview.setCardBackView();
-        uiRoot.addChild(new UICardView(400,10,1f, UILayer.INTERFACE)).setCardBackView();//.setCardDefinitionView(cardPreview.card.definition);
-        cardPreview.card.definition.setBeingValues(3,10);
-
         ((AdvancedGraphics) g).initializeInjector();
 
         gameStateManager = new ClientGameStateManager();
@@ -78,7 +77,27 @@ public class GameClient extends GameBase {
 
         cardEditor.setEnabled(false);
 
-//        CardSource s = DiskUtil.tryToLoadFromFileTyped(CardSource.class, "C:\\devspace\\doxo\\data\\server\\cards/card_0.card");
+        CardSource s = DiskUtil.tryToLoadFromFileTyped(CardSource.class, "C:\\devspace\\doxo\\data\\server\\cards/card_12.card");
+        UICardView backView = uiRoot.addChild(new UICardView(100,10,1,UILayer.FIELD));
+        UICardView definitionView = uiRoot.addChild(new UICardView(100+20+ CardDefinition.CARD_WIDTH,10,1,UILayer.FIELD));
+        UICardView instanceView = uiRoot.addChild(new UICardView(100+40+ CardDefinition.CARD_WIDTH*2,10,1,UILayer.FIELD));
+
+        UICardView backView2 = uiRoot.addChild(new UICardView(100,692,.5f,UILayer.FIELD));
+        UICardView definitionView2 = uiRoot.addChild(new UICardView(100+20+ CardDefinition.CARD_WIDTH,692,.5f,UILayer.FIELD));
+        UICardView instanceView2 = uiRoot.addChild(new UICardView(100+40+ CardDefinition.CARD_WIDTH*2,692,.5f,UILayer.FIELD));
+
+
+        backView.setCardBackView();
+        backView2.setCardBackView();
+        definitionView.setCardDefinitionView(s.definition);
+        definitionView2.setCardDefinitionView(s.definition);
+        Card testCard = new Card(s.definition);
+        testCard.initializeCard();
+        instanceView.setCardView(testCard,false);
+        instanceView2.setCardView(testCard,false);
+
+        openSchema(testCard, false);
+
         //AccountManager s = DiskUtil.tryToLoadFromFileTyped(AccountManager.class, "C:\\devspace\\doxo\\data\\server/accountdb.bs");
 
         super.finalizeSetup();

@@ -266,7 +266,7 @@ public class CardDefinition extends VersionedSerializable {
         return new PVector(a.noise(point.x*ns,point.y*ns,t)-0.5f,a.noise(point.x*ns+1000,point.y*ns+1000,t)-0.5f);
     }
 
-    private static boolean _blanked;
+    private static int _blanked;
     public static void updateCardBack(AdvancedApplet a, int dt){
         float startTime = perfTimeMS();
         prepareRenderTargets(a);
@@ -279,12 +279,12 @@ public class CardDefinition extends VersionedSerializable {
         //p.clear();
 
         // blanker
-        if(!_blanked){
-            System.out.println("blanking");
+        // TODO figure out why the heck the blanker doesn't work on the first try
+        if(_blanked<2){
             p.noStroke();
             p.fill(0);
             p.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE /2f);
-            _blanked=true;
+            _blanked++;
         }
 
         p.noStroke();

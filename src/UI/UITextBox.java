@@ -79,6 +79,7 @@ public class UITextBox extends UIScrollable {
         g.noStroke();
         g.fill(textFocus&&editable?Style.textColorHover:Style.textColor);
 
+        refreshScrollPos();
         int offset = getScrollPosition();
         int screenCapacity = getScreenCapacity();
         if(fieldBox) {
@@ -441,9 +442,12 @@ public class UITextBox extends UIScrollable {
         String[] newLines = s.split("\n");
         if(fieldBox){
             lines.set(0, newLines[0]);
+            cursorPos=Util.min(newLines[0].length(),cursorPos);
         } else {
             lines.clear();
             Collections.addAll(lines, newLines);
+            currentLine=Util.min(currentLine, newLines.length-1);
+            cursorPos=Util.min(newLines[currentLine].length(),cursorPos);
         }
         ensureCursorOnScreen();
         return this;

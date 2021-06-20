@@ -11,12 +11,20 @@ public class UICardView extends UIBase {
     public boolean readonly;
     public boolean previewMode;
 
+    UICounterView healthCV,counter1CV;
+
     float scale;
 
     public UICardView(int x, int y, float scale, UILayer layer) {
         super(x, y, (int)(CardDefinition.CARD_WIDTH* scale), (int)(CardDefinition.CARD_HEIGHT* scale), layer);
         this.scale = scale;
+//        healthCV=addChild(new UICounterView(0,0,su(1),null));
+        healthCV=addChild(new UICounterView(su(1),su(4),su(2),null, Card.HEALTH_COLOR));
+        counter1CV=addChild(new UICounterView(su(1),su(7),su(2),null, Card.COUNTER_COLOR));
+    }
 
+    private int su(float u){
+        return (int)(this.scale*CardDefinition.CARD_SCALE*u);
     }
 
     public void centerAt(int x, int y){
@@ -88,18 +96,18 @@ public class UICardView extends UIBase {
     public UICardView setCardView(Card card, boolean readonly){
         this.card = card;
         this.readonly = readonly;
+        healthCV.setCounter(card.health);
+        counter1CV.setCounter(card.counter1);
         return this;
     }
 
     public UICardView setCardDefinitionView(CardDefinition definition){
-        card = new Card(definition);
-        readonly = true;
+        setCardView(new Card(definition),true);
         return this;
     }
 
     public UICardView setCardBackView(){
-        card = new Card(new CardDefinition(-1, -1));
-        readonly = true;
+        setCardDefinitionView(new CardDefinition(-1, -1));
         card.flipped=true;
         return this;
     }

@@ -25,7 +25,10 @@ public class UIListMultibox<T> extends UIMultibox{
 
     @Override
     protected void _draw(AdvancedApplet p) {
-        refreshIndex(selection);
+        if(options.size()!=list.size())
+            refreshList();
+        else
+            refreshIndex(selection);
         super._draw(p);
     }
 
@@ -52,7 +55,7 @@ public class UIListMultibox<T> extends UIMultibox{
     }
 
     public void refreshIndex(int i){
-        if(i>=list.size())
+        if(i<0||i>=list.size())
             return;
         if(options.size()<=i)
             options.add(i,builder.build(list.get(i)));

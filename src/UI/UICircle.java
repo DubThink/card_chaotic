@@ -7,16 +7,16 @@ public class UICircle extends  UIBase {
     int ccx, ccy;
     int cr = 0;
 
-    public UICircle(int x, int y, int w, int h, UILayer layer) {
-        super(x, y, w, h, layer);
-        cr = Util.min(w/2,h/2);
+    public UICircle(int x, int y, int w, UILayer layer) {
+        super(x, y, w, w, layer);
+        cr = w/2;
         ccx = x + cr;
         ccy = y + cr;
     }
 
-    public UICircle(int x, int y, int w, int h) {
-        super(x, y, w, h);
-        cr = Util.min(w/2,h/2);
+    public UICircle(int x, int y, int w) {
+        super(x, y, w,w);
+        cr = w/2;
         ccx = x + cr;
         ccy = y + cr;
     }
@@ -40,6 +40,6 @@ public class UICircle extends  UIBase {
             p.stroke(0, 255, 0);
         else
             p.stroke(255, 0, 0);
-        p.ellipse(ccx, ccy, cr, cr);
+        p.ellipse(ccx, ccy, cr*2, cr*2);
     }
 }
