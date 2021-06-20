@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Nec.iml" filepath="$PROJECT_DIR$/Nec.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CardEngine.iml" filepath="$PROJECT_DIR$/CardEngine.iml" />
     </modules>
   </component>
 </project>

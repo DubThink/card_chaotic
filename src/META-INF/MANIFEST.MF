@@ -1,11 +1,3 @@
 Manifest-Version: 1.0
-Class-Path: core.jar jogl-all.jar gluegen-rt.jar jogl-all-natives-linu
- x-i586.jar jogl-all-natives-linux-amd64.jar gluegen-rt-natives-linux-
- i586.jar jogl-all-natives-windows-i586.jar gluegen-rt-natives-linux-a
- md64.jar jogl-all-natives-linux-aarch64.jar jogl-all-natives-linux-ar
- mv6hf.jar jogl-all-natives-windows-amd64.jar gluegen-rt-natives-windo
- ws-i586.jar gluegen-rt-natives-linux-aarch64.jar gluegen-rt-natives-l
- inux-armv6hf.jar gluegen-rt-natives-windows-amd64.jar jogl-all-native
- s-macosx-universal.jar gluegen-rt-natives-macosx-universal.jar
-Main-Class: Emulsion
+Main-Class: GameClient
 
