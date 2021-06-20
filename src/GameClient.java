@@ -22,9 +22,6 @@ public class GameClient extends GameBase {
 //        size(1600, 900, "core.AdvancedGraphics");
     }
 
-    UIBase netPanel;
-    UIButton netMenuButton;
-    UITextBox chatBox;
     UICardEditor cardEditor;
 
     ConnectScreen connectScreen;
@@ -66,47 +63,12 @@ public class GameClient extends GameBase {
             }
         };
 
-
-
-        netPanel = uiRoot.addChild(new UIPanel(0,-400,400,-25),UILayer.POPUP);
-        netPanel.setEnabled(false);
-        netPanel.addChild(new UILabel(10, 10 ,-10, 25,hyperText("^Net status^: not implemented lol")));//.setFontFamily(Style.F_FLAVOR);
-
-        netMenuButton = uiRoot.addChild(new UIButton(0, -25, 100, 25, "Disconnected"));
-        netMenuButton.onAction = new Action() {
-            @Override
-            public void action() {
-                netPanel.setEnabled(!netPanel.isEnabled());
-            }
-        };
-
-        chatBox = uiRoot.addChild(new UITextBox(100, -25, 400, 25, true));
-        chatView = uiRoot.addChild(new UILogView(100,-250,400,-25));
-
-
-        chatBox.textSubmitted = source -> {
-//            System.out.println("Sending message");
-            if(netClient.isReady())
-                netClient.sendEvent(new ChatMessageNetEvent(source.getText()));
-            source.clearText();
-        };
-
-
         cardPreview = uiRoot.addChild(new UICardView(50,10,.5f,UILayer.INTERFACE));
         cardPreview.setCardBackView();
         uiRoot.addChild(new UICardView(400,10,1f, UILayer.INTERFACE)).setCardBackView();//.setCardDefinitionView(cardPreview.card.definition);
         cardPreview.card.definition.setBeingValues(3,10);
-        //uiRoot.addChild(new UICardView(1070,-710,1,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
 
-//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
-//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
-//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
-//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
-//        uiRoot.addChild(new UICardView(410,-710,.5f,UILayer.INTERFACE)).setCardDefinitionView(cardPreview.card.definition);
-
-        //Style.font32.font.initInjection();
         ((AdvancedGraphics) g).initializeInjector();
-
 
         gameStateManager = new ClientGameStateManager();
         gameStateManager.gotoPhase(new ClBiddingPhase());
@@ -115,13 +77,6 @@ public class GameClient extends GameBase {
         cardEditor = uiRoot.addChild(new UICardEditor(uiRoot));
 
         cardEditor.setEnabled(false);
-
-
-        //uiRoot.addChild(new UIImage(10,10,1,1,imageLoader.getUserImage("test16.png"))).setScaling(false);
-
-//        uiRoot.addChild(new UITextBox(200,200,300,200, false),UILayer.OVERLAY)
-//                .setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.\nSuspendisse consectetur pulvinar ligula quis vestibulum.\nPhasellus non volutpat dolor. Aliquam leo tortor, pretium nec facilisis sit amet, hendrerit at turpis. Suspendisse ultrices consectetur volutpat. Nulla iaculis efficitur euismod. Etiam nec convallis arcu, eget aliquet leo. Nam id risus ligula. Cras id eleifend urna, et blandit risus.");
-
 
 //        CardSource s = DiskUtil.tryToLoadFromFileTyped(CardSource.class, "C:\\devspace\\doxo\\data\\server\\cards/card_0.card");
         //AccountManager s = DiskUtil.tryToLoadFromFileTyped(AccountManager.class, "C:\\devspace\\doxo\\data\\server/accountdb.bs");
