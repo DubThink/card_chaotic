@@ -132,13 +132,15 @@ public class ServerEnvironment {
 
     public static void svLog(String s) {
         //String ms = millis() / 1000 + "." + String.format("%03d", millis() % 1000) + " : " + s;
-        System.out.println(s);
-        serverlog.addLine(s);
+        String s2 = s.replace("\n","\\n");
+        System.out.println(s2);
+        serverlog.addLine(s2);
     }
 
     public static void svErr(String s) {
         //String ms = millis() / 1000 + "." + String.format("%03d", millis() % 1000) + " : " + s;
-        System.err.println(s);
-        serverlog.addLine(AdvancedApplet.hyperText("/]")+s);
+        String s2 = s.replace("\n","\\n");
+        System.err.println(s2);
+        serverlog.addLine(AdvancedApplet.hyperText("/]")+s2);
     }
 }

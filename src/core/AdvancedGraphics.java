@@ -1,5 +1,8 @@
 package core;
 
+import Globals.Assert;
+import Globals.Debug;
+import Globals.GlobalEnvironment;
 import aew.Util;
 import processing.core.PFont;
 import processing.opengl.PGL;
@@ -32,7 +35,22 @@ public class AdvancedGraphics extends PGraphics2D {
 //            line(x,y-5,x,y+5);
         }
     }
-    Queue<SymbolRender> symbolsToRender;
+    Queue<SymbolRender> symbolsToRender = new ArrayDeque<>();
+
+    class DeferredLineRender {
+        int start;
+        int end;
+        float dx,dy;
+
+        public DeferredLineRender(int start, int end, float dx, float dy) {
+            this.start = start;
+            this.end = end;
+            this.dx = dx;
+            this.dy = dy;
+        }
+    }
+
+    Queue<DeferredLineRender> linesToRender = new ArrayDeque<>();
 
     public HyperFont getHyperFont(){
         return ((HyperFont)textFont);
@@ -42,9 +60,7 @@ public class AdvancedGraphics extends PGraphics2D {
         return (AdvancedPJOGL)pgl;
     }
 
-    public void initializeInjector(){
-        symbolsToRender = new ArrayDeque<>();
-    }
+    public void initializeInjector(){}
 
     @Override
     public void text(String str, float x, float y) {
@@ -67,6 +83,101 @@ public class AdvancedGraphics extends PGraphics2D {
         textLeading = saveLeading;
     }
 
+    public int textClipped(String str, int start, float x, float y, float width, float height) {
+        int length = str.length();
+        if (length > this.textBuffer.length) {
+            this.textBuffer = new char[length + 10];
+        }
+
+        str.getChars(0, length, this.textBuffer, 0);
+        return textClippedImpl(this.textBuffer, start, length, x, y, width, height, false);
+    }
+
+    @Override
+    public void strokeWeight(float weight) {
+        if(GlobalEnvironment.DEV_MODE && weight != 1){
+            throw new RuntimeException("strokeWeight perf blows, don't touch. Use expertStrokeWeight() if you know what you're doing.");
+        }
+        this.strokeWeight = weight;
+    }
+
+    public void expertStrokeWeight(float weight) {
+        this.strokeWeight = weight;
+    }
+
+
+
+    protected int textClippedImpl(char[] chars, int start, int end, float x, float y, float width, float height, boolean charClipping) {
+
+        float saveLeading = textLeading;
+
+        HyperFont hfont = getHyperFont();
+
+        y-=hfont.baseline*textSize;
+        textLeading*=hfont.leading;
+
+        // calculate the number of lines to render
+//        float high = 0.0F;
+//        int renderedLineCount=1;
+//
+//        for(int index = start; index < chars.length && high<height; ++index) {
+//            if (chars[index] == '\n') {
+//                high += this.textLeading;
+//                renderedLineCount++;
+//            }
+//        }
+//        if (high>height){
+//            // the last line puts us over, so remove 1
+//            renderedLineCount--;
+//            high-=this.textLeading;
+//        }
+
+        // other text aligns not supported at the moment, since computing the height beforehand is a pain
+
+        int lineStart = start;
+
+        float renderedHeight=0;
+        while (lineStart<end && renderedHeight+this.textLeading<=height) {
+            int eol = Util.findIndexOfNext(chars, lineStart, '\n');
+            if (eol!=-1)
+                eol = Util.min(eol, end);
+            else
+                eol = end;
+            lineStart = textLineClippedQueueRender(chars,lineStart, eol,0,renderedHeight, width, charClipping);
+            renderedHeight+=this.textLeading;
+            if(lineStart<end && Util.isWhitespaceChar(chars[lineStart]))
+                lineStart++;
+        }
+
+//        int eol = Util.findIndexOfNext(chars, lineStart, '\n');
+//        if (eol!=-1)
+//            end = Util.min(eol, end);
+//
+//        lineStart = textLineClippedImpl(chars, lineStart, end, x, y, width, charClipping);
+
+        if (this.textAlignY == 3) {
+            y += (this.textAscent() - renderedHeight) / 2.0F;
+        } else if (this.textAlignY == 101) {
+            y += this.textAscent();
+        } else if (this.textAlignY == 102) {
+            y -= this.textDescent() + renderedHeight;
+        }
+
+        renderQueuedLines(chars, x,y);
+
+
+        while(!symbolsToRender.isEmpty()){
+            symbolsToRender.poll().draw();
+        }
+
+        hfont.bold=false;
+        hfont.italic=false;
+
+        textLeading = saveLeading;
+
+        return lineStart;
+    }
+
 
     public int textLineClipped(String s, float x, float y, float maxWidth){
         return textLineClipped(s,0, x, y, maxWidth);
@@ -75,11 +186,53 @@ public class AdvancedGraphics extends PGraphics2D {
     public int textLineClipped(String s, float x, float y, float maxWidth, boolean charClipping){
         return textLineClipped(s,0, x, y, maxWidth,charClipping);
     }
+
     public int textLineClipped(String s, int start, float x, float y, float maxWidth) {
         return textLineClipped(s,start,x,y,maxWidth,false);
     }
-    public int textLineClipped(String s, int start, float x, float y, float maxWidth, boolean charClipping) {
 
+    public int textLineClipped(String s, int start, float x, float y, float maxWidth, boolean charClipping) {
+        float saveLeading = textLeading;
+
+        HyperFont hfont = getHyperFont();
+
+        y-=hfont.baseline*textSize;
+        textLeading*=hfont.leading;
+
+        int length = s.length();
+
+
+
+        if (length > textWidthBuffer.length) {
+            textWidthBuffer = new char[length + 10];
+        }
+
+        s.getChars(start, length, textWidthBuffer, start);
+
+        int count = textLineClippedImpl(textWidthBuffer,start,length,x,y,maxWidth,charClipping);
+
+        while(!symbolsToRender.isEmpty()){
+            symbolsToRender.poll().draw();
+        }
+
+        hfont.bold=false;
+        hfont.italic=false;
+
+        textLeading = saveLeading;
+        return count;
+    }
+
+    /**
+     * @param charClipping only clip by character rather than by word
+     * @return the index of the first unrendered character
+     */
+    protected int textLineClippedImpl(char[] chars, int start, int end, float x, float y, float maxWidth, boolean charClipping) {
+        int res = textLineClippedQueueRender(chars, start, end, 0,0, maxWidth, charClipping);
+        renderQueuedLines(chars, x, y);
+        return res;
+    }
+
+    protected int textLineClippedQueueRender(char[] chars, int start, int end, float x, float y, float maxWidth, boolean charClipping) {
         if (this.textAlignY == 3) {
             y += this.textAscent() / 2.0F;
         } else if (this.textAlignY == 101) {
@@ -88,12 +241,11 @@ public class AdvancedGraphics extends PGraphics2D {
             y -= this.textDescent();
         }
 
-        int length = s.length();
-        if (length > textWidthBuffer.length) {
-            textWidthBuffer = new char[length + 10];
-        }
-
-        s.getChars(0, length, textWidthBuffer, 0);
+        int eol = Util.findIndexOfNext(chars, start, '\n');
+        // if we have an eol char, pretend we're shorter
+        // do this early so no unnecessary copy
+        if(eol!=-1)
+            end = Util.min(eol,end);
 
         float renderedTextWidth = 0;
         int renderedTextEnd = start;
@@ -101,18 +253,19 @@ public class AdvancedGraphics extends PGraphics2D {
         boolean saveBold = getHyperFont().bold;
         boolean saveItalic = getHyperFont().italic;
 
+
         // figure out safe width
-        int nextSpace = Util.findIndexOfNext(textWidthBuffer, start, ' ');
-        if (nextSpace == -1 || nextSpace>length)
-            nextSpace = length;
-        if (charClipping||textWidthImpl(textWidthBuffer, start, nextSpace)>maxWidth) {
+        int nextSpace = Util.findIndexOfNext(chars, start, ' ');
+        if (nextSpace == -1 || nextSpace>end)
+            nextSpace = end;
+        if (charClipping||textWidthImpl(chars, start, nextSpace)>maxWidth) {
             // first word is too long
             int endIdx = start;
             float totalWidth = 0;
             float lastTotalWidth = 0;
-            while (totalWidth < maxWidth && endIdx<length){
+            while (totalWidth < maxWidth && endIdx<end){
                 lastTotalWidth = totalWidth;
-                totalWidth += textWidthUnsafe(textWidthBuffer, endIdx, endIdx+1);
+                totalWidth += textWidthUnsafe(chars, endIdx, endIdx+1);
                 endIdx++;
             }
             renderedTextWidth = lastTotalWidth;
@@ -124,19 +277,19 @@ public class AdvancedGraphics extends PGraphics2D {
             float totalWidth = 0;
             float lastTotalWidth = 0;
 
-            while (totalWidth < maxWidth && endIdx<length){
+            while (totalWidth < maxWidth && endIdx<end){
                 lastTotalWidth = totalWidth;
                 lastIdx = endIdx;
 
-                nextSpace = Util.findIndexOfNext(textWidthBuffer, lastIdx+1, ' ');
+                nextSpace = Util.findIndexOfNext(chars, lastIdx+1, ' ');
 
-                if (nextSpace == -1 || nextSpace>length)
-                    nextSpace = length;
+                if (nextSpace == -1 || nextSpace>end)
+                    nextSpace = end;
 
-                totalWidth += textWidthUnsafe(textWidthBuffer, endIdx, nextSpace);
+                totalWidth += textWidthUnsafe(chars, endIdx, nextSpace);
                 endIdx=nextSpace;
             }
-            if(endIdx == length && totalWidth < maxWidth) {
+            if(endIdx == end && totalWidth < maxWidth) {
                 renderedTextWidth = totalWidth;
                 renderedTextEnd = endIdx;
             } else {
@@ -157,8 +310,15 @@ public class AdvancedGraphics extends PGraphics2D {
             x -= renderedTextWidth;
         }
 
-        textLineImpl(textWidthBuffer, start, renderedTextEnd, x, y);
+        linesToRender.add(new DeferredLineRender(start, renderedTextEnd, x, y));
         return renderedTextEnd;
+    }
+
+    protected void renderQueuedLines(char[] chars, float x, float y) {
+        while(!linesToRender.isEmpty()) {
+            DeferredLineRender lineRender = linesToRender.poll();
+            textLineImpl(chars, lineRender.start, lineRender.end, x+lineRender.dx, y+lineRender.dy);
+        }
     }
 
     @Override

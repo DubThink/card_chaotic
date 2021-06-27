@@ -34,6 +34,8 @@ public class GameClient extends GameBase {
         Globals.Debug.stateDebug = new ClientDebugPanel();
     }
 
+    String testString2 = " ASCII stands for American Standard Code for Information Interchange.\nComputers can only understand numbers, so an ASCII code is the numerical representation of a character such as 'a' or '@' or an action of some sort.";
+
     @Override
     public void setup() {
         super.setup();
@@ -96,22 +98,48 @@ public class GameClient extends GameBase {
         instanceView.setCardView(testCard,false);
         instanceView2.setCardView(testCard,false);
 
-        openSchema(testCard, false);
+        //openSchema(testCard, false);
 
         //AccountManager s = DiskUtil.tryToLoadFromFileTyped(AccountManager.class, "C:\\devspace\\doxo\\data\\server/accountdb.bs");
+//        uiRoot.addChild(new UITextBox(200,200,300,200, false),UILayer.OVERLAY).setText(testString2);
 
         super.finalizeSetup();
     }
 
     @Override
-    public void _draw(int dt) {
+    public void _update(int dt) {
         if(netClient!=null && netClient.isAlive())
             netClient.updateTimeouts(dt);
         handleReceivedNetEvents(dt);
 
         gameStateManager.updateStep(dt);
+    }
 
-        if(testIMG!=null)image(testIMG.image,1200,0);
+    @Override
+    public void _draw(int dt) {
+//        System.out.println("drawstart");
+//        if(testIMG!=null)image(testIMG.image,1200,0);
+//
+//        String testString = AdvancedApplet.hyperText("Lorem ipsum dolor sit amet, consectetur *adipiscing elit.\nSuspendisse *consectetur pulvinar ligula quis vestibulum.\nPhasellus non volutpat dolor. Aliquam leo tortor, pretium nec facilisis sit amet, hendrerit at turpis. Suspendisse ultrices consectetur volutpat. Nulla iaculis efficitur euismod. Etiam nec convallis arcu, eget aliquet leo. Nam id risus ligula. Cras id eleifend urna, et blandit risus.");
+//
+//        fill(255);
+//        noStroke();
+//        getAdvGraphics().textLineClipped(" consectetur adipiscing elit.\nSuspendisse consectetur pulvinar ligula quis vestibulum.\nPhasellus non volutpat dolor. Aliquam leo tortor, pretium nec facilisis sit amet, hendrerit at turpis. Suspendisse ultrices consectetur volutpat. Nulla iaculis efficitur euismod. Etiam nec convallis arcu, eget aliquet leo. Nam id risus ligula. Cras id eleifend urna, et blandit risus.",
+//                10,10,300,true);
+//        getAdvGraphics().textLineClipped(" consectetur adipiscing elit.\nSuspendisse consectetur pulvinar ligula quis vestibulum.\nPhasellus non volutpat dolor. Aliquam leo tortor, pretium nec facilisis sit amet, hendrerit at turpis. Suspendisse ultrices consectetur volutpat. Nulla iaculis efficitur euismod. Etiam nec convallis arcu, eget aliquet leo. Nam id risus ligula. Cras id eleifend urna, et blandit risus.",
+//                10,100,300,false);
+//        noFill();
+//        stroke(255,0,0);
+//        rect(10,10,300,200);
+//
+//        rect(10,400,300,100);
+//        fill(255);
+//        noStroke();
+//        getAdvGraphics().textClipped(testString,
+//                10,400,0, 300,100);
+////        getAdvGraphics().textClipped(testString2,
+////                10,800 ,0, 100,100);
+//        System.out.println( "awefawf");
     }
 
     public void handleReceivedNetEvents(int dt){

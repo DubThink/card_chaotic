@@ -8,6 +8,7 @@ import static Globals.GlobalEnvironment.modifierShift;
 public class PerfView extends DebugPanel {
     public float lastCardRenderMS;
     public float cardBackRenderMS;
+    private float cardBackRenderMSAvg;
     public SpikeGraph drawTimeGraph;
     public SpikeGraph cardRendersGraph;
     public SpikeGraph imageTXRXGraph;
@@ -28,6 +29,7 @@ public class PerfView extends DebugPanel {
         Style.getFont(Style.F_CODE, Style.FONT_12).apply(p);
         printMS(p, 0, "last full card bake", lastCardRenderMS);
         printMS(p, 1, "card back render", cardBackRenderMS);
+        printMS(p, 2, "card back render avg", cardBackRenderMSAvg);
         print(p, 20, "draw() ms");
         print(p, 19, "shift"+modifierShift);
         drawTimeGraph.render(p,10, ly(21));
@@ -42,6 +44,8 @@ public class PerfView extends DebugPanel {
         drawTimeGraph.advanceFrame();
         cardRendersGraph.advanceFrame();
         imageTXRXGraph.advanceFrame();
+
+        cardBackRenderMSAvg = cardBackRenderMSAvg*.98f+cardBackRenderMS*.02f;
 
         timeSinceLastRefresh+=dt;
         if(timeSinceLastRefresh>1000){

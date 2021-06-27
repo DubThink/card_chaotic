@@ -131,7 +131,7 @@ public class UICardEditor extends UIPanel{
                 .setTextUpdatedCallback(new ValNotify() {
                     @Override
                     public void updateVal(String s) {
-                        definition.desc= AdvancedApplet.hyperText(s);
+                        definition.desc= s;
                     }
                 }));
 

@@ -76,7 +76,7 @@ public class UIBase {
         focus = false;
         // if a child element is in focus
         for (int i = children.size() - 1; i >= 0; i--) {
-            Debug.breakpointToggle();
+            //Debug.breakpointToggle();
             if (!focus) {
                 focus = children.get(i).updateFocus(mouseX, mouseY);
             } else {

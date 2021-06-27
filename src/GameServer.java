@@ -113,7 +113,7 @@ public class GameServer extends GameBase {
 
 
     @Override
-    public void _draw(int dt) {
+    public void _update(int dt) {
         while(currentPhase.shouldEnd()){
             currentPhase.cleanup();
             svLog("Advancing from phase "+currentPhase.getPhaseName());

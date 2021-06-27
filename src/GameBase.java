@@ -2,6 +2,10 @@ import Gamestate.CardDefinition;
 import Globals.Config;
 import Globals.Debug;
 import Globals.Style;
+import Render.AutomataCardBackRenderer;
+import Render.CardBackRenderer;
+import Render.ExampleCardBackRenderer;
+import Render.TracersCardBackRenderer;
 import Schema.AsyncIOHandler;
 import Schema.SchemaEditDefinition;
 import UI.*;
@@ -55,6 +59,10 @@ public abstract class GameBase extends AdvancedApplet {
                     readonly,
                     openSchema1);
         };
+
+        CardBackRenderer cardBackRenderer = new ExampleCardBackRenderer();
+        cardBackRenderer.initialize(this);
+        CardDefinition.setCardBackRenderer(cardBackRenderer);
     }
 
     protected void finalizeSetup() {
@@ -62,7 +70,10 @@ public abstract class GameBase extends AdvancedApplet {
 
     }
 
-    public abstract void _draw(int dt);
+    /* called before the ui is rendered */
+    public abstract void _update(int dt);
+    /* called after the ui is rendered */
+    public void _draw(int dt){}
 
     public void draw() {
         background(Style.fillColorPanel);
@@ -71,7 +82,7 @@ public abstract class GameBase extends AdvancedApplet {
         float drawStartTime = Debug.perfTimeMS();
         CardDefinition.updateCardBack(this,dt);
 
-        _draw(dt);
+        _update(dt);
 
         noFill();
         noStroke();
@@ -85,6 +96,9 @@ public abstract class GameBase extends AdvancedApplet {
         textAlign(LEFT);
         uiRoot.render(this);
         UITooltip.renderTooltips(this);
+
+
+        _draw(dt);
 
         pushStyle();
         Style.getFont(Style.F_CODE, Style.FONT_12).apply(this);

@@ -1,5 +1,6 @@
 package Gamestate;
 
+import Render.CardBackRenderer;
 import Schema.SchemaTypeID;
 import Schema.VersionMismatchException;
 import Schema.VersionedSerializable;
@@ -71,13 +72,14 @@ public class CardDefinition extends VersionedSerializable {
 
     // CARD BACK
     private static AdvancedGraphics cardBackTarget;
-    private static PVector[] tracers;
+    private static CardBackRenderer cardBackRenderer;
 
+    // CONSTANTS
     public static final int CARD_SCALE = 24;
     public static final int CARD_WIDTH = CARD_SCALE *20;
     public static final int CARD_HEIGHT = CARD_SCALE *28;
-    private static final float CARD_H_W = CARD_WIDTH/2f;
-    private static final float CARD_H_H = CARD_HEIGHT/2f;
+    public static final float CARD_H_W = CARD_WIDTH/2f;
+    public static final float CARD_H_H = CARD_HEIGHT/2f;
 
     private static final int IMAGE_SHOW_FULL = 0;
     private static final int IMAGE_SHOW_SMALL = 1;
@@ -108,6 +110,10 @@ public class CardDefinition extends VersionedSerializable {
         uid = dis.readInt();
     }
 
+
+    // ------ SCHEMA ------ //
+
+
     @Override
     public int getVersionNumber() {
         return SCHEMA_VERSION_NUMBER;
@@ -118,22 +124,6 @@ public class CardDefinition extends VersionedSerializable {
         return SchemaTypeID.CARD_DEFINITION;
     }
 
-    private static float colorCurve(float c){
-        return sqrt(c);//sin(c*90);
-    }
-
-    private static void textEnhanceFilter(AdvancedApplet a,PImage p){
-        p.loadPixels();
-        for(int i=0;i<p.pixels.length;i++){
-            int px=p.pixels[i];
-            float r= colorCurve(a.red(px)/255f)*255.f;
-            float g= colorCurve(a.green(px)/255f)*255.f;
-            float b= colorCurve(a.blue(px)/255f)*255.f;
-            float alpha= a.alpha(px);
-            p.pixels[i]=a.color(r,g,b,alpha);
-        }
-        p.updatePixels();
-    }
 
     private static void prepareRenderTargets(AdvancedApplet a){
         if(renderTarget == null){
@@ -144,41 +134,12 @@ public class CardDefinition extends VersionedSerializable {
         if(cardBackTarget == null){
             cardBackTarget = (AdvancedGraphics) a.createGraphics(CARD_WIDTH, CARD_HEIGHT, "core.AdvancedGraphics");
             cardBackTarget.initializeInjector();
-            tracers = new PVector[400];
-            for (int i=0;i<tracers.length;i++) {
-                float dir = a.random(0,TWO_PI);
-                tracers[i]=new PVector(
-                        0,0);
-                tracers[i].set(CARD_H_W+cos(dir)*40,CARD_H_H+sin(dir)*40);
-
-            }
-            //renderTarget.noSmooth();
         }
     }
 
-    public PImage getSourceImage(){
-        if(!localSourceLoaded && GlobalEnvironment.imageLoader.isCardImageValid(localSourceImageFilename)){
-            sourceImage = GlobalEnvironment.imageLoader.getCardImage(localSourceImageFilename);
-            localSourceLoaded=true;
-            invalidateBase();
-            refreshCrop();
-        } else if(sourceImage==null) {
-            sourceImage = GlobalEnvironment.imageLoader.nullimg;
-            refreshCrop();
-        }
-        return sourceImage;
-    }
 
-    public CardDefinition setLocalImageSource(String s){
-        localSourceImageFilename=s;
-        localSourceLoaded=false;
-        return this;
-    }
+    // ------ PUBLIC RENDERING ACCESS ------ //
 
-    private CardDefinition refreshDisplay(AdvancedApplet a){
-        refreshBase(a);
-        return refreshImage(a);
-    }
 
     PImage getRenderedBase(AdvancedApplet a){
         if(renderedBase==null||baseInvalidated){
@@ -244,137 +205,6 @@ public class CardDefinition extends VersionedSerializable {
         return this;
     }
 
-    public CardDefinition invalidateBase(){
-        baseInvalidated=true;
-        imageInvalidated=true;
-        return this;
-    }
-
-    public CardDefinition invalidateImage(){
-        imageInvalidated=true;
-        return this;
-    }
-
-    public static boolean isPointOutsideCard(PVector p){
-        return !Util.in(p.x,CARD_SCALE*2.5f,CARD_WIDTH-CARD_SCALE*2.5f) ||
-                !Util.in(p.y,CARD_SCALE*2.5f,CARD_HEIGHT-CARD_SCALE*2.5f);
-    }
-
-    public static PVector sampleNoise(PVector point, AdvancedApplet a, float t){
-        float ns=.02f;
-        t*=0.1;
-        return new PVector(a.noise(point.x*ns,point.y*ns,t)-0.5f,a.noise(point.x*ns+1000,point.y*ns+1000,t)-0.5f);
-    }
-
-    private static int _blanked;
-    public static void updateCardBack(AdvancedApplet a, int dt){
-        float startTime = perfTimeMS();
-        prepareRenderTargets(a);
-
-        float t= a.millis()/1000f;
-
-        cardBackTarget.smooth(8);
-        cardBackTarget.beginDraw();
-        AdvancedGraphics p = cardBackTarget;
-        //p.clear();
-
-        // blanker
-        // TODO figure out why the heck the blanker doesn't work on the first try
-        if(_blanked<2){
-            p.noStroke();
-            p.fill(0);
-            p.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE /2f);
-            _blanked++;
-        }
-
-        p.noStroke();
-        p.fill(0,3);
-        // background
-        p.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_SCALE /2f);
-
-        p.noStroke();
-        p.fill(255);
-        p.strokeWeight(1);
-        for (PVector tracer :
-                tracers) {
-//            if(tracer==tracers[0]){
-//                p.fill(255,255,0);
-//            }else {
-//                p.fill(255);
-//            }
-            // update tracer pos
-            if(isPointOutsideCard(tracer)){
-                float dir = a.random(0,TWO_PI);
-                tracer.set(CARD_H_W+cos(dir)*40,CARD_H_H+sin(dir)*40);
-            }
-            // step tracer
-            PVector currentDelta = new PVector(tracer.x-CARD_H_W,tracer.y-CARD_H_H);
-            float d=currentDelta.mag();
-            currentDelta.setMag(0.4f);
-            currentDelta.add(sampleNoise(tracer,a,t));
-            currentDelta.mult(0.126f*min(dt,20));
-            tracer.add(currentDelta);
-
-            // render
-            float sz=2+8*d/CARD_H_H;
-            p.ellipse(tracer.x, tracer.y, sz, sz);
-        }
-
-        // black blocks
-        p.fill(0);
-        int U=CARD_SCALE;
-        p.rect(U,U,U*1.5f,CARD_HEIGHT-U);
-        p.rect(CARD_WIDTH-U*2.5f,U,U*1.5f,CARD_HEIGHT-U);
-        p.rect(U,U,CARD_WIDTH-U,U*1.5f);
-        p.rect(U,CARD_HEIGHT-U*2.5f,CARD_WIDTH-U,U*1.5f);
-
-        // borders
-        p.noFill();
-        p.stroke(255);
-        p.strokeWeight(7);
-        p.rect(CARD_SCALE, CARD_SCALE, CARD_WIDTH-CARD_SCALE*2, CARD_HEIGHT-CARD_SCALE*2, CARD_SCALE /5f);
-        p.strokeWeight(2);
-        p.rect(CARD_SCALE*2, CARD_SCALE*2, CARD_WIDTH-CARD_SCALE*4, CARD_HEIGHT-CARD_SCALE*4);
-
-        // center logo thing
-        p.noStroke();
-        p.fill(20);
-        p.ellipse(CARD_H_W,CARD_H_H, 120,120);
-        p.noFill();
-        p.stroke(255);
-        p.strokeWeight(2);
-        p.ellipse(CARD_H_W,CARD_H_H, 100,100);
-
-
-//        p.strokeWeight(2);
-//        for(int i=0;i<9;i++){
-//            float f=1-i/5f;
-//            f+=(t%1)*.5f;
-//            p.stroke(40+215*(1-f));
-//            float offset = CARD_SCALE * (1+pow(f+.1f,2f));
-//            if(i==0)
-//                System.out.println("f="+f);
-//            p.rect(offset, offset, CARD_WIDTH-offset*2, CARD_HEIGHT-offset*2,1);
-//
-//        }
-//        ggg+=.01;
-//        p.line(0,10+ggg,100,10+ggg);
-//        p.line(0,0,100,100);
-
-
-        p.stroke(255,200,50);
-
-//        for (int i = 0; i < 100; i++) {
-//            p.line((float)Math.sin(i/50f)*20f,(float)Math.cos(i/40f)*20f, (float)Math.sin(i/150f)*120f,(float)Math.cos(i/120f)*120f);
-//        }
-        cardBackTarget.endDraw();
-        Debug.perfView.cardBackRenderMS = (Debug.perfTimeMS() - startTime);
-    }
-
-    public static PImage getCardBack(){
-        return cardBackTarget;
-    }
-
     public void drawPreview(AdvancedApplet a, float x, float y, float scale) {
         float startTime = perfTimeMS();
         a.pushMatrix();
@@ -386,7 +216,91 @@ public class CardDefinition extends VersionedSerializable {
         Debug.perfView.cardRendersGraph.addVal(Debug.perfTimeMS() - startTime);
     }
 
+    public CardDefinition invalidateBase(){
+        baseInvalidated=true;
+        imageInvalidated=true;
+        return this;
+    }
+
+    public CardDefinition invalidateImage(){
+        imageInvalidated=true;
+        return this;
+    }
+
+
+    // ------ CARD BACK ------ //
+
+
+    public static void updateCardBack(AdvancedApplet a, int dt){
+        float startTime = perfTimeMS();
+        prepareRenderTargets(a);
+
+        float t= a.millis()/1000f;
+
+        cardBackTarget.smooth(8);
+        cardBackTarget.beginDraw();
+
+        //cardBackTarget.pushMatrix();
+        //cardBackTarget.translate(-CARD_SCALE*2.5f,-CARD_SCALE*2.5f);
+        cardBackTarget.pushStyle();
+        cardBackRenderer.updateCardBack(a,cardBackTarget,t,dt);
+        cardBackTarget.popStyle();
+        //cardBackTarget.popMatrix();
+
+        AdvancedGraphics p = cardBackTarget;
+
+        // black blocks
+        p.fill(0);
+        p.noStroke();
+        int U=CARD_SCALE;
+        p.rect(U,U,U*1.5f,CARD_HEIGHT-U);
+        p.rect(CARD_WIDTH-U*2.5f,U,U*1.5f,CARD_HEIGHT-U);
+        p.rect(U,U,CARD_WIDTH-U,U*1.5f);
+        p.rect(U,CARD_HEIGHT-U*2.5f,CARD_WIDTH-U,U*1.5f);
+
+        // borders
+        p.noFill();
+        p.stroke(255);
+//        p.expertStrokeWeight(7);
+//        p.rect(CARD_SCALE, CARD_SCALE, CARD_WIDTH-CARD_SCALE*2, CARD_HEIGHT-CARD_SCALE*2, CARD_SCALE /5f);
+//        p.rect(CARD_SCALE, CARD_SCALE, CARD_WIDTH-CARD_SCALE*2, CARD_HEIGHT-CARD_SCALE*2, CARD_SCALE /5f);
+        // bootleg strokeWeight
+        for (int i=0;i<7;i+=1)
+            p.rect(CARD_SCALE-i, CARD_SCALE-i, 2*i+CARD_WIDTH-CARD_SCALE*2, 2*i+CARD_HEIGHT-CARD_SCALE*2, CARD_SCALE /5f);
+//        p.strokeWeight(2);
+        p.rect(CARD_SCALE*2, CARD_SCALE*2, CARD_WIDTH-CARD_SCALE*4, CARD_HEIGHT-CARD_SCALE*4, 5 );
+
+
+        // center logo thing
+        p.noStroke();
+        p.fill(20);
+        p.ellipse(CARD_H_W,CARD_H_H, 120,120);
+        p.noFill();
+        p.stroke(255);
+        //p.strokeWeight(2);
+        p.ellipse(CARD_H_W,CARD_H_H, 100,100);
+        p.ellipse(CARD_H_W,CARD_H_H, 101,101);
+        p.ellipse(CARD_H_W,CARD_H_H, 102,102);
+
+        cardBackTarget.endDraw();
+
+        Debug.perfView.cardBackRenderMS = (Debug.perfTimeMS() - startTime);
+    }
+
+    public static PImage getCardBack(){
+        return cardBackTarget;
+    }
+
+    public static void setCardBackRenderer(CardBackRenderer renderer)  {
+        cardBackRenderer = renderer;
+    }
+
+
+    // ------ BASE RENDERING ------ //
+
+
     static private PImage _cardMask;
+
     static private PImage getCardMask(AdvancedApplet a){
         if(_cardMask==null) {
             _cardMask = a.createImage(CARD_WIDTH, CARD_HEIGHT, ARGB);
@@ -406,7 +320,7 @@ public class CardDefinition extends VersionedSerializable {
     }
 
     private void renderBase(AdvancedGraphics p){
-        p.strokeWeight(2);
+        //p.strokeWeight(2);
         p.noStroke();
         p.fill(0);
 
@@ -443,7 +357,27 @@ public class CardDefinition extends VersionedSerializable {
         fadeLine(p,0,m(18), CARD_WIDTH,m(18),.15f,.15f);
     }
 
-    // renders card to target
+
+    // ------ TEXT RENDERING ------ //
+
+
+    private static float colorCurve(float c){
+        return sqrt(c);//sin(c*90);
+    }
+
+    private static void textEnhanceFilter(AdvancedApplet a,PImage p){
+        p.loadPixels();
+        for(int i=0;i<p.pixels.length;i++){
+            int px=p.pixels[i];
+            float r= colorCurve(a.red(px)/255f)*255.f;
+            float g= colorCurve(a.green(px)/255f)*255.f;
+            float b= colorCurve(a.blue(px)/255f)*255.f;
+            float alpha= a.alpha(px);
+            p.pixels[i]=a.color(r,g,b,alpha);
+        }
+        p.updatePixels();
+    }
+
     private void renderText(AdvancedGraphics p){
 //        p.strokeWeight(2);
 //        p.noStroke();
@@ -483,7 +417,8 @@ public class CardDefinition extends VersionedSerializable {
 
         p.textAlign(LEFT, CENTER);
         Style.getFont(Style.F_STANDARD,Style.FONT_24).apply(p);
-        p.text(desc,m(1),m(21.5f));
+        String hyperDesc = AdvancedApplet.hyperText(desc);
+        p.textClipped(hyperDesc, 0, m(1), m(21.5f), CARD_WIDTH-m(2), m(7));
 
         p.textAlign(LEFT);
         Style.getFont(Style.F_FLAVOR,Style.FONT_24).apply(p);
@@ -493,6 +428,10 @@ public class CardDefinition extends VersionedSerializable {
     private float m(float v){
         return v * CARD_SCALE;
     }
+
+
+    // ------ RENDER HELPERS ------ //
+
 
     private static void fadeLine(AdvancedGraphics p, float x1, float y1, float x2, float y2, float alphamult, float alphabase){
         p.beginShape();
@@ -504,11 +443,9 @@ public class CardDefinition extends VersionedSerializable {
         p.endShape(LINE);
     }
 
-    public CardDefinition setBeingValues(int attackDefaultValue, int healthDefaultValue){
-        this.attackDefaultValue = attackDefaultValue;
-        this.healthDefaultValue = healthDefaultValue;
-        return this;
-    }
+
+    // ------ CROP ------ //
+
 
     public CardDefinition refreshCrop(){
         if(imageDisplayMode==IMAGE_SHOW_FULL)
@@ -577,6 +514,35 @@ public class CardDefinition extends VersionedSerializable {
         }
 
         //System.out.printf("Setting uv values to (%.3f, %.3f) (%.3f, %.3f)%n",u1,v1,u2,v2);
+    }
+
+
+    // ------ SET/GET ------ //
+
+
+    public PImage getSourceImage(){
+        if(!localSourceLoaded && GlobalEnvironment.imageLoader.isCardImageValid(localSourceImageFilename)){
+            sourceImage = GlobalEnvironment.imageLoader.getCardImage(localSourceImageFilename);
+            localSourceLoaded=true;
+            invalidateBase();
+            refreshCrop();
+        } else if(sourceImage==null) {
+            sourceImage = GlobalEnvironment.imageLoader.nullimg;
+            refreshCrop();
+        }
+        return sourceImage;
+    }
+
+    public CardDefinition setLocalImageSource(String s){
+        localSourceImageFilename=s;
+        localSourceLoaded=false;
+        return this;
+    }
+
+    public CardDefinition setBeingValues(int attackDefaultValue, int healthDefaultValue){
+        this.attackDefaultValue = attackDefaultValue;
+        this.healthDefaultValue = healthDefaultValue;
+        return this;
     }
 
     public String validateDefinition(){

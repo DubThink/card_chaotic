@@ -61,13 +61,18 @@ public class Style {
 
     // font wowe
 
-    public static final int FONT_16 = 2;
-    public static final int FONT_14 = 1;
     public static final int FONT_12 = 0;
+    public static final int FONT_14 = 1;
+    public static final int FONT_16 = 2;
+    public static final int FONT_18 = 3;
+    public static final int FONT_22 = 4;
+    public static final int FONT_24 = 5;
+    public static final int FONT_27 = 6;
+    public static final int FONT_32 = 7;
+    public static final int FONT_36 = 8;
+    public static final int FONT_48 = 9;
 
     public static final int FONT_33 = 10;
-    public static final int FONT_27 = 6;
-    public static final int FONT_24 = 5;
 
     public static final int FONT_SMALL = 2;
     public static final int FONT_MEDIUM = 3;
