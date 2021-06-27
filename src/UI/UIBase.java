@@ -6,6 +6,8 @@ import core.AdvancedApplet;
 import Globals.Debug;
 import Schema.SchemaAllowProtectedEdit;
 import Schema.SchemaEditable;
+import core.AdvancedGraphics;
+import core.AdvancedPJOGL;
 import processing.core.PConstants;
 
 import static Globals.GlobalEnvironment.modifierShift;
@@ -28,6 +30,12 @@ public class UIBase {
     UILayer layer;
 
     public static AdvancedApplet app;
+
+    protected static DeferredRenderer dr;
+
+    static {
+        dr = new DeferredRenderer();
+    }
 
     boolean enabled = true;
     /**
@@ -166,6 +174,10 @@ public class UIBase {
         Style.getFont(Style.F_CODE, Style.FONT_12).apply(p);
         p.textAlign(PConstants.LEFT,PConstants.TOP);
         p.text(""+this,cx+2,cy+2);
+    }
+
+    public void deferredRender(AdvancedApplet p) {
+        dr.renderAllDeferred(p);
     }
 
 

@@ -2,13 +2,16 @@ package UI;
 
 import Gamestate.Card;
 import Gamestate.CardDefinition;
+import Globals.GlobalEnvironment;
 import Globals.Style;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
+import processing.core.PConstants;
 
 public class UICardView extends UIBase {
     public Card card;
     public boolean readonly;
+    /** renders the card in a slower way that shows text updates in realtime */
     public boolean previewMode;
 
     UICounterView healthCV,counter1CV;
@@ -33,8 +36,8 @@ public class UICardView extends UIBase {
 
     @Override
     protected void _draw(AdvancedApplet p) {
-        //long nt = System.nanoTime();
-        //p.image(imageLoader.getCardImage(card.definition.imageFileName), cx, cy,cw/2f,ch/2f);
+        healthCV.setEnabled(!card.flipped);
+        counter1CV.setEnabled(!card.flipped);
         if(card!=null) {
             if(card.flipped){
                 p.image(CardDefinition.getCardBack(), cx, cy, cw, ch);
@@ -45,21 +48,7 @@ public class UICardView extends UIBase {
                     p.image(card.definition.getRenderedImage(p), cx, cy, cw, ch);
             }
         }
-//        AdvancedGraphics ps = (AdvancedGraphics) p.createGraphics(cw, ch, "core.AdvancedGraphics");
-//        ps.initializeInjector();
-//        ps.beginDraw();
-//        card.definition.render((AdvancedGraphics) ps);
-//        ps.endDraw();
-//        p.image(ps.textureImage, cx+20, cy+20,cw/2f,ch/2f);
-//        //p.image(ps, cx+40, cy+40,cw/2f,ch/2f);
-//        PImage img = p.createImage(cw,ch,ARGB);// = ps.copy();
-//        //ps.updateTexture();
-//        //ps.loadPixels();
-//        img.set(0,0,ps);
-//        p.image(ps, cx+100, cy+100);
 
-        //long et = System.nanoTime();
-        //System.out.println("MS render (1): "+(et-nt)/1000000f);
     }
 
     @Override
@@ -110,5 +99,13 @@ public class UICardView extends UIBase {
         setCardDefinitionView(new CardDefinition(-1, -1));
         card.flipped=true;
         return this;
+    }
+
+    @Override
+    protected boolean _handleMouseInput(boolean down, int button, int x, int y) {
+        if (down && button == PConstants.CENTER && isPointOver(x,y) && GlobalEnvironment.DEV_MODE) {
+            GlobalEnvironment.openSchema(card,false);
+        }
+        return super._handleMouseInput(down, button, x, y);
     }
 }

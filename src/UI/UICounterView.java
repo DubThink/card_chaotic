@@ -27,9 +27,11 @@ public class UICounterView extends UICircle {
 
         p.fill(0,150);
         p.stroke(color);
-        //p.strokeWeight(2);
+        p.getAdvGraphics().expertStrokeWeight(2);
         p.ellipse(ccx, ccy, cr*2, cr*2);
-        p.ellipse(ccx, ccy, cr*2+1, cr*2+1);
+//        p.ellipse(ccx, ccy, cr*2+1, cr*2+1);
+//        p.ellipse(ccx, ccy, cr*2+2, cr*2+2);
+        p.getAdvGraphics().strokeWeight(1);
         Style.chooseFont(Style.F_STANDARD,cw*1.5f).apply(p);
         p.textAlign(PConstants.CENTER, PConstants.CENTER);
         p.fill(255);
@@ -37,11 +39,11 @@ public class UICounterView extends UICircle {
         if(grabbed) {
             int shift = -(int)(shiftAmount*ch);
             p.fill(255,255,255,Util.lerp(shiftAmount,-.5,.5,255,0));
-            p.text(counter.value+1, ccx, ccy+shift-ch);
+            dr.text(p,""+(counter.value+1), ccx, ccy+shift-ch);
             p.fill(255,255,255,Util.lerp(1-Util.abs(shiftAmount),-.5,.5,0,255));
-            p.text(counter.value, ccx, ccy+shift);
+            dr.text(p,""+counter.value, ccx, ccy+shift);
             p.fill(255,255,255,Util.lerp(shiftAmount,-.5,.5,0,255));
-            p.text(counter.value-1, ccx, ccy+shift+ch);
+            dr.text(p,""+(counter.value-1), ccx, ccy+shift+ch);
 
         } else {
             p.text(counter.value, ccx, ccy);

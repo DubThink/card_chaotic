@@ -95,6 +95,7 @@ public abstract class GameBase extends AdvancedApplet {
         uiRoot.updateLogic(dt);
         textAlign(LEFT);
         uiRoot.render(this);
+        uiRoot.deferredRender(this);
         UITooltip.renderTooltips(this);
 
 

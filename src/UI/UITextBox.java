@@ -102,10 +102,10 @@ public class UITextBox extends UIScrollable {
                 currentLine>=offset && currentLine<offset+screenCapacity &&
                 deltaMillis%(Config.CURSOR_BLINK_RATE*2)<Config.CURSOR_BLINK_RATE){
             float over = p.textWidth(lines.get(currentLine).substring(0,cursorPos));//g.simpleTextWidthImpl(lines.get(currentLine),0,cursorPos);
-            g.strokeWeight(2);
-            g.stroke(Style.textColorHover);
+            g.noStroke();
+            g.fill(Style.textColorHover);
             int renderLine = currentLine-offset;
-            p.line(over,renderLine*g.textLeading,over,p.textAscent()+p.textDescent()+renderLine*g.textLeading);
+            p.rect(over,renderLine*g.textLeading, 2, p.textAscent()+p.textDescent());
         }
         lastLeading = g.textLeading;
 
