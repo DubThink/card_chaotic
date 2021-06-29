@@ -71,7 +71,6 @@ public class UIButton extends UIBase {
         if(toggle){
             if(down) {
                 state = !state;
-                System.out.println("eee state: "+state);
             }
         } else {
             state=down;

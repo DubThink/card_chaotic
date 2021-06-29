@@ -22,7 +22,7 @@ public class Account extends VersionedSerializable {
 
     public Account(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
-        deserialize(dis);
+        deserializeVersioned(dis);
         accountUID = dis.readInt();
     }
 

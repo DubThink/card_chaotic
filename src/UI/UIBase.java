@@ -359,6 +359,10 @@ public class UIBase {
         return null;
     }
 
+    public UIBase getParent() {
+        return parent;
+    }
+
     public int getCalculatedX() {
         return cx;
     }

@@ -13,7 +13,6 @@ import core.AdvancedGraphics;
 import network.NetSerializerUtils;
 import processing.core.PApplet;
 import processing.core.PImage;
-import processing.core.PVector;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -106,7 +105,7 @@ public class CardDefinition extends VersionedSerializable {
 
     public CardDefinition(DataInputStream dis) throws IOException {
         super(dis);
-        deserialize(dis);
+        deserializeVersioned(dis);
         uid = dis.readInt();
     }
 
@@ -355,6 +354,10 @@ public class CardDefinition extends VersionedSerializable {
         p.noFill();
         p.stroke(255,150);
         fadeLine(p,0,m(18), CARD_WIDTH,m(18),.15f,.15f);
+    }
+
+    public static void renderShapeRect(AdvancedGraphics p, int x, int y, float scale) {
+        p.rect(x,y, CARD_WIDTH*scale, CARD_HEIGHT*scale, scale*CARD_SCALE / 2f);
     }
 
 

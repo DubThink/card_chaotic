@@ -4,6 +4,7 @@ import Schema.AsyncIOHandler;
 import UI.UIBase;
 import core.ImageLoader;
 import Schema.SchemaEditDefinition;
+import network.NetClientInterface;
 
 public class GlobalEnvironment {
     public static ImageLoader imageLoader;
@@ -18,8 +19,14 @@ public class GlobalEnvironment {
 
     public static SchemaEditDefinition.OpenSchema openSchemaHandler;
 
+    public static NetClientInterface netInterface;
+
+    public static boolean isNetReady(){
+        return netInterface !=null && netInterface.isReady();
+    }
+
     public static void openSchema(Object o, boolean readOnly){
-        openSchemaHandler.open(o,readOnly,openSchemaHandler);
+        openSchemaHandler.open(o,readOnly,openSchemaHandler,300,10);
     }
 
 }

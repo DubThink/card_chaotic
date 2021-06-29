@@ -7,7 +7,6 @@ import Schema.VersionedSerializable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class CardLibraryMetadata extends VersionedSerializable {
     private static final int SCHEMA_VERSION_NUMBER = 1;
@@ -20,7 +19,7 @@ public class CardLibraryMetadata extends VersionedSerializable {
 
     public CardLibraryMetadata(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
-        deserialize(dis);
+        deserializeVersioned(dis);
     }
 
     @Override

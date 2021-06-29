@@ -19,6 +19,8 @@ public class Card extends NetSerializable {
     public Counter health;
     public Counter counter1;
 
+    private CardStack owningStack;
+
     public static final int HEALTH_COLOR = Util.pColor(new Color(255, 148, 143));
     public static final int COUNTER_COLOR = Util.pColor(new Color(160, 167,255));
 
@@ -52,12 +54,20 @@ public class Card extends NetSerializable {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeInt(definition.uid);
         dos.writeBoolean(tapped);
+        Counter.serializeCounter(dos,health);
+        Counter.serializeCounter(dos,counter1);
+
     }
 
-    @Override
     protected void deserialize(DataInputStream dis) throws IOException {
         definition = cardDefinitionManager.getDefinition(dis.readInt());
         tapped = dis.readBoolean();
+        health = Counter.deserializeCounter(dis);
+        counter1 = Counter.deserializeCounter(dis);
 
+    }
+
+    void setOwningStack(CardStack owningStack){
+        this.owningStack = owningStack;
     }
 }

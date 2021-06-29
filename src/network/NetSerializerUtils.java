@@ -21,7 +21,7 @@ public class NetSerializerUtils {
         list.clear();
         list.ensureCapacity(size);
         for(int i=0;i<size;i++){
-            list.add(deserializer.deserialize(dis));
+            list.add(deserializer.testdeserialize(dis));
         }
     }
 

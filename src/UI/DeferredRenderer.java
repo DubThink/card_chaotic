@@ -14,8 +14,10 @@ public class DeferredRenderer {
     }
 
     public void renderAllDeferred(AdvancedApplet p){
+        p.pushStyle();
         while (!renderCalls.isEmpty())
             renderCalls.poll().render(p);
+        p.popStyle();
     }
 
     private abstract static class DeferredRenderCall {

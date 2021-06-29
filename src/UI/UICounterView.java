@@ -27,10 +27,10 @@ public class UICounterView extends UICircle {
 
         p.fill(0,150);
         p.stroke(color);
-        p.getAdvGraphics().expertStrokeWeight(2);
+//        p.getAdvGraphics().expertStrokeWeight(2);
         p.ellipse(ccx, ccy, cr*2, cr*2);
-//        p.ellipse(ccx, ccy, cr*2+1, cr*2+1);
-//        p.ellipse(ccx, ccy, cr*2+2, cr*2+2);
+        p.ellipse(ccx, ccy, cr*2+1, cr*2+1);
+        p.ellipse(ccx, ccy, cr*2+2, cr*2+2);
         p.getAdvGraphics().strokeWeight(1);
         Style.chooseFont(Style.F_STANDARD,cw*1.5f).apply(p);
         p.textAlign(PConstants.CENTER, PConstants.CENTER);

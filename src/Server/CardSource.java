@@ -40,7 +40,7 @@ public class CardSource extends VersionedSerializable {
 
     public CardSource(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
-        deserialize(dis);
+        deserializeVersioned(dis);
     }
 
     public void submitWinningBid(int bid){

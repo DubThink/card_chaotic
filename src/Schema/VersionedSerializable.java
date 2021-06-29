@@ -10,7 +10,7 @@ public abstract class VersionedSerializable extends NetSerializable {
     public VersionedSerializable(){}
     public VersionedSerializable(DataInputStream dis)  throws VersionMismatchException, IOException {}
 
-    protected void deserialize(DataInputStream dis)  throws VersionMismatchException, IOException {
+    protected void deserializeVersioned(DataInputStream dis)  throws VersionMismatchException, IOException {
         int vnum = dis.readInt();
         if(vnum<=getVersionNumber())
             deserializeFromVersion(dis,vnum);
@@ -24,8 +24,6 @@ public abstract class VersionedSerializable extends NetSerializable {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeInt(getVersionNumber());
     }
-
-
 
     protected abstract void deserializeFromVersion(DataInputStream dis, int dataVersion) throws VersionMismatchException, IOException;
 

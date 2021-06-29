@@ -1,6 +1,6 @@
 package Client;
 
-import Gamestate.ClientGamestate;
+import Globals.GlobalEnvironment;
 import UI.*;
 import network.NetworkClient;
 import processing.core.PConstants;
@@ -41,9 +41,9 @@ public class ConnectScreen {
                 throw new RuntimeException("how");
         } else {
             netClient = new NetworkClient(ipBox.getText());
+            GlobalEnvironment.netInterface = netClient;
 
-            ClientGamestate.accountName = accountNameBox.getText();
-            ClientGamestate.displayName = displayNameBox.getText();
+            netClient.connectInfo = new ConnectInfo(accountNameBox.getText(), displayNameBox.getText());
 
             netClient.notifyConnectionFailed = this::notifyConnectionDropped;
             netClient.notifyConnected = this::notifyConnected;

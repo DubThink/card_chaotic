@@ -4,7 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public abstract class NetEvent  extends NetSerializable {
+public abstract class NetEvent extends NetSerializable {
     public static final int LOCAL_USER = -1;
     public static final int SERVER_USER = 0;
     public final int serial;
@@ -23,7 +23,6 @@ public abstract class NetEvent  extends NetSerializable {
         dos.writeInt(authorID);
     }
 
-    @Override
     protected void deserialize(DataInputStream dis) throws IOException {
         authorID = dis.readInt();
     }

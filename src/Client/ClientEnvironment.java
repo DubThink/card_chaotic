@@ -1,11 +1,13 @@
 package Client;
 
+import Gamestate.Player;
 import UI.UIBase;
 import UI.UICardView;
 import UI.UILogView;
 import UI.UIModal;
 import core.AdvancedApplet;
 import core.ImageLoader;
+import network.NetClientInterface;
 import network.NetworkClient;
 
 import static Globals.GlobalEnvironment.asyncIOHandler;
@@ -13,6 +15,7 @@ import static core.AdvancedApplet.CC_ITALIC;
 
 public class ClientEnvironment {
     public static final CardDefinitionManager cardDefinitionManager;
+    //public static NetClientInterface netClient;
     public static NetworkClient netClient;
     public static ClientGameStateManager gameStateManager;
 
@@ -20,6 +23,11 @@ public class ClientEnvironment {
 
     public static UILogView chatView;
     public static UIModal syncModal;
+
+    // gamestate
+
+    public static Player localPlayer;
+
 
     static {
         cardDefinitionManager = new CardDefinitionManager();

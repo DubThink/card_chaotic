@@ -30,7 +30,7 @@ public class AccountManager extends VersionedSerializable{
 
     public AccountManager(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
-        deserialize(dis);
+        deserializeVersioned(dis);
     }
 
     public Account getAccountByID(int id){

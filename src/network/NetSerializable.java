@@ -12,6 +12,6 @@ public abstract class NetSerializable {
 
     public abstract void serialize(DataOutputStream dos) throws IOException;
 
-    /** Deserializes this class's fields. Should not handle parent class */
-    protected abstract void deserialize(DataInputStream dis) throws IOException;
+    ///** Deserializes this class's fields. Should not handle parent class */
+    //protected abstract void deserialize(DataInputStream dis) throws IOException;
 }

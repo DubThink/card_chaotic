@@ -1,7 +1,6 @@
 package UI;
 
 import Gamestate.CardDefinition;
-import Gamestate.ClientGamestate;
 import Globals.Assert;
 import Globals.GlobalEnvironment;
 import Globals.Style;
@@ -14,8 +13,8 @@ import network.event.UpdateCardDefinitionNetEvent;
 import processing.core.PConstants;
 
 import static Client.ClientEnvironment.cardDefinitionManager;
-import static Client.ClientEnvironment.netClient;
-import static Globals.GlobalEnvironment.DEV_MODE;
+import static Client.ClientEnvironment.localPlayer;
+import static Globals.GlobalEnvironment.*;
 
 @SchemaEditOptIn
 public class UICardEditor extends UIPanel{
@@ -214,7 +213,7 @@ public class UICardEditor extends UIPanel{
     protected void actionStartEditCard(){
         CardDefinition definition = cardDefinitions.getSelectedObject();
         if(definition!=null){
-            if(definition.authorAccountUID != ClientGamestate.accountUID && !DEV_MODE) {
+            if(definition.authorAccountUID != localPlayer.account.accountUID && !DEV_MODE) {
                 modal(UIModal.MODAL_CONTINUE,"You do not have edit permission on this card.");
             } else {
                 modal(UIModal.MODAL_YES_NO, "This will destroy all your\ncurrent progress. Continue?",this::completeEditCard);
@@ -225,7 +224,7 @@ public class UICardEditor extends UIPanel{
 
     protected void completeEditCard(){
         CardDefinition definition = cardDefinitions.getSelectedObject();
-        if(definition!=null && (definition.authorAccountUID == ClientGamestate.accountUID || DEV_MODE)) {
+        if(definition!=null && (definition.authorAccountUID == localPlayer.account.accountUID || DEV_MODE)) {
             this.definition = definition;
             refreshEditor();
         }
@@ -236,7 +235,7 @@ public class UICardEditor extends UIPanel{
     }
 
     protected void actionSaveCard(){
-        if(!netClient.isReady()){
+        if(!isNetReady()){
             modal(UIModal.MODAL_CONTINUE,"Not connected");
         } else if(definition.uid==-1){
             modal(UIModal.MODAL_CONTINUE, "Card was created offline,\nand cannot be saved.");
@@ -245,22 +244,22 @@ public class UICardEditor extends UIPanel{
         } else if (definition.validateDefinition()!=null){
             modal(UIModal.MODAL_CONTINUE, "Cannot save:\n"+definition.validateDefinition());
         } else {
-            netClient.sendEvent(new UpdateCardDefinitionNetEvent(definition));
+            netInterface.sendEvent(new UpdateCardDefinitionNetEvent(definition));
         }
     }
 
     protected void requestNewCard(){
-        if(netClient == null || !netClient.isReady()){
+        if(!isNetReady()){
             modal(UIModal.MODAL_CONTINUE, "You are offline. New cards\ncreated offline cannot be saved,\neven once connected.",()->createNewCard(-1));
             createNewCard(-1);
             return;
         }
         waitingModal=modal(UIModal.MODAL_INFO_ONLY,"Requesting new card id...");
-        netClient.sendEvent(new RequestCardIDNetEvent());
+        netInterface.sendEvent(new RequestCardIDNetEvent());
     }
 
     public void createNewCard(int cardUID){
-        definition=new CardDefinition(cardUID, ClientGamestate.accountUID);
+        definition=new CardDefinition(cardUID, localPlayer.account.accountUID);
         refreshEditor();
     }
 

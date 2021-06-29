@@ -80,6 +80,8 @@ public class CardSourceManager {
         if (source.definition.uid != cardSources.size())
             throw new RuntimeException("Can't create a card in a range that already exists");
         cardSources.add(source);
+        if(isGoodCard(source))
+            goodCardCount++;
         if(uiCardList!=null){
             uiCardList.refreshIndex(source.definition.uid);
             if(cardSources.size()==1){

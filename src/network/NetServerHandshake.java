@@ -1,5 +1,7 @@
 package network;
 
+import Gamestate.Player;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,13 +12,14 @@ public class NetServerHandshake extends NetSerializable {
     public boolean success;
     public String message;
     public int clientID;
-    public int accountUID;
+    public Player clientPlayer;
 
 
     public NetServerHandshake() {
         this.success = false;
         this.message = "";
         this.clientID = LOCAL_USER;
+        this.clientPlayer = null;
     }
 
     public NetServerHandshake(DataInputStream dis) throws IOException {
@@ -27,16 +30,15 @@ public class NetServerHandshake extends NetSerializable {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeBoolean(success);
         dos.writeInt(clientID);
-        dos.writeInt(accountUID);
         dos.writeUTF(message);
+        clientPlayer.serialize(dos);
     }
 
-    @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
+    private void deserialize(DataInputStream dis) throws IOException {
         success = dis.readBoolean();
         clientID = dis.readInt();
-        accountUID = dis.readInt();
         message = dis.readUTF();
+        clientPlayer =  new Player(dis);
     }
 
     @Override
@@ -45,7 +47,6 @@ public class NetServerHandshake extends NetSerializable {
                 "success=" + success +
                 ", message='" + message + '\'' +
                 ", clientID=" + clientID +
-                ", accountUID=" + accountUID +
                 '}';
     }
 }

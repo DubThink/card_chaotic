@@ -14,6 +14,9 @@ public interface NetEventTypeID {
     int UPDATE_CARD_DEFINITION = 10;
     int SYNC_COMPLETE = 11;
     int KEEPALIVE = 12;
+    int GAME_OBJECT_UPDATE = 13;
+    int GIVE_TEST_CARD_STACK = 14;
+    int GAME_OBJECT_TRANSFER = 15;
 
     /**
     * GO PUT THE RIGHT LINE IN {@link NetworkEventTransceiver}

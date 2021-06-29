@@ -52,10 +52,11 @@ public abstract class GameBase extends AdvancedApplet {
 
         uiRoot = new UIBase(0, 0, width, height);
 
-        openSchemaHandler = (schema, readonly, openSchema1) -> {
+        openSchemaHandler = (schema, readonly, openSchema1, x, y) -> {
             if(schema==null)return;
+            System.out.println("x="+x+" y="+y);
             new SchemaEditDefinition(schema,
-                    uiRoot.addChild(new UIWindowPanel(300,10,600,900,schema.toString()),UILayer.POPUP).getInnerPanel(),
+                    uiRoot.addChild(new UIWindowPanel(x,y,600,900,schema.toString()),UILayer.POPUP).getInnerPanel(),
                     readonly,
                     openSchema1);
         };

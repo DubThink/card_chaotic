@@ -25,7 +25,6 @@ public class UIModal extends UIBase {
 
     public UIModal(int modalType, String msg){
         this(modalType,msg,null,null);
-        System.out.println("testistgawhng");
     }
 
     public UIModal(int modalType, String msg, Action positiveAction){

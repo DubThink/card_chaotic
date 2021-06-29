@@ -31,8 +31,7 @@ public class NetClientHandshake extends NetSerializable {
         dos.writeUTF(displayName);
     }
 
-    @Override
-    protected void deserialize(DataInputStream dis) throws IOException {
+    private void deserialize(DataInputStream dis) throws IOException {
         clientNetVersion = dis.readInt();
         clientVersion = dis.readInt();
         accountName = dis.readUTF();

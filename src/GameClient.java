@@ -1,9 +1,10 @@
 import Client.*;
-import Gamestate.Card;
-import Gamestate.CardDefinition;
+import Gamestate.CardStack;
+import Gamestate.Gameobjects.GameObjectManager;
+import Gamestate.Gameobjects.GameObjectTransferEvent;
+import Gamestate.Gameobjects.GameObjectUpdateEvent;
 import Globals.Style;
 import Schema.DiskUtil;
-import Server.CardSource;
 import UI.*;
 import core.*;
 import network.event.*;
@@ -19,9 +20,9 @@ import static com.jogamp.newt.event.KeyEvent.*; // use this for p2d-based graphi
 public class GameClient extends GameBase {
 
     public void settings() {
-        fullScreen("core.AdvancedGraphics");
+//        fullScreen("core.AdvancedGraphics");
         super.settings();
-//        size(1600, 900, "core.AdvancedGraphics");
+        size(1600, 900, "core.AdvancedGraphics");
     }
 
     UICardEditor cardEditor;
@@ -29,6 +30,9 @@ public class GameClient extends GameBase {
     ConnectScreen connectScreen;
 
     ImageNetEvent testIMG;
+
+    CardStack testStack;
+    UICardStackView textStackView;
 
     static {
         Globals.Debug.stateDebug = new ClientDebugPanel();
@@ -79,24 +83,33 @@ public class GameClient extends GameBase {
 
         cardEditor.setEnabled(false);
 
-        CardSource s = DiskUtil.tryToLoadFromFileTyped(CardSource.class, "C:\\devspace\\doxo\\data\\server\\cards/card_12.card");
-        UICardView backView = uiRoot.addChild(new UICardView(100,10,1,UILayer.FIELD));
-        UICardView definitionView = uiRoot.addChild(new UICardView(100+20+ CardDefinition.CARD_WIDTH,10,1,UILayer.FIELD));
-        UICardView instanceView = uiRoot.addChild(new UICardView(100+40+ CardDefinition.CARD_WIDTH*2,10,1,UILayer.FIELD));
 
-        UICardView backView2 = uiRoot.addChild(new UICardView(100,692,.5f,UILayer.FIELD));
-        UICardView definitionView2 = uiRoot.addChild(new UICardView(100+20+ CardDefinition.CARD_WIDTH,692,.5f,UILayer.FIELD));
-        UICardView instanceView2 = uiRoot.addChild(new UICardView(100+40+ CardDefinition.CARD_WIDTH*2,692,.5f,UILayer.FIELD));
+        textStackView = uiRoot.addChild(new UICardStackView(0,100,0,-100,.75f));
 
 
-        backView.setCardBackView();
-        backView2.setCardBackView();
-        definitionView.setCardDefinitionView(s.definition);
-        definitionView2.setCardDefinitionView(s.definition);
-        Card testCard = new Card(s.definition);
-        testCard.initializeCard();
-        instanceView.setCardView(testCard,false);
-        instanceView2.setCardView(testCard,false);
+//        UICardView backView = uiRoot.addChild(new UICardView(100,10,1,UILayer.FIELD));
+//        UICardView definitionView = uiRoot.addChild(new UICardView(100+20+ CardDefinition.CARD_WIDTH,10,1,UILayer.FIELD));
+//        UICardView instanceView = uiRoot.addChild(new UICardView(100+40+ CardDefinition.CARD_WIDTH*2,10,1,UILayer.FIELD));
+//
+//        UICardView backView2 = uiRoot.addChild(new UICardView(100,692,.5f,UILayer.FIELD));
+//        UICardView definitionView2 = uiRoot.addChild(new UICardView(100+20+ CardDefinition.CARD_WIDTH,692,.5f,UILayer.FIELD));
+//        UICardView instanceView2 = uiRoot.addChild(new UICardView(100+40+ CardDefinition.CARD_WIDTH*2,692,.5f,UILayer.FIELD));
+//
+//        Card testCard = new Card(s.definition);
+//        testCard.initializeCard();
+//
+//        for (int i = 0; i < 100; i++) {
+//            uiRoot.addChild(new UICardView(i*4+100+40+ CardDefinition.CARD_WIDTH*2,i*2+692,.5f,UILayer.FIELD)).setCardView(testCard, true);
+//        }
+//
+//
+//        backView.setCardBackView();
+//        backView2.setCardBackView();
+//        definitionView.setCardDefinitionView(s.definition);
+//        definitionView2.setCardDefinitionView(s.definition);
+//
+//        instanceView.setCardView(testCard,false);
+//        instanceView2.setCardView(testCard,false);
 
         //openSchema(testCard, false);
 
@@ -159,6 +172,13 @@ public class GameClient extends GameBase {
                     syncModal.closePositive();
                     syncModal = null;
                 }
+            } else if (event instanceof GiveTestCardStackEvent giveTestCardStackEvent){
+                testStack = giveTestCardStackEvent.stack;
+                textStackView.setStack(testStack);
+            } else if (event instanceof GameObjectUpdateEvent gameObjectUpdateEvent){
+                GameObjectManager.handleNetEvent(gameObjectUpdateEvent);
+            } else if (event instanceof GameObjectTransferEvent gameObjectTransferEvent){
+                GameObjectManager.handleNetEvent(gameObjectTransferEvent);
             } else if(gameStateManager.handleNetEvent(event)){
                 // pass
             } else {
@@ -177,6 +197,18 @@ public class GameClient extends GameBase {
             }
             if (keyCode == VK_F4) {
                 connectScreen.toggle();
+            }
+            if (keyCode == VK_F5) {
+                if(localPlayer!=null)
+                    openSchema(localPlayer,false);
+                else
+                    System.err.println("No local player");
+            }
+            if (keyCode == VK_F6) {
+                if(testStack!=null)
+                    openSchema(testStack,false);
+                else
+                    System.err.println("No local player");
             }
         }
     }

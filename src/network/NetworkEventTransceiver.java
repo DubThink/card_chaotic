@@ -1,5 +1,7 @@
 package network;
 
+import Gamestate.Gameobjects.GameObjectTransferEvent;
+import Gamestate.Gameobjects.GameObjectUpdateEvent;
 import core.ExceptionNotify;
 import network.event.*;
 
@@ -69,6 +71,9 @@ public class NetworkEventTransceiver extends Thread {
                         case NetEventTypeID.UPDATE_CARD_DEFINITION -> new UpdateCardDefinitionNetEvent(dis);
                         case NetEventTypeID.SYNC_COMPLETE -> new SyncCompleteNetEvent(dis);
                         case NetEventTypeID.KEEPALIVE -> new KeepaliveNetEvent(dis);
+                        case NetEventTypeID.GAME_OBJECT_UPDATE -> new GameObjectUpdateEvent(dis);
+                        case NetEventTypeID.GIVE_TEST_CARD_STACK -> new GiveTestCardStackEvent(dis);
+                        case NetEventTypeID.GAME_OBJECT_TRANSFER -> new GameObjectTransferEvent(dis);
                         default -> throw new RuntimeException("NetEvent with ID " + id + " is unhandled.");
                     };
                     if(rcvd instanceof KeepaliveNetEvent){

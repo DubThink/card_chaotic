@@ -13,7 +13,7 @@ public class TemplateSchemaClass extends VersionedSerializable{
 
     public TemplateSchemaClass(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
-        deserialize(dis);
+        deserializeVersioned(dis);
     }
 
     @Override

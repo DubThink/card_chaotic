@@ -2,6 +2,7 @@ package Server;
 
 import Gamestate.Account;
 import Gamestate.Player;
+import Globals.Assert;
 import Schema.AccountManager;
 import UI.UILogView;
 import UI.UIPanel;
@@ -29,6 +30,11 @@ public class ServerEnvironment {
         svPlayers = new ArrayList<>();
         jipHandlers = new ArrayList<>();
         cardSourceManager = new CardSourceManager();
+    }
+
+    public static boolean SERVER;
+    public static void SERVER_ONLY(){
+        Assert.bool(SERVER);
     }
 
     public static int getPlayerCount(){

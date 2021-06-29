@@ -50,6 +50,8 @@ public class Style {
     public static int fillColorPanel = Util.pColor(new Color(49, 49, 56));
     public static int fillColorModalBG = Util.pColor(new Color(0, 0, 0, 65));
 
+    public static int selectionColor = Util.pColor(new Color(70, 220, 203));
+
 
     public static int scrollBarColor = Util.pColor(new Color(212, 212, 212, 154));
 

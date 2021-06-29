@@ -1,7 +1,6 @@
 package network;
 
-import Gamestate.ClientGamestate;
-import core.ExceptionNotify;
+import Client.ConnectInfo;
 import core.Notify;
 
 import java.io.DataInputStream;
@@ -10,14 +9,16 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
-import static Client.ClientEnvironment.sysMessage;
+import static Client.ClientEnvironment.localPlayer;
 import static network.NetEvent.LOCAL_USER;
 
-public class NetworkClient extends NetworkEventTransceiver {
+public class NetworkClient extends NetworkEventTransceiver implements NetClientInterface {
 
     int clientUID;
 
     String targetIP;
+
+    public ConnectInfo connectInfo;
 
     public Notify notifyConnected;
     public Notify notifyDisconnected;
@@ -37,7 +38,7 @@ public class NetworkClient extends NetworkEventTransceiver {
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
-            NetClientHandshake clientHandshake = new NetClientHandshake(ClientGamestate.accountName, ClientGamestate.displayName);
+            NetClientHandshake clientHandshake = new NetClientHandshake(connectInfo.accountName(), connectInfo.displayName());
             clientHandshake.serialize(dos);
 
             System.out.println("Sending handshake "+clientHandshake);
@@ -58,7 +59,7 @@ public class NetworkClient extends NetworkEventTransceiver {
 
             if(serverHandshake.success) {
                 clientUID = serverHandshake.clientID;
-                ClientGamestate.accountUID = serverHandshake.accountUID;
+                localPlayer = serverHandshake.clientPlayer;
                 System.out.println("Connected");
                 if(notifyConnected !=null)
                     notifyConnected.fire();
@@ -104,6 +105,17 @@ public class NetworkClient extends NetworkEventTransceiver {
     @Override
     public String toString() {
         return "NetworkClient{}";
+    }
+
+    @Override
+    public int translateUserIDToNet(int localID) {
+        return localID==LOCAL_USER ? clientUID : localID;
+    }
+
+    @Override
+    public int translateUserIDToLocal(int netID) {
+        return netID==clientUID ? LOCAL_USER : netID;
+
     }
 
     public int getClientUID() {

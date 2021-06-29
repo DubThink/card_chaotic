@@ -26,7 +26,7 @@ public class AsyncIOHandler extends Thread {
             }
             try {
                 synchronized (this) {
-                    System.out.println("waiting...");
+                    System.out.println("asyncIO idling...");
                     wait();
                 }
             } catch (InterruptedException e) {

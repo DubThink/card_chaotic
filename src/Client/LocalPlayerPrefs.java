@@ -28,7 +28,7 @@ public class LocalPlayerPrefs extends VersionedSerializable {
 
     public LocalPlayerPrefs(DataInputStream dis) throws VersionMismatchException, IOException {
         super(dis);
-        deserialize(dis);
+        deserializeVersioned(dis);
     }
 
     @Override

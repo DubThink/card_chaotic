@@ -1,12 +1,16 @@
 package UI;
 
 import Gamestate.Card;
+import Gamestate.CardActionManager;
 import Gamestate.CardDefinition;
 import Globals.GlobalEnvironment;
 import Globals.Style;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
 import processing.core.PConstants;
+
+import static Globals.GlobalEnvironment.modifierCtrl;
+import static Globals.GlobalEnvironment.modifierShift;
 
 public class UICardView extends UIBase {
     public Card card;
@@ -17,7 +21,9 @@ public class UICardView extends UIBase {
     UICounterView healthCV,counter1CV;
 
     float scale;
-
+    public UICardView(int x, int y, float scale) {
+        this(x, y, scale, UILayer.INTERFACE);
+    }
     public UICardView(int x, int y, float scale, UILayer layer) {
         super(x, y, (int)(CardDefinition.CARD_WIDTH* scale), (int)(CardDefinition.CARD_HEIGHT* scale), layer);
         this.scale = scale;
@@ -36,6 +42,7 @@ public class UICardView extends UIBase {
 
     @Override
     protected void _draw(AdvancedApplet p) {
+        if(card==null)return;
         healthCV.setEnabled(!card.flipped);
         counter1CV.setEnabled(!card.flipped);
         if(card!=null) {
@@ -47,6 +54,12 @@ public class UICardView extends UIBase {
                 else
                     p.image(card.definition.getRenderedImage(p), cx, cy, cw, ch);
             }
+        }
+        if (card == CardActionManager.getSelection()) {
+            p.getAdvGraphics().expertStrokeWeight(4);
+            p.stroke(Style.selectionColor);
+            p.noFill();
+            CardDefinition.renderShapeRect(p.getAdvGraphics(),cx,cy,scale);
         }
 
     }
@@ -84,7 +97,7 @@ public class UICardView extends UIBase {
 
     public UICardView setCardView(Card card, boolean readonly){
         this.card = card;
-        this.readonly = readonly;
+        setReadonly(readonly);
         healthCV.setCounter(card.health);
         counter1CV.setCounter(card.counter1);
         return this;
@@ -101,10 +114,19 @@ public class UICardView extends UIBase {
         return this;
     }
 
+    public void setReadonly(boolean val){
+        readonly = val;
+        healthCV.setInteractable(!readonly);
+        counter1CV.setInteractable(!readonly);
+    }
+
     @Override
     protected boolean _handleMouseInput(boolean down, int button, int x, int y) {
         if (down && button == PConstants.CENTER && isPointOver(x,y) && GlobalEnvironment.DEV_MODE) {
-            GlobalEnvironment.openSchema(card,false);
+            GlobalEnvironment.openSchema(card,modifierCtrl?false:readonly);
+        }
+        if (down && button == PConstants.LEFT && isPointOver(x,y)) {
+            CardActionManager.selectCard(card);
         }
         return super._handleMouseInput(down, button, x, y);
     }

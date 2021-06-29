@@ -1,5 +1,9 @@
 import Gamestate.Account;
+import Gamestate.Card;
+import Gamestate.CardStack;
+import Gamestate.Gameobjects.GameObjectManager;
 import Globals.Config;
+import Globals.GlobalEnvironment;
 import Globals.Style;
 import Schema.AccountManager;
 import Schema.DiskUtil;
@@ -20,6 +24,8 @@ import java.util.ArrayList;
 
 import static Server.ServerEnvironment.*;
 import static Globals.GlobalEnvironment.*;
+import static network.NetEvent.LOCAL_USER;
+import static network.NetEvent.SERVER_USER;
 
 public class GameServer extends GameBase {
 
@@ -27,6 +33,7 @@ public class GameServer extends GameBase {
         super.settings();
         size(1200, 900, "core.AdvancedGraphics");
 //        fullScreen(P3D,-2);
+        SERVER=true;
     }
 
     static {
@@ -46,6 +53,10 @@ public class GameServer extends GameBase {
 
     UIPanel cardControlPanel;
     UIPanel accountControlPanel;
+
+    UIPanel devPanel;
+
+    CardStack testStack;
 
     @Override
     public void setup() {
@@ -80,6 +91,15 @@ public class GameServer extends GameBase {
         phasePanel = tabWell.addTab("Phase Control");
         cardControlPanel = tabWell.addTab("Card Library");
         accountControlPanel = tabWell.addTab("Accounts");
+        if(DEV_MODE) {
+            devPanel = tabWell.addTab("Dev");
+            devPanel.addChild(new UIButton(10,10,150,30, "add card",
+                    () ->testStack.addCard( new Card(cardSourceManager.randomCardSource().definition).initializeCard())));
+            devPanel.addChild(new UIButton(10,10+40,150,30, "transfer ownership to P1",
+                    () -> testStack.giveOwnershipToPeer(1)));
+
+
+        }
 
         //Style.font32.font.initInjection();
         ((AdvancedGraphics) g).initializeInjector();
@@ -92,6 +112,8 @@ public class GameServer extends GameBase {
             ss = null;
 
         }
+
+        GlobalEnvironment.netInterface = new ServerNetClient();
 
         svPlayers = new ArrayList<>();
 
@@ -106,6 +128,15 @@ public class GameServer extends GameBase {
         cardSourceManager.setupControlPanel(cardControlPanel);
         cardSourceManager.loadCardLibraryFromDisk();
         accountManager.setupControlPanel(accountControlPanel);
+
+
+
+        // TEST CARD
+        testStack = new CardStack(LOCAL_USER);
+        CardSource s = DiskUtil.tryToLoadFromFileTyped(CardSource.class, "C:\\devspace\\doxo\\data\\server\\cards/card_12.card");
+        Card testCard = new Card(s.definition);
+        testCard.initializeCard();
+        testStack.addCard(testCard);
 
         super.finalizeSetup();
     }
@@ -193,13 +224,13 @@ public class GameServer extends GameBase {
                     SvPlayer player = playerConnect(account, clientHandshake.displayName, handler);
                     reply.success = true;
                     reply.clientID = player.player.playerIndex;
-                    reply.accountUID = account.accountUID;
+                    reply.clientPlayer = player.player;
                 } else if(getPlayerByAccountName(clientHandshake.accountName).handler.connectionDropped){
                     // account previously connected but dropped
                     SvPlayer player = playerConnect(accountManager.getAccountByName(clientHandshake.accountName), clientHandshake.displayName, handler);
                     reply.success = true;
                     reply.clientID = player.player.playerIndex;
-                    reply.accountUID = player.player.account.accountUID;
+                    reply.clientPlayer = player.player;
                 } else {
                     reply.message = "That account is already connected";
                 }
@@ -216,13 +247,7 @@ public class GameServer extends GameBase {
             NetworkClientHandler handler = player.handler;
 
             if(!handler.isSynced()){
-                // send the current game state to client
-                svLog("Syncing...");
-                cardSourceManager.defineAllCards(handler);
-                // TODO finish sync code
-                svLog("Synced");
-                handler.setSynced(true);
-                handler.sendSyncingEvent(new SyncCompleteNetEvent());
+                syncClient(player, handler);
             }
 
             if(handler.isReady()) {
@@ -251,6 +276,17 @@ public class GameServer extends GameBase {
             }
             player.wasReady = handler.isReady();
         }
+    }
+
+    protected void syncClient(SvPlayer svPlayer, NetworkClientHandler handler) {
+        // send the current game state to client
+        svLog("Syncing...");
+        cardSourceManager.defineAllCards(handler);
+        handler.sendSyncingEvent(new GiveTestCardStackEvent(testStack));
+        // TODO finish sync code
+        svLog("Synced");
+        handler.setSynced(true);
+        handler.sendSyncingEvent(new SyncCompleteNetEvent());
     }
 
     @Override
