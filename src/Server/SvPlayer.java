@@ -15,4 +15,8 @@ public class SvPlayer {
         this.player = player;
         this.handler = handler;
     }
+
+    public int getPeerID() {
+        return player.playerIndex;
+    }
 }

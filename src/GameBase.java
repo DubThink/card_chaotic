@@ -140,8 +140,12 @@ public abstract class GameBase extends AdvancedApplet {
         if(keyCode == SHIFT)
             modifierShift = true;
 
-        if (keyCode == VK_F3)
-            Debug.renderUIDebug = !Debug.renderUIDebug;
+        if (keyCode == VK_F3) {
+            if(modifierCtrl)
+                openSchema(uiRoot,false);
+            else
+                Debug.renderUIDebug = !Debug.renderUIDebug;
+        }
         if (keyCode == VK_F7)
             Debug.renderPerfView = !Debug.renderPerfView;
         if (keyCode == VK_F8)

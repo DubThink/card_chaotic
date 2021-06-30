@@ -13,6 +13,7 @@ public class UICounterView extends UICircle {
     protected boolean grabbed;
     protected int lastMouseY;
     float shiftAmount;
+    protected int tmpVal;
 
     public UICounterView(int x, int y, int w, Counter counter, int color) {
         super(x, y, w);
@@ -29,8 +30,15 @@ public class UICounterView extends UICircle {
         p.stroke(color);
 //        p.getAdvGraphics().expertStrokeWeight(2);
         p.ellipse(ccx, ccy, cr*2, cr*2);
+        p.noFill();
         p.ellipse(ccx, ccy, cr*2+1, cr*2+1);
         p.ellipse(ccx, ccy, cr*2+2, cr*2+2);
+
+        float pulseAmt = Style.getPulseAmt(counter.getLastUpdateTimestamp());
+        if(pulseAmt > 0.01) {
+            p.stroke(Style.pulseColor,Style.getPulseAlpha(pulseAmt));
+            p.ellipse(ccx, ccy, cr*2+Style.getPulseSize(pulseAmt)*2, cr*2+Style.getPulseSize(pulseAmt)*2);
+        }
         p.getAdvGraphics().strokeWeight(1);
         Style.chooseFont(Style.F_STANDARD,cw*1.5f).apply(p);
         p.textAlign(PConstants.CENTER, PConstants.CENTER);
@@ -39,14 +47,14 @@ public class UICounterView extends UICircle {
         if(grabbed) {
             int shift = -(int)(shiftAmount*ch);
             p.fill(255,255,255,Util.lerp(shiftAmount,-.5,.5,255,0));
-            dr.text(p,""+(counter.value+1), ccx, ccy+shift-ch);
+            dr.text(p,""+(tmpVal+1), ccx, ccy+shift-ch);
             p.fill(255,255,255,Util.lerp(1-Util.abs(shiftAmount),-.5,.5,0,255));
-            dr.text(p,""+counter.value, ccx, ccy+shift);
+            dr.text(p,""+tmpVal, ccx, ccy+shift);
             p.fill(255,255,255,Util.lerp(shiftAmount,-.5,.5,0,255));
-            dr.text(p,""+(counter.value-1), ccx, ccy+shift+ch);
+            dr.text(p,""+(tmpVal-1), ccx, ccy+shift+ch);
 
         } else {
-            p.text(counter.value, ccx, ccy);
+            p.text(counter.getValue(), ccx, ccy);
         }
     }
 
@@ -59,7 +67,8 @@ public class UICounterView extends UICircle {
     private void mouseUp(){
         grabbed=false;
         if(counter!=null){
-            counter.value-=Math.round(shiftAmount);
+            tmpVal-=Math.round(shiftAmount);
+            counter.localSetValue(tmpVal);
         }
         shiftAmount=0;
     }
@@ -71,14 +80,12 @@ public class UICounterView extends UICircle {
         shiftAmount -= dy*0.02;
         if(shiftAmount>.51){
             shiftAmount-=1;
-            if(counter!=null)
-                counter.value--;
+            tmpVal--;
         }
 
         if(shiftAmount<-.51){
             shiftAmount+=1;
-            if(counter!=null)
-                counter.value++;
+            tmpVal++;
         }
 
         lastMouseY = app.mouseY;
@@ -90,6 +97,8 @@ public class UICounterView extends UICircle {
             MouseInputHandler.registerMouseUse(button,this::mouseUp);
             grabbed=true;
             lastMouseY=y;
+            if(counter!=null)
+                tmpVal = counter.getValue();
             return true;
         } else return isPointOver(x,y);
     }

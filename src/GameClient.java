@@ -84,7 +84,7 @@ public class GameClient extends GameBase {
         cardEditor.setEnabled(false);
 
 
-        textStackView = uiRoot.addChild(new UICardStackView(0,100,0,-100,.75f));
+        textStackView = uiRoot.addChild(new UICardStackView(0,100,0,-100,.5f));
 
 
 //        UICardView backView = uiRoot.addChild(new UICardView(100,10,1,UILayer.FIELD));

@@ -51,4 +51,13 @@ public class Player extends NetSerializable {
 
         hand = new CardStack(dis);
     }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "index=" + playerIndex +
+                ", account=" + account +
+                ", displayName='" + displayName + '\'' +
+                '}';
+    }
 }

@@ -26,7 +26,8 @@ public class SchemaEditDefinition {
         var c = ob.getClass();
         return c.getAnnotation(SchemaEditOptIn.class)!=null ||
                 c.getAnnotation(SchemaEditable.class)!=null ||
-                ob instanceof NetSerializable;
+                ob instanceof NetSerializable ||
+                ob instanceof UIBase;
     }
 
     public SchemaEditDefinition(Object data, UIPanel root, boolean dataReadOnly, OpenSchema openSchema) {

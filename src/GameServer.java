@@ -1,7 +1,10 @@
 import Gamestate.Account;
 import Gamestate.Card;
 import Gamestate.CardStack;
+import Gamestate.Gameobjects.GameObject;
 import Gamestate.Gameobjects.GameObjectManager;
+import Gamestate.Gameobjects.GameObjectTransferEvent;
+import Gamestate.Gameobjects.GameObjectUpdateEvent;
 import Globals.Config;
 import Globals.GlobalEnvironment;
 import Globals.Style;
@@ -24,6 +27,7 @@ import java.util.ArrayList;
 
 import static Server.ServerEnvironment.*;
 import static Globals.GlobalEnvironment.*;
+import static com.jogamp.newt.event.KeyEvent.VK_F6;
 import static network.NetEvent.LOCAL_USER;
 import static network.NetEvent.SERVER_USER;
 
@@ -190,6 +194,16 @@ public class GameServer extends GameBase {
             player.currentNewCardID=-1; // we used the new card, so clear it
             return true;
         }
+        if(event instanceof GameObjectUpdateEvent updateEvent) {
+            GameObjectManager.handleNetEvent(updateEvent);
+            broadcast(updateEvent, false);
+            return true;
+        }
+        if(event instanceof GameObjectTransferEvent transferEvent) {
+            GameObjectManager.handleNetEvent(transferEvent);
+            broadcast(transferEvent, false);
+            return true;
+        }
         return false;
     }
 
@@ -243,38 +257,38 @@ public class GameServer extends GameBase {
             }
         }
 
-        for (SvPlayer player : svPlayers) {
-            NetworkClientHandler handler = player.handler;
+        for (SvPlayer svPlayer : svPlayers) {
+            NetworkClientHandler handler = svPlayer.handler;
 
             if(!handler.isSynced()){
-                syncClient(player, handler);
+                syncClient(svPlayer, handler);
             }
 
             if(handler.isReady()) {
-                if (!player.wasReady) {
+                if (!svPlayer.wasReady) {
                     // on player finish connecting
-                    player.active = true;
+                    svPlayer.active = true;
                     //todo broadcast playerConnected event
-                    svLog("Player connected:"+player.player);
+                    svLog("Player connected:"+svPlayer.player);
                 }
                 while (handler.hasReceivedEvents()) {
                     NetEvent event = handler.pollEvent();
                     svLog("rcvd:" + event.toString());
-                    if (!currentPhase.processNetEvent(player, event) && !globalProcessNetEvent(player, event)) {
-                        broadcast(event, true); // Echo server, essentially
+                    if (!currentPhase.processNetEvent(svPlayer, event) && !globalProcessNetEvent(svPlayer, event)) {
+                        broadcast(event, event.shouldReflect()); // Echo server, essentially
                     }
                 }
 
                 handler.updateTimeouts(dt);
 
             } else {
-                if(player.wasReady){
-                    player.active=false;
-                    svLog("Player disconnected:"+player.player);
-                    //todo broadcast playerDisconnected
+                if(svPlayer.wasReady){
+                    svPlayer.active=false;
+                    svLog("Player disconnected:"+svPlayer.player);
+                    runDropHandling(svPlayer);
                 }
             }
-            player.wasReady = handler.isReady();
+            svPlayer.wasReady = handler.isReady();
         }
     }
 
@@ -289,9 +303,22 @@ public class GameServer extends GameBase {
         handler.sendSyncingEvent(new SyncCompleteNetEvent());
     }
 
+    protected void runDropHandling(SvPlayer svPlayer) {
+        GameObjectManager.runDropHandling(svPlayer.getPeerID());
+        //todo broadcast playerDisconnected
+    }
+
     @Override
     public void keyPressed() {
         super.keyPressed();
+
+        // TODO remove
+        if (keyCode == VK_F6) {
+            if(testStack!=null)
+                openSchema(testStack,false);
+            else
+                System.err.println("No local player");
+        }
     }
 
     @Override

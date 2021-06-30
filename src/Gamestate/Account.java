@@ -56,8 +56,8 @@ public class Account extends VersionedSerializable {
     @Override
     public String toString() {
         return "Account{" +
-                "accountUID=" + accountUID +
-                ", accountName='" + accountName + '\'' +
+                "UID=" + accountUID +
+                ", name='" + accountName + '\'' +
                 '}';
     }
 }

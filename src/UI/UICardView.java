@@ -1,10 +1,12 @@
 package UI;
 
 import Gamestate.Card;
+import Gamestate.CardAction;
 import Gamestate.CardActionManager;
 import Gamestate.CardDefinition;
 import Globals.GlobalEnvironment;
 import Globals.Style;
+import aew.Util;
 import core.AdvancedApplet;
 import core.AdvancedGraphics;
 import processing.core.PConstants;
@@ -45,21 +47,32 @@ public class UICardView extends UIBase {
         if(card==null)return;
         healthCV.setEnabled(!card.flipped);
         counter1CV.setEnabled(!card.flipped);
-        if(card!=null) {
-            if(card.flipped){
-                p.image(CardDefinition.getCardBack(), cx, cy, cw, ch);
-            } else {
-                if (previewMode)
-                    card.definition.drawPreview(p, cx, cy, scale);
-                else
-                    p.image(card.definition.getRenderedImage(p), cx, cy, cw, ch);
-            }
+        if(card.flipped){
+            p.image(CardDefinition.getCardBack(), cx, cy, cw, ch);
+        } else {
+            if (previewMode)
+                card.definition.drawPreview(p, cx, cy, scale);
+            else
+                p.image(card.definition.getRenderedImage(p), cx, cy, cw, ch);
         }
         if (card == CardActionManager.getSelection()) {
-            p.getAdvGraphics().expertStrokeWeight(4);
+            //p.getAdvGraphics().expertStrokeWeight(4);
             p.stroke(Style.selectionColor);
             p.noFill();
             CardDefinition.renderShapeRect(p.getAdvGraphics(),cx,cy,scale);
+        }
+        // pulse
+        float pulseAmt = Style.getPulseAmt(card.getLastUpdateMS());
+        boolean pulseIsSelection =false;
+        if (card == CardActionManager.getSelection()) {
+            float pulseSelection = Style.getPulseAmt(CardActionManager.getLastUpdateMS());
+            pulseIsSelection = pulseSelection>pulseAmt;
+            pulseAmt = pulseIsSelection?pulseSelection:pulseAmt;
+        }
+        if(pulseAmt>0.01) {
+            p.stroke(pulseIsSelection?Style.selectionColor:Style.pulseColor, Style.getPulseAlpha(pulseAmt));
+            p.noFill();
+            CardDefinition.renderShapeRectExpand(p.getAdvGraphics(),cx,cy,scale,Style.getPulseSize(pulseAmt));
         }
 
     }

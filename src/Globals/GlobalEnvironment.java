@@ -29,4 +29,8 @@ public class GlobalEnvironment {
         openSchemaHandler.open(o,readOnly,openSchemaHandler,300,10);
     }
 
+    public static int simTimeMS() {
+        return UIBase.app.millis();
+    }
+
 }

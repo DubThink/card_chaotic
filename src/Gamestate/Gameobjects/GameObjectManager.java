@@ -6,7 +6,8 @@ import Globals.DBG;
 import java.util.ArrayList;
 
 import static Globals.GlobalEnvironment.netInterface;
-import static Server.ServerEnvironment.SERVER_ONLY;
+import static Server.ServerEnvironment.*;
+import static network.NetEvent.LOCAL_USER;
 
 public class GameObjectManager {
     private static final ArrayList<GameObject> objects;
@@ -60,10 +61,23 @@ public class GameObjectManager {
     }
 
     static void giveOwnershipToPeer(GameObject object, int newPeer){
+        if(getPlayerByIndex(newPeer)==null || !getPlayerByIndex(newPeer).active)
+            DBG.Warning("Player with id "+newPeer+" is not a valid peer.");
         object.assertOwned();
         object.setOwner(newPeer);
         netInterface.sendEvent(new GameObjectTransferEvent(object.gameObjectID, newPeer));
 
+    }
+
+    public static void runDropHandling(int peerID) {
+        // don't do drop handling because lots of stuff shouldn't be reclaimed (i.e. hand, etc)
+//        SERVER_ONLY();
+//        for(GameObject object: objects) {
+//            if(object.getOwner() == peerID) {
+//                object.setOwner(LOCAL_USER);
+//                netInterface.sendEvent(new GameObjectTransferEvent(object.gameObjectID, LOCAL_USER));
+//            }
+//        }
     }
 
     private static GameObject getObjectByID(int id) {

@@ -19,7 +19,7 @@ public class ClBiddingPhase implements ClientGamePhase {
 
     public ClBiddingPhase() {
         flight = new ArrayList<>();
-        test = uiRoot.addChild(new UILabel(10, 10, 200, 200,"In Bidding phase"));
+        test = uiRoot.addChild(new UILabel(10, 10, 200, 30,"In Bidding phase"));
         t=0;
     }
 

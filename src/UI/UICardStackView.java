@@ -14,7 +14,7 @@ public class UICardStackView extends UIBase implements CardStackListener {
     CardStack stack;
 
     public UICardStackView(int x, int y, int w, int h, float scale) {
-        super(x, y, w, h);
+        super(x, y, w, h, UILayer.FIELD);
         cardRenderScale = scale;
         cardViews = new ArrayList<>();
     }

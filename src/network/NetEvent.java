@@ -30,4 +30,6 @@ public abstract class NetEvent extends NetSerializable {
 
     @Override
     public abstract String toString();
+
+    public boolean shouldReflect(){return false;}
 }

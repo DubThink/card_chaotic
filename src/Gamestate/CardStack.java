@@ -2,7 +2,6 @@ package Gamestate;
 
 import Gamestate.Gameobjects.GameObject;
 import Gamestate.Gameobjects.GameObjectUpdate;
-import Globals.Assert;
 import Schema.SchemaEditable;
 import network.NetSerializerUtils;
 
@@ -24,6 +23,7 @@ public class CardStack extends GameObject {
 
 
     private static final int ADD_CARD = 1;
+    private static final int FLIP_CARD = 2;
 
     public CardStack(int owner) {
         super(owner);
@@ -48,6 +48,8 @@ public class CardStack extends GameObject {
         if(cards == null)
             cards = new ArrayList<>();
         NetSerializerUtils.deserializeArrayList(cards,dis,Card::new);
+        for(Card card: cards)
+            card.setOwningStack(this);
         publicView = dis.readBoolean();
     }
 
@@ -64,14 +66,31 @@ public class CardStack extends GameObject {
             listener.addedCard(this, idx);
     }
 
+    protected int getIndexOfCard(Card card) {
+        return cards.indexOf(card);
+    }
+
+    public void localApplyCardAction(Card card, CardAction action) {
+        assertOwned();
+        localApplyUpdate(new GOUCardAction(getIndexOfCard(card), action));
+
+    }
+
     @Override
     public void netApplyUpdate(GameObjectUpdate update) {
-        if(update instanceof GOUCard gouCard) {
+        if (update instanceof GOUCard gouCard) {
             if (gouCard.actionType == ADD_CARD) {
                 _addCard(gouCard.card);
             } else {
-                Warning("Action type "+gouCard.actionType+" undefined for GOUCard.");
+                Warning("Action type " + gouCard.actionType + " undefined for GOUCard.");
             }
+        } else if (update instanceof GOUCardAction gouCardAction) {
+            Card c = getCardByIdx(gouCardAction.cardIndex);
+            if(c==null)
+                Warning("Missing card at idx "+gouCardAction.cardIndex);
+            else
+                c.netApplyUpdate(gouCardAction.action);
+
         } else {
             Warning("Unhandled update " + update);
         }
@@ -105,4 +124,5 @@ public class CardStack extends GameObject {
     public void removeListener(CardStackListener listener){
         listeners.remove(listener);
     }
+
 }

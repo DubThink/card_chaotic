@@ -1,6 +1,8 @@
 package Gamestate.Gameobjects;
 
 import Gamestate.GOUCard;
+import Gamestate.GOUCardAction;
+import Gamestate.GOUInt;
 import network.NetEvent;
 import network.NetEventTypeID;
 
@@ -25,6 +27,8 @@ public class GameObjectUpdateEvent extends NetEvent {
         int type = dis.readInt();
         update = switch (type){
             case GOUType.CARD -> new GOUCard(dis);
+            case GOUType.INT -> new GOUInt(dis);
+            case GOUType.CARD_ACTION -> new GOUCardAction(dis);
             default -> null;
         };
 

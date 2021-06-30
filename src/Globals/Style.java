@@ -51,9 +51,27 @@ public class Style {
     public static int fillColorModalBG = Util.pColor(new Color(0, 0, 0, 65));
 
     public static int selectionColor = Util.pColor(new Color(70, 220, 203));
+    public static int pulseColor = Util.pColor(new Color(70, 220, 95));
 
 
     public static int scrollBarColor = Util.pColor(new Color(212, 212, 212, 154));
+
+    public static final int pulseTimeMS = 550;
+    public static final int pulseSize = 15;
+
+    public static float getPulseAmt(int eventMS){
+        final int diff = pulseTimeMS - (GlobalEnvironment.simTimeMS()-eventMS);
+
+        return Util.max(0, ((float)diff)/pulseTimeMS);
+    }
+
+    public static float getPulseAlpha(float amt){
+        return Util.min(255,511*amt);
+    }
+
+    public static float getPulseSize(float amt) {
+        return (1-amt)*pulseSize;
+    }
 
     public static int borderRadius = 0; // for some reason having a border radius causes rects to be offset by -0.5,-0.5
 

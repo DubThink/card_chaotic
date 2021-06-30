@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class NetworkEventTransceiver extends Thread {
     public static final int MILLIS_BETWEEN_KEEPALIVES = 3000;
-    public static final int KEEPALIVE_TIMEOUT_MILLIS = 15000;
+    public static int KEEPALIVE_TIMEOUT_MILLIS = 1500000; // todo undo
 
     public int millisSinceLastSend;
     public int millisSinceLastReceive;
@@ -48,7 +48,7 @@ public class NetworkEventTransceiver extends Thread {
                         if(event instanceof KeepaliveNetEvent)
                             ;//System.out.println(" --> KA update "+rcvd.toString());
                         else
-                            System.out.println("--> Sending:  " + event.toString());
+                            System.out.println("--> Sending("+event.eventTypeIdentifier()+"):  " + event.toString());
                         dos.writeInt(event.eventTypeIdentifier());
                         event.serialize(dos);
                         millisSinceLastSend = 0;
@@ -166,6 +166,7 @@ public class NetworkEventTransceiver extends Thread {
         }
         if(millisSinceLastReceive > KEEPALIVE_TIMEOUT_MILLIS){
             printErrorMessage("ping timeout reached, forcibly disconnecting "+this.toString());
+            forciblyDisconnect();
         }
     }
 }

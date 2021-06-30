@@ -25,10 +25,12 @@ public class CardDefinitionManager {
     }
 
     public void handleNetEvent(DefineCardNetEvent event){
+        System.out.println("handling define event "+event);
         if(event.cardDefinition.uid<cards.size() && cards.get(event.cardDefinition.uid) != null)
             return;
         cards.ensureCapacity(event.cardDefinition.uid+1);
         cards.add(event.cardDefinition.uid, event.cardDefinition);
+        System.out.println("Defining card with id "+event.cardDefinition.uid);
     }
 
     public ArrayList<CardDefinition> getCardList() {

@@ -74,7 +74,7 @@ public class CardDefinition extends VersionedSerializable {
     private static CardBackRenderer cardBackRenderer;
 
     // CONSTANTS
-    public static final int CARD_SCALE = 24;
+    public static final int CARD_SCALE = 22;
     public static final int CARD_WIDTH = CARD_SCALE *20;
     public static final int CARD_HEIGHT = CARD_SCALE *28;
     public static final float CARD_H_W = CARD_WIDTH/2f;
@@ -358,6 +358,10 @@ public class CardDefinition extends VersionedSerializable {
 
     public static void renderShapeRect(AdvancedGraphics p, int x, int y, float scale) {
         p.rect(x,y, CARD_WIDTH*scale, CARD_HEIGHT*scale, scale*CARD_SCALE / 2f);
+    }
+
+    public static void renderShapeRectExpand(AdvancedGraphics p, int x, int y, float scale, float expand) {
+        p.rect(x-expand,y-expand, CARD_WIDTH*scale + expand*2, CARD_HEIGHT*scale + expand*2, scale*CARD_SCALE / 2f);
     }
 
 
